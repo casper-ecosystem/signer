@@ -1,0 +1,31 @@
+{
+  "manifest_version": 2,
+  "version": "0.0.1",
+  "name": "CasperLabs Clarity Sign Helper",
+  "icons": {
+    "48": "logo192.png"
+  },
+  "content_security_policy": "script-src 'self' 'sha256-WDhufSqZOEoWULzS4Nwz11MNyHzZClVYbQ2JSt1vfkw'; object-src 'self'",
+  "background": {
+    "scripts": [
+      "./scripts/background/background.js"
+    ],
+    "persistent": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["file://*/*", "http://*/*", "https://*/*"],
+      "js": ["./scripts/content/content.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "permissions": [],
+  "web_accessible_resources": [
+    "scripts/content/inject.js"
+  ],
+  "browser_action": {
+    "default_popup": "index.html",
+    "default_title": "CasperLabs Clarity Sign Helper"
+  }
+}

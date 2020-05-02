@@ -1,0 +1,26 @@
+#alert-message {
+  position: fixed;
+  right: 0;
+  top:0;
+  width: 100%;
+  z-index: 1030;
+}
+
+#top-right-menu{
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.icon-button {
+  cursor: pointer;
+}
+
+button.link {
+  background: none;
+  border: none;
+  padding-top: 4px;
+  font: inherit;
+  cursor: pointer;
+  font-family: arial, sans-serif;
+}
