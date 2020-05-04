@@ -23,7 +23,7 @@ steps:
 - name: run-build
   commands:
   - npm run build
-  image: "casperlabs/buildenv:latest"
+  image: "bayesimpact/react-base:latest"
 
 trigger:
   branch:
