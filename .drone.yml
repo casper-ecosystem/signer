@@ -24,6 +24,7 @@ steps:
   commands:
   - npm install react-scripts
   - npm install react-router-dom
+  - npm install tweetnacl-ts
   - npm run build
   image: "casperlabs/buildenv:latest"
 

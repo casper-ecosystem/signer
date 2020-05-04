@@ -9,7 +9,7 @@ import AccountManager from './container/AccountManager';
 import { HomeContainer } from './container/HomeContainer';
 import Menu from './components/Menu';
 import { observer } from 'mobx-react';
-import ErrorContainer from '../../../ui/src/containers/ErrorContainer';
+import ErrorContainer from './container/ErrorContainer';
 import ImportAccountPage from './components/ImportAccountPage';
 import { ImportAccountContainer } from './container/ImportAccountContainer';
 import SignMessagePage from './components/SignMessagePage';

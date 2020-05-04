@@ -1,6 +1,6 @@
 import { action, computed, IObservableArray } from 'mobx';
 import { BackgroundManager } from '../BackgroundManager';
-import ErrorContainer from '../../../../ui/src/containers/ErrorContainer';
+import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
 
 class AccountManager {
