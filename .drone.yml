@@ -22,6 +22,7 @@ name: build-test-publish
 steps:
 - name: run-build
   commands:
+  - npm install react-scripts
   - npm run build
   image: "bayesimpact/react-base:latest"
 
