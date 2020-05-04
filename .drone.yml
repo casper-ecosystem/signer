@@ -23,8 +23,9 @@ steps:
 - name: run-build
   commands:
   - npm install react-scripts
+  - npm install react-router-dom
   - npm run build
-  image: "bayesimpact/react-base:latest"
+  image: "casperlabs/buildenv:latest"
 
 trigger:
   branch:
