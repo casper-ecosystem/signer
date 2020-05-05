@@ -32,6 +32,13 @@ steps:
   depends_on:
   - install-dependencies
 
+- name: run-test
+  commands:
+  - npm run test_ci
+  image: "casperlabs/buildenv:latest"
+  depends_on:
+  - run-build
+
 trigger:
   branch:
   - master
