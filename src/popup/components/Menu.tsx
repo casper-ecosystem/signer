@@ -1,6 +1,5 @@
 import { Dropdown } from 'react-bootstrap';
 import React from 'react';
-import Pages from './Pages';
 import AccountManager from '../container/AccountManager';
 import { observer } from 'mobx-react';
 import { Icon } from './Utils';
