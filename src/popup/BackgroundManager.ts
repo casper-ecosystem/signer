@@ -12,7 +12,7 @@ export class BackgroundManager {
     this.rpc = new Rpc({
       addListener: browser.runtime.onMessage.addListener,
       destination: 'background',
-      logMessages: true,
+      logMessages: false,
       postMessage: browser.runtime.sendMessage,
       source: 'popup'
     });
@@ -20,7 +20,6 @@ export class BackgroundManager {
     this.rpc.register('popup.updateState', this.onStateUpdate.bind(this));
     this.rpc.call<AppState>('background.getState').then(appState => {
       this.onStateUpdate(appState);
-      console.log(this.appState.toSignMessages.length);
     });
   }
 

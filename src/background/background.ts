@@ -3,8 +3,7 @@ import { browser } from 'webextension-polyfill-ts';
 import { Rpc } from '../lib/rpc/rpc';
 import { AppState } from '../lib/MemStore';
 import { autorun } from 'mobx';
-import SignMessageManager, { SignMessage } from './SignMessageManager';
-import * as nacl from 'tweetnacl-ts';
+import SignMessageManager from './SignMessageManager';
 import { updateBadge } from './utils';
 import { setupInjectPageAPIServer } from '../lib/rpc/Provider';
 
