@@ -38,12 +38,14 @@
   "scripts": {
     "start": "react-scripts start",
     "build_scripts": "export INLINE_RUNTIME_CHUNK=false && webpack",
-    "build": "react-scripts build",
+    "build_ui": "react-scripts build",
+    "build": "npm run build_ui && npm run build_scripts",
     "watch": "node watch.js",
     "scripts_watch": "export INLINE_RUNTIME_CHUNK=false && webpack --watch",
     "package": "web-ext build --config=webext.config.js",
-    "complete": "npm run build && npm run build_scripts && npm run package",
+    "complete": "npm run build && npm run package",
     "test": "react-scripts test",
+    "test_ci": "react-scripts test --watchAll=false",
     "lint": "eslint .",
     "eject": "react-scripts eject"
   },
