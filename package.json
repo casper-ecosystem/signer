@@ -38,12 +38,14 @@
   "scripts": {
     "start": "react-scripts start",
     "build_scripts": "export INLINE_RUNTIME_CHUNK=false && webpack",
-    "build": "react-scripts build",
+    "build_ui": "react-scripts build",
+    "build": "npm run build_ui && npm run build_scripts",
     "watch": "node watch.js",
     "scripts_watch": "export INLINE_RUNTIME_CHUNK=false && webpack --watch",
     "package": "web-ext build --config=webext.config.js",
-    "complete": "npm run build && npm run build_scripts && npm run package",
+    "complete": "npm run build && npm run package",
     "test": "react-scripts test",
+    "test_ci": "react-scripts test --watchAll=false",
     "lint": "eslint .",
     "eject": "react-scripts eject"
   },
@@ -125,7 +127,7 @@
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0",
     "watchify": "^3.11.1",
-    "web-ext": "^4.1.0",
+    "web-ext": "^4.2.0",
     "webextension-polyfill-ts": "^0.12.0",
     "webpack-cli": "^3.3.11"
   }

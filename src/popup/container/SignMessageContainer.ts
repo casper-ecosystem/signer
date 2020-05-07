@@ -1,5 +1,5 @@
 import { BackgroundManager } from '../BackgroundManager';
-import ErrorContainer from '../../../../ui/src/containers/ErrorContainer';
+import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
 import { browser } from 'webextension-polyfill-ts';
 import { computed } from 'mobx';
