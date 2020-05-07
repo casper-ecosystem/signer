@@ -44,7 +44,6 @@ trigger:
   - master
   - trying
   - staging
-  - OP-1276 # Remove before merge
 
 ---
 kind: pipeline
