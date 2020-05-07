@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "version": "0.0.1",
-  "name": "CasperLabs Clarity Sign Helper",
+  "name": "CasperLabs Signer",
   "icons": {
     "48": "logo192.png"
   },
@@ -26,6 +26,6 @@
   ],
   "browser_action": {
     "default_popup": "index.html",
-    "default_title": "CasperLabs Clarity Sign Helper"
+    "default_title": "CasperLabs Signer"
   }
 }

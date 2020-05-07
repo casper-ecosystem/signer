@@ -1,5 +1,5 @@
-# signer
-Browser plugin used to sign transations
+# Signer
+Browser plugin used to sign transactions for CasperLabs.
 
 ## Architecture 
 
