@@ -1,5 +1,5 @@
 {
-  "name": "plugin",
+  "name": "casperlabs-signer",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -24,8 +24,9 @@
     "react": "^16.13.0",
     "react-bootstrap": "^1.0.0-beta.17",
     "react-dom": "^16.13.0",
+    "minimist": "^1.2.5",
     "react-router-dom": "latest",
-    "react-scripts": "3.4.0",
+    "react-scripts": "3.4.1",
     "readable-stream": "latest",
     "store": "^2.0.12",
     "tweetnacl": "^1.0.3",
