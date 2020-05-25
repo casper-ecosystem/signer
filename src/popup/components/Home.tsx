@@ -11,6 +11,8 @@ import { confirm } from './Confirmation';
 import { LinkButton } from './Utils';
 import { RouteComponentProps, withRouter } from 'react-router';
 
+/* eslint-disable jsx-a11y/anchor-is-valid */
+
 interface Props extends RouteComponentProps {
   authContainer: AccountManager;
   homeContainer: HomeContainer;
