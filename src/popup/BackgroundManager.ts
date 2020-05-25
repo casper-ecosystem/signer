@@ -69,4 +69,8 @@ export class BackgroundManager {
       this.rpc.call<void>('account.switchToAccount', accountName)
     );
   }
+
+  public resetVault() {
+    return this.errors.withCapture(this.rpc.call<void>('account.resetVault'));
+  }
 }

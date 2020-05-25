@@ -57,6 +57,15 @@ class AuthController {
   }
 
   @action
+  async resetVault() {
+    await this.clearAccount();
+    this.appState.selectedUserAccount = null;
+    this.appState.toSignMessages.clear();
+    this.appState.hasCreatedVault = false;
+    store.remove(this.encryptedVaultKey);
+  }
+
+  @action
   async importUserAccount(name: string, privateKeyBase64: string) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock it before adding new account');

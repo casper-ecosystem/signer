@@ -1,12 +1,12 @@
 #alert-message {
   position: fixed;
   right: 0;
-  top:0;
+  top: 0;
   width: 100%;
   z-index: 1030;
 }
 
-#top-right-menu{
+#top-right-menu {
   position: absolute;
   right: 0;
   top: 0;
@@ -23,4 +23,10 @@ button.link {
   font: inherit;
   cursor: pointer;
   font-family: arial, sans-serif;
+}
+
+.reset-vault {
+  text-align: center;
+  margin-top: -1em;
+  font-size: smaller;
 }

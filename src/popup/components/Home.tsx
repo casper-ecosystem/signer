@@ -7,6 +7,7 @@ import AccountManager from '../container/AccountManager';
 import { HomeContainer } from '../container/HomeContainer';
 import { observer } from 'mobx-react';
 import Pages from './Pages';
+import { confirm } from './Confirmation';
 import { LinkButton } from './Utils';
 import { RouteComponentProps, withRouter } from 'react-router';
 
@@ -69,6 +70,13 @@ class Home extends React.Component<Props, {}> {
     );
   }
 
+  resetVaultOnClick() {
+    confirm(
+      <div className="text-danger">Danger!!!</div>,
+      'Resetting vault will delete all imported accounts.'
+    ).then(() => this.props.authContainer.resetVault());
+  }
+
   renderUnlock() {
     return (
       <div>
@@ -102,6 +110,15 @@ class Home extends React.Component<Props, {}> {
               Unlock
             </Button>
           </Form>
+          <div className="reset-vault">
+            <a
+              href="#"
+              className="text-danger"
+              onClick={() => this.resetVaultOnClick()}
+            >
+              Reset Vault?
+            </a>
+          </div>
         </div>
       </div>
     );

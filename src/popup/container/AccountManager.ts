@@ -42,15 +42,14 @@ class AccountManager {
     return this.appState.hasCreatedVault;
   }
 
+  @action
+  async resetVault() {
+    return this.backgroundManager.resetVault();
+  }
+
   @computed
   get isUnLocked(): boolean {
     return this.appState.isUnlocked;
-  }
-
-  @action
-  async clearAccount() {
-    // this.userAccount = [];
-    return;
   }
 
   @computed
