@@ -137,9 +137,11 @@ describe('AuthController', () => {
     const anotherState = new AppState();
     const anotherAuthContainer = new AuthController(anotherState);
     await anotherAuthContainer.unlock(password);
-    expect(anotherState.userAccounts.length).toBe(2);
-    expect(anotherState.selectedUserAccount?.name).toBe(
-      appState.selectedUserAccount?.name
+
+    // jest.toEqual is deep equal
+    expect(anotherState.userAccounts).toEqual(appState.userAccounts);
+    expect(anotherState.selectedUserAccount).toEqual(
+      appState.selectedUserAccount
     );
   });
 });

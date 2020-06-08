@@ -77,7 +77,7 @@ export default class SignMessageManager extends events.EventEmitter {
       throw new Error(`Please select the account firstly`);
     }
     let sig = nacl.sign_detached(
-      nacl.decodeHex(msg.data),
+      Buffer.from(msg.data, 'hex'),
       this.appState.selectedUserAccount.signKeyPair.secretKey
     );
 

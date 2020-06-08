@@ -5,9 +5,17 @@ import * as nacl from 'tweetnacl';
 import { decodeBase64, encodeBase64 } from 'tweetnacl-util';
 import { AppState } from '../lib/MemStore';
 
+interface SerializedSignKeyPairWithAlias {
+  name: string;
+  signKeyPair: {
+    publicKey: string; // base64 encoded
+    secretKey: string; // base64 encoded
+  };
+}
+
 interface PersistentVaultData {
-  userAccounts: SignKeyPairWithAlias[];
-  selectedUserAccount: SignKeyPairWithAlias;
+  userAccounts: SerializedSignKeyPairWithAlias[];
+  selectedUserAccount: SerializedSignKeyPairWithAlias | null;
 }
 
 class AuthController {
@@ -49,6 +57,15 @@ class AuthController {
   }
 
   @action
+  async resetVault() {
+    await this.clearAccount();
+    this.appState.selectedUserAccount = null;
+    this.appState.toSignMessages.clear();
+    this.appState.hasCreatedVault = false;
+    store.remove(this.encryptedVaultKey);
+  }
+
+  @action
   async importUserAccount(name: string, privateKeyBase64: string) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock it before adding new account');
@@ -84,12 +101,49 @@ class AuthController {
   }
 
   /**
+   * Serialize and Deserialize is needed for ByteArray(or Uint8Array),
+   * since JSON.parse(JSON.stringify(ByteArray)) !== ByteArray
+   * @param signKeyPairWithAlias
+   */
+  private serializeSignKeyPairWithAlias(
+    signKeyPairWithAlias: SignKeyPairWithAlias
+  ): SerializedSignKeyPairWithAlias {
+    return {
+      name: signKeyPairWithAlias.name,
+      signKeyPair: {
+        publicKey: encodeBase64(signKeyPairWithAlias.signKeyPair.publicKey),
+        secretKey: encodeBase64(signKeyPairWithAlias.signKeyPair.secretKey)
+      }
+    };
+  }
+
+  private deserializeSignKeyPairWithAlias(
+    serializedKeyPairWithAlias: SerializedSignKeyPairWithAlias
+  ): SignKeyPairWithAlias {
+    return {
+      name: serializedKeyPairWithAlias.name,
+      signKeyPair: {
+        publicKey: decodeBase64(
+          serializedKeyPairWithAlias.signKeyPair.publicKey
+        ),
+        secretKey: decodeBase64(
+          serializedKeyPairWithAlias.signKeyPair.secretKey
+        )
+      }
+    };
+  }
+
+  /**
    * encrypted userAccounts by using passwordHash, and save it to local storage.
    */
   private async persistVault() {
     const encryptedVault = await passworder.encrypt(this.passwordHash!, {
-      userAccounts: this.appState.userAccounts,
+      userAccounts: this.appState.userAccounts.map(
+        this.serializeSignKeyPairWithAlias
+      ),
       selectedUserAccount: this.appState.selectedUserAccount
+        ? this.serializeSignKeyPairWithAlias(this.appState.selectedUserAccount)
+        : null
     });
     this.saveEncryptedVault(encryptedVault);
   }
@@ -142,8 +196,12 @@ class AuthController {
     const vault = await this.restoreVault(passwordHash);
     this.passwordHash = passwordHash;
     this.appState.isUnlocked = true;
-    this.appState.userAccounts.replace(vault.userAccounts);
-    this.appState.selectedUserAccount = vault.selectedUserAccount;
+    this.appState.userAccounts.replace(
+      vault.userAccounts.map(this.deserializeSignKeyPairWithAlias)
+    );
+    this.appState.selectedUserAccount = vault.selectedUserAccount
+      ? this.deserializeSignKeyPairWithAlias(vault.selectedUserAccount)
+      : null;
   }
 
   @computed

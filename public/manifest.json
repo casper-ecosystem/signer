@@ -1,7 +1,8 @@
 {
   "manifest_version": 2,
-  "version": "0.0.1",
+  "version": "0.2.0",
   "name": "CasperLabs Signer",
+  "author": "https://casperlabs.io",
   "icons": {
     "48": "logo192.png"
   },
