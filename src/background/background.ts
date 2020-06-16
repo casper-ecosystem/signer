@@ -11,7 +11,7 @@ const appState = new AppState();
 const accountController = new AccountController(appState);
 const signMessageManager = new SignMessageManager(appState);
 
-initialize().catch(console.error);
+initialize().catch(console.log);
 
 async function initialize() {
   await setupPopupAPIServer();
@@ -29,7 +29,9 @@ async function setupPopupAPIServer() {
   });
   // once appState update, send updated appState to popup
   autorun(() => {
-    rpc.call<void>('popup.updateState', appState);
+    rpc.call<void>('popup.updateState', appState).catch(e => {
+      console.log(e);
+    });
     updateBadge(appState);
   });
   rpc.register(
