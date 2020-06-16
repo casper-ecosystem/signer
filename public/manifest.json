@@ -6,7 +6,6 @@
   "icons": {
     "48": "logo192.png"
   },
-  "content_security_policy": "script-src 'self' 'sha256-WDhufSqZOEoWULzS4Nwz11MNyHzZClVYbQ2JSt1vfkw'; object-src 'self'",
   "background": {
     "scripts": [
       "./scripts/background/background.js"
@@ -15,7 +14,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["file://*/*", "http://*/*", "https://*/*"],
+      "matches": ["*://*.casperlabs.io/*", "*://localhost/*"],
       "js": ["./scripts/content/content.js"],
       "run_at": "document_start",
       "all_frames": true
@@ -23,10 +22,16 @@
   ],
   "permissions": [],
   "web_accessible_resources": [
-    "scripts/content/inject.js"
+    "scripts/content/inpage.js"
   ],
   "browser_action": {
     "default_popup": "index.html",
+    "default_icon": {
+      "16": "logo16.png",
+      "64": "logo64.png",
+      "128": "logo128.png",
+      "192": "logo192.png"
+    },
     "default_title": "CasperLabs Signer"
   }
 }

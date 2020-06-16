@@ -5,13 +5,13 @@ import { registerContentProxy } from '../lib/rpc/Provider';
 // Injects a script tag into the current document
 function injectCustomJs() {
   try {
-    let jsPath = 'scripts/content/inject.js';
+    let jsPath = 'scripts/content/inpage.js';
     const container = document.head || document.documentElement;
     const scriptTag = document.createElement('script');
     scriptTag.setAttribute('type', 'text/javascript');
     scriptTag.src = browser.extension.getURL(jsPath);
     container.insertBefore(scriptTag, container.children[0]);
-    scriptTag.onload = function() {
+    scriptTag.onload = function () {
       // remove after run the script
       container.removeChild(scriptTag);
     };
