@@ -17,6 +17,35 @@ clone:
     image: "casperlabs/buildenv:latest"
 
 kind: pipeline
+name: build-test-publish-op-1357
+
+steps:
+- name: install-dependencies
+  commands:
+  - npm install
+  image: "casperlabs/buildenv:latest"
+
+- name: run-build
+  commands:
+  - npm run build
+  image: "casperlabs/buildenv:latest"
+  depends_on:
+  - install-dependencies
+
+- name: run-test
+  commands:
+  - npm run test_ci
+  image: "casperlabs/buildenv:latest"
+  depends_on:
+  - run-build
+
+trigger:
+  branch:
+  - OP_1357
+  - trying
+  - staging
+
+kind: pipeline
 name: build-test-publish
 
 steps:
