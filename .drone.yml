@@ -41,7 +41,7 @@ steps:
 
 trigger:
   branch:
-  - OP_1357
+  - OP-1357
   - trying
   - staging
 
