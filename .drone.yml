@@ -60,7 +60,7 @@ trigger:
     - OP-1357
   event:
     - push
-
+---
 kind: pipeline
 name: build-test-publish
 
