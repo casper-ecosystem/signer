@@ -54,9 +54,6 @@ steps:
       from_secret: plugin_client_secret
     REFRESH_TOKEN:
       from_secret: plugin_refresh_token
-  when:
-    event: [pull_request]
-    branch: [OP-1357]
 
 trigger:
   branch:
