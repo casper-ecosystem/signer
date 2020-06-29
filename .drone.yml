@@ -55,6 +55,8 @@ steps:
       from_secret: plugin_client_secret
     REFRESH_TOKEN:
       from_secret: plugin_refresh_token
+  depends_on:
+  - run-build
 
 trigger:
   branch:
@@ -101,6 +103,8 @@ steps:
       from_secret: plugin_client_secret
     REFRESH_TOKEN:
       from_secret: plugin_refresh_token
+  depends_on:
+  - run-build
 
 trigger:
   branch:
