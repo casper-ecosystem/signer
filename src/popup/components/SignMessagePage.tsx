@@ -6,9 +6,11 @@ import { Button } from 'react-bootstrap';
 import SignMessageContainer from '../container/SignMessageContainer';
 import Pages from './Pages';
 import { browser } from 'webextension-polyfill-ts';
+import AccountManager from '../container/AccountManager';
 
 interface Props extends RouteComponentProps {
   signMessageContainer: SignMessageContainer;
+  authContainer: AccountManager;
 }
 
 @observer
@@ -31,6 +33,16 @@ class SignMessagePage extends React.Component<Props, {}> {
           </div>
 
           <div className="mt-5 mb-3">
+            {this.props.authContainer.selectedUserAccount && (
+              <React.Fragment>
+                <p>
+                  Active key:{' '}
+                  <span className="font-weight-bold">
+                    {this.props.authContainer.selectedUserAccount.name}
+                  </span>
+                </p>
+              </React.Fragment>
+            )}
             <p>Deploy hash (base16):</p>
             <p style={{ wordBreak: 'break-all' }}>
               {this.props.signMessageContainer.toSignMessage!.data}

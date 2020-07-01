@@ -57,6 +57,7 @@ const App = (props: AppProps) => {
               render={_ => (
                 <SignMessagePage
                   signMessageContainer={props.signMessageContainer}
+                  authContainer={props.authContainer}
                 />
               )}
             />
