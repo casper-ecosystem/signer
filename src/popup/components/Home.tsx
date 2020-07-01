@@ -62,9 +62,17 @@ class Home extends React.Component<Props, {}> {
         <div className="mt-5 mb-4 text-center">
           <img src={logo} alt="logo" width={120} />
         </div>
-        <h5 className="mt-4 mb-3 text-center">
+        <h5 className="mt-4 text-center">
           You have {this.props.authContainer.userAccounts.length} account key(s)
         </h5>
+        {this.props.authContainer.selectedUserAccount && (
+          <h5 className="mt-1 mb-2 text-center">
+            Active key:{' '}
+            <span style={{ wordBreak: 'break-all' }}>
+              {this.props.authContainer.selectedUserAccount.name}
+            </span>
+          </h5>
+        )}
         <div className="text-center" style={{ marginTop: '100px' }}>
           <LinkButton title="Import Account" path={Pages.ImportAccount} />
         </div>
