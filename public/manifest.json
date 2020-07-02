@@ -24,9 +24,10 @@
       "all_frames": true
     }
   ],
-  "permissions": [],
+  "permissions": ["notifications"],
   "web_accessible_resources": [
-    "scripts/content/inpage.js"
+    "scripts/content/inpage.js",
+    "logo64.png"
   ],
   "browser_action": {
     "default_popup": "index.html",
