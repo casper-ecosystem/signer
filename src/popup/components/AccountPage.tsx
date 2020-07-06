@@ -124,10 +124,10 @@ class AccountPage extends React.Component<Props, {}> {
         <TextField
           readonly={true}
           label="Public Key (Base16)"
-          id="import-private-key"
+          id="create-public-key"
           fieldState={
-            formData.privateKeyBase64.$
-              ? nacl.encodeHex(nacl.decodeBase64(formData.privateKeyBase64.$))
+            formData.publicKeyBase64.$
+              ? nacl.encodeHex(nacl.decodeBase64(formData.publicKeyBase64.$))
               : ''
           }
         />
@@ -135,7 +135,7 @@ class AccountPage extends React.Component<Props, {}> {
           readonly={true}
           label="Private Key (Base64)"
           placeholder="Base64 encoded Ed25519 secret key"
-          id="import-private-key"
+          id="create-private-key"
           fieldState={formData.privateKeyBase64}
         />
         <Button
