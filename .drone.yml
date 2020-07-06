@@ -42,8 +42,9 @@ steps:
 - name: upload-extension
   image: "casperlabs/buildenv:latest"
   commands:
-  - ZIP_FILE=$(ls /drone/artifacts/*zip)
-  - echo $ZIP_FILE
+   - pwd
+#  - ZIP_FILE=$(ls /drone/artifacts/*zip)
+#  - echo $ZIP_FILE
 #  script: |
 #    ls -al
 #    echo "TEST"
