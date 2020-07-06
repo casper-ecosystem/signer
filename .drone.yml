@@ -39,6 +39,19 @@ steps:
   depends_on:
   - run-build
 
+- name: run-complete
+  commands:
+  - npm run complete
+  image: "casperlabs/buildenv:latest"
+  depends_on:
+  - run-test
+# uncomment before merging
+#  when:
+#    event:
+#    - push
+#    branch:
+#    - master
+
 - name: upload-extension
   image: "casperlabs/buildenv:latest"
   commands:
@@ -61,7 +74,7 @@ steps:
 #    REFRESH_TOKEN:
 #      from_secret: plugin_refresh_token
   depends_on:
-  - run-test
+  - run-complete
 
 trigger:
   branch:
