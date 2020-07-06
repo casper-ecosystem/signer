@@ -10,16 +10,14 @@ import { HomeContainer } from './container/HomeContainer';
 import Menu from './components/Menu';
 import { observer } from 'mobx-react';
 import ErrorContainer from './container/ErrorContainer';
-import ImportAccountPage from './components/ImportAccountPage';
-import { ImportAccountContainer } from './container/ImportAccountContainer';
 import SignMessagePage from './components/SignMessagePage';
 import SignMessageContainer from './container/SignMessageContainer';
+import AccountPage from './components/AccountPage';
 
 export interface AppProps {
   errors: ErrorContainer;
   authContainer: AccountManager;
   homeContainer: HomeContainer;
-  importAccountContainer: ImportAccountContainer;
   signMessageContainer: SignMessageContainer;
 }
 
@@ -45,8 +43,20 @@ const App = (props: AppProps) => {
               path={Pages.ImportAccount}
               exact
               render={_ => (
-                <ImportAccountPage
-                  importAccountContainer={props.importAccountContainer}
+                <AccountPage
+                  errors={props.errors}
+                  action={'Import'}
+                  authContainer={props.authContainer}
+                />
+              )}
+            />
+            <Route
+              path={Pages.CreateAccount}
+              exact
+              render={_ => (
+                <AccountPage
+                  errors={props.errors}
+                  action={'Create'}
                   authContainer={props.authContainer}
                 />
               )}

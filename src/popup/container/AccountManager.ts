@@ -2,6 +2,12 @@ import { action, computed, IObservableArray } from 'mobx';
 import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
+import { saveAs } from 'file-saver';
+
+export function saveToFile(content: string, filename: string) {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  saveAs(blob, filename);
+}
 
 class AccountManager {
   constructor(
@@ -27,6 +33,19 @@ class AccountManager {
   @computed
   get userAccounts(): IObservableArray<SignKeyPairWithAlias> {
     return this.appState.userAccounts;
+  }
+
+  async downloadActiveKey() {
+    let userAccount = await this.backgroundManager.getSelectUserAccount();
+    // Save the private and public keys to disk.
+    saveToFile(
+      userAccount.signKeyPair.secretKey,
+      `${userAccount.name}.private.key`
+    );
+    saveToFile(
+      userAccount.signKeyPair.publicKey,
+      `${userAccount.name}.public.key`
+    );
   }
 
   async lock() {

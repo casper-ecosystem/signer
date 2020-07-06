@@ -5,7 +5,7 @@ import * as nacl from 'tweetnacl';
 import { decodeBase64, encodeBase64 } from 'tweetnacl-util';
 import { AppState } from '../lib/MemStore';
 
-interface SerializedSignKeyPairWithAlias {
+export interface SerializedSignKeyPairWithAlias {
   name: string;
   signKeyPair: {
     publicKey: string; // base64 encoded
@@ -54,6 +54,15 @@ class AuthController {
       );
     }
     this.appState.selectedUserAccount = this.appState.userAccounts[i];
+  }
+
+  getSelectUserAccount(): SerializedSignKeyPairWithAlias {
+    if (!this.appState.selectedUserAccount) {
+      throw new Error('There is no active key');
+    }
+    return this.serializeSignKeyPairWithAlias(
+      this.appState.selectedUserAccount
+    );
   }
 
   @action

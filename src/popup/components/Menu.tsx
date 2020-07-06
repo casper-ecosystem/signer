@@ -62,6 +62,13 @@ export default class Menu extends React.Component<Props, any> {
               <Dropdown.Divider />
               <Dropdown.Item
                 onClick={() => {
+                  this.props.authContainer.downloadActiveKey();
+                }}
+              >
+                <Icon name={'download'} color={'green'} /> Download active key
+              </Dropdown.Item>
+              <Dropdown.Item
+                onClick={() => {
                   this.props.authContainer.lock();
                 }}
               >

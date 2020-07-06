@@ -76,6 +76,9 @@ class Home extends React.Component<Props, {}> {
         <div className="text-center" style={{ marginTop: '100px' }}>
           <LinkButton title="Import Account" path={Pages.ImportAccount} />
         </div>
+        <div className="text-center mt-2">
+          <LinkButton title="Create Account" path={Pages.CreateAccount} />
+        </div>
       </div>
     );
   }
