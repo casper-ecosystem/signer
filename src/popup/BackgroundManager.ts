@@ -3,6 +3,7 @@ import { Rpc } from '../lib/rpc/rpc';
 import { AppState } from '../lib/MemStore';
 import { action } from 'mobx';
 import ErrorContainer from './container/ErrorContainer';
+import { SerializedSignKeyPairWithAlias } from '../background/AuthController';
 
 export class BackgroundManager {
   private rpc: Rpc;
@@ -67,6 +68,14 @@ export class BackgroundManager {
   public switchToAccount(accountName: string) {
     return this.errors.withCapture(
       this.rpc.call<void>('account.switchToAccount', accountName)
+    );
+  }
+
+  public getSelectUserAccount() {
+    return this.errors.withCapture(
+      this.rpc.call<SerializedSignKeyPairWithAlias>(
+        'account.getSelectUserAccount'
+      )
     );
   }
 

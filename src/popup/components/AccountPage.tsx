@@ -2,7 +2,7 @@ import { observer } from 'mobx-react';
 import React from 'react';
 import { Button } from 'react-bootstrap';
 import { Form, TextField } from './Forms';
-import AccountManager from '../container/AccountManager';
+import AccountManager, { saveToFile } from '../container/AccountManager';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { observable } from 'mobx';
 import {
@@ -17,11 +17,6 @@ interface Props extends RouteComponentProps {
   authContainer: AccountManager;
   errors: ErrorContainer;
   action: 'Import' | 'Create';
-}
-
-function saveToFile(content: string, filename: string) {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  saveAs(blob, filename);
 }
 
 @observer

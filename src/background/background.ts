@@ -48,6 +48,10 @@ async function setupPopupAPIServer() {
     accountController.importUserAccount.bind(accountController)
   );
   rpc.register(
+    'account.getSelectUserAccount',
+    accountController.getSelectUserAccount.bind(accountController)
+  );
+  rpc.register(
     'account.resetVault',
     accountController.resetVault.bind(accountController)
   );
