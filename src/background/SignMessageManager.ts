@@ -2,6 +2,7 @@ import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import { encodeBase64 } from 'tweetnacl-ts';
 import * as nacl from 'tweetnacl-ts';
+import { browser } from 'webextension-polyfill-ts';
 
 type SignMessageStatus = 'unsigned' | 'signed' | 'rejected';
 
@@ -126,7 +127,12 @@ export default class SignMessageManager extends events.EventEmitter {
     // Add msg to local cached message and push it to UI if necessary.
     this.messages.push(msg);
     this.updateAppState();
-
+    browser.notifications.create({
+      title: 'New Signature Request',
+      iconUrl: browser.extension.getURL('logo64.png'),
+      message: 'Open Signer to Approve or Reject the Request',
+      type: 'basic'
+    });
     return msgId;
   }
 

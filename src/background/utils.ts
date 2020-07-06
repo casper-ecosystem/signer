@@ -8,5 +8,5 @@ export function updateBadge(appState: AppState) {
     label = String(count);
   }
   browser.browserAction.setBadgeText({ text: label });
-  browser.browserAction.setBadgeBackgroundColor({ color: '#506F8B' });
+  browser.browserAction.setBadgeBackgroundColor({ color: 'red' });
 }
