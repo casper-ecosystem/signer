@@ -5,7 +5,7 @@ import { FieldState } from 'formstate';
 interface FieldProps<T> {
   id: string;
   label?: string;
-  fieldState: FieldState<T>;
+  fieldState: FieldState<T> | T;
   placeholder?: string;
   width?: number;
   readonly?: boolean;

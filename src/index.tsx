@@ -11,12 +11,10 @@ import { BackgroundManager } from './popup/BackgroundManager';
 import ErrorContainer from './popup/container/ErrorContainer';
 import './popup/styles/custom.scss';
 import { AppState } from './lib/MemStore';
-import { ImportAccountContainer } from './popup/container/ImportAccountContainer';
 import SignMessageContainer from './popup/container/SignMessageContainer';
 
 const appState = new AppState();
 const errorsContainer = new ErrorContainer();
-const importAccountContainer = new ImportAccountContainer();
 const backgroundManager = new BackgroundManager(appState, errorsContainer);
 const authContainer = new AccountManager(
   errorsContainer,
@@ -34,7 +32,6 @@ ReactDOM.render(
   <HashRouter>
     <App
       errors={errorsContainer}
-      importAccountContainer={importAccountContainer}
       authContainer={authContainer}
       homeContainer={homeContainer}
       signMessageContainer={signMessageContainer}
