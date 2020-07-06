@@ -10,7 +10,6 @@ import {
   ImportAccountFormData
 } from '../container/ImportAccountContainer';
 import * as nacl from 'tweetnacl-ts';
-import { saveAs } from 'file-saver';
 import ErrorContainer from '../container/ErrorContainer';
 
 interface Props extends RouteComponentProps {

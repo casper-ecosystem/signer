@@ -1,4 +1,4 @@
-import { action, computed, IObservableArray, toJS } from 'mobx';
+import { action, computed, IObservableArray } from 'mobx';
 import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
