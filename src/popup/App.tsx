@@ -13,6 +13,7 @@ import ErrorContainer from './container/ErrorContainer';
 import SignMessagePage from './components/SignMessagePage';
 import SignMessageContainer from './container/SignMessageContainer';
 import AccountPage from './components/AccountPage';
+import AnalyticsProvider from './components/AnalyticsProvider';
 
 export interface AppProps {
   errors: ErrorContainer;
@@ -25,6 +26,7 @@ const App = (props: AppProps) => {
   return (
     <div>
       <Menu authContainer={props.authContainer} />
+      <AnalyticsProvider />
       <div>
         <div className="container-fluid">
           <Alerts {...props} />
