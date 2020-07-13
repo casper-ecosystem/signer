@@ -26,8 +26,9 @@ ACCESS_TOKEN=$(curl https://accounts.google.com/o/oauth2/token -d "client_id=${C
 
 response_file="$(create_tmpfile)"
 #request_cmd="curl --write-out %{http_code} -s -f --output $response_file -H 'Authorization: Bearer ${ACCESS_TOKEN}' -H 'x-goog-api-version: 2' -X PUT -T $ZIP_FILE https://www.googleapis.com/upload/chromewebstore/v1.1/items/${APPLICATION_ID}"
+curl --write-out %{http_code} -s -f -H "Authorization: Bearer ${ACCESS_TOKEN}" -H 'x-goog-api-version: 2' -X PUT -T $ZIP_FILE "https://www.googleapis.com/upload/chromewebstore/v1.1/items/${APPLICATION_ID}"
 request_cmd="curl --write-out %{http_code} -s -f -H \"Authorization: Bearer ${ACCESS_TOKEN}\" -H 'x-goog-api-version: 2' -X PUT -T $ZIP_FILE https://www.googleapis.com/upload/chromewebstore/v1.1/items/${APPLICATION_ID}"
-response_code=$(${request_cmd} || echo)
+#response_code=$(${request_cmd} || echo)
 
 if [[ $response_code =~ ^(5[0-9][0-9]|4[0-9][0-9])$ ]]; then
   echo "[ERROR] Response code is $response_code"
