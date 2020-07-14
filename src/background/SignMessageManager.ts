@@ -10,8 +10,10 @@ export interface SignMessage {
   id: number;
   data: string;
   rawSig?: string;
+  signPublicKeyBase64?: string; // the public key used to sign the deploy
   time: number;
   status: SignMessageStatus;
+  errMsg?: string;
 }
 
 /**
@@ -34,16 +36,21 @@ export default class SignMessageManager extends events.EventEmitter {
     this.nextId = Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
   }
 
-  public addUnsignedMessageBase16Async(rawMessageBase16: string) {
+  public addUnsignedMessageBase16Async(
+    rawMessageBase16: string,
+    publicKeyBase64?: string
+  ) {
     return new Promise((resolve, reject) => {
-      const msgId = this.addUnsignedMessage(rawMessageBase16);
+      const msgId = this.addUnsignedMessage(rawMessageBase16, publicKeyBase64);
       // await finished, listen to finish event, which will be fired by `rejectMsg` or `signMsg`.
       this.once(`${msgId}:finished`, data => {
         switch (data.status) {
           case 'signed':
             return resolve(data.rawSig);
           case 'rejected':
-            return reject(new Error('User denied message signature.'));
+            return reject(
+              new Error(data.errMsg ?? 'User denied message signature.')
+            );
           default:
             return reject(
               new Error(
@@ -68,6 +75,7 @@ export default class SignMessageManager extends events.EventEmitter {
   public rejectMsg(msgId: number) {
     const msg = this.getMsg(msgId);
     msg.status = 'rejected';
+    msg.errMsg = 'User denied message signature.';
     this.saveAndEmitEventIfNeeded(msg);
   }
 
@@ -77,6 +85,22 @@ export default class SignMessageManager extends events.EventEmitter {
     if (!this.appState.selectedUserAccount) {
       throw new Error(`Please select the account firstly`);
     }
+    let activePublicKey = encodeBase64(
+      this.appState.selectedUserAccount.signKeyPair.publicKey
+    );
+
+    // before generating deployHash, we need set account public key hash,
+    // so if an user switch to another key, reject the signature request
+    if (
+      msg.signPublicKeyBase64 &&
+      activePublicKey !== msg.signPublicKeyBase64
+    ) {
+      msg.status = 'rejected';
+      msg.errMsg = `You have changed the active key, please resend the signature request`;
+      this.saveAndEmitEventIfNeeded(msg);
+      return;
+    }
+
     let sig = nacl.sign_detached(
       Buffer.from(msg.data, 'hex'),
       this.appState.selectedUserAccount.signKeyPair.secretKey
@@ -112,14 +136,21 @@ export default class SignMessageManager extends events.EventEmitter {
 
   /**
    * Construct a SignMessage and add it to AppState.toSignMessages
+   *
    * @param rawMessageBase16: the base16 encoded message that plugin received to sign
+   * @param publicKeyBase64: the base64 encoded public key used to sign the deploy,  if set, we will check whether it is the same as the active key for signing the message, otherwise, we won't check.
+   * @throws Error if publicKeyBase64 is not the same as the key that Signer used to sign the message
    */
-  private addUnsignedMessage(rawMessageBase16: string) {
+  private addUnsignedMessage(
+    rawMessageBase16: string,
+    publicKeyBase64?: string
+  ) {
     const time = new Date().getTime();
     const msgId = this.createId();
     const msg: SignMessage = {
       id: msgId,
       data: rawMessageBase16,
+      signPublicKeyBase64: publicKeyBase64,
       time: time,
       status: 'unsigned'
     };
