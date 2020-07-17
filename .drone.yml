@@ -39,6 +39,39 @@ steps:
   depends_on:
   - run-build
 
+- name: run-complete
+  commands:
+  - npm run complete
+  image: "casperlabs/buildenv:latest"
+  depends_on:
+  - run-test
+  when:
+    event:
+    - push
+    branch:
+    - master
+
+- name: upload-extension
+  image: "casperlabs/buildenv:latest"
+  commands:
+  - "./publish.sh"
+  environment:
+    APPLICATION_ID:
+      from_secret: plugin_application
+    CLIENT_ID:
+      from_secret: plugin_client_id
+    CLIENT_SECRET:
+      from_secret: plugin_client_secret
+    REFRESH_TOKEN:
+      from_secret: plugin_refresh_token
+  depends_on:
+  - run-complete
+  when:
+    event:
+    - push
+    branch:
+    - master
+
 trigger:
   branch:
   - master
