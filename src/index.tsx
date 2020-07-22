@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import 'fontsource-roboto';
 import './index.css';
 import './popup/styles/sb-admin/sb-admin.scss';
 import App from './popup/App';
