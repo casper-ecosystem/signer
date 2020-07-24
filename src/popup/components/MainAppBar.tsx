@@ -10,7 +10,8 @@ import { observer } from 'mobx-react';
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      flexGrow: 1
+      flexGrow: 1,
+      backgroundColor: 'white'
     },
     toolbarMargin: {
       minHeight: '40px'
@@ -36,11 +37,7 @@ export const MainAppBar = observer((props: Props) => {
   if (props.authContainer.hasCreatedVault && props.authContainer.isUnLocked) {
     return (
       <React.Fragment>
-        <AppBar
-          position="static"
-          className={classes.root}
-          color={'transparent'}
-        >
+        <AppBar position="fixed" className={classes.root} color={'transparent'}>
           <Toolbar>
             <Typography variant="h6" className={classes.title}></Typography>
             <MoreMenu authContainer={props.authContainer} />

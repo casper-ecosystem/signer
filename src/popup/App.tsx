@@ -14,6 +14,7 @@ import { Alert, AlertTitle } from '@material-ui/lab';
 import { Container, createStyles, Theme } from '@material-ui/core';
 import { MainAppBar } from './components/MainAppBar';
 import AnalyticsProvider from './components/AnalyticsProvider';
+import { AccountManagementPage } from './components/AccountManagementPage';
 
 export interface AppProps {
   errors: ErrorContainer;
@@ -38,6 +39,13 @@ const App = (props: AppProps) => {
                 authContainer={props.authContainer}
                 homeContainer={props.homeContainer}
               />
+            )}
+          />
+          <Route
+            exact
+            path={Pages.AccountManagement}
+            render={_ => (
+              <AccountManagementPage authContainer={props.authContainer} />
             )}
           />
           <Route
