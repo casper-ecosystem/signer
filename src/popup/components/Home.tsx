@@ -130,7 +130,7 @@ class Home extends React.Component<Props, {}> {
                 color="primary"
                 to={Pages.CreateAccount}
               >
-                Creating Account
+                Create Account
               </Button>
             </FormControl>
           </Grid>

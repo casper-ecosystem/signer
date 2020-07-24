@@ -4,7 +4,7 @@ import { FieldState } from 'formstate';
 import { StandardTextFieldProps, TextField } from '@material-ui/core';
 
 export interface TextFieldWithFormStateProps extends StandardTextFieldProps {
-  fieldState: FieldState<string>;
+  fieldState?: FieldState<string>;
 }
 
 export const TextFieldWithFormState = observer(
@@ -12,12 +12,12 @@ export const TextFieldWithFormState = observer(
     const { fieldState, ...otherProps } = props;
     return (
       <TextField
-        value={fieldState.value}
+        value={fieldState?.value}
         onChange={e => {
-          fieldState.onChange(e.target.value);
+          fieldState?.onChange(e.target.value);
         }}
-        error={fieldState.hasError}
-        helperText={fieldState.error}
+        error={fieldState?.hasError}
+        helperText={fieldState?.error}
         {...otherProps}
       />
     );
