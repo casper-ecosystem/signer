@@ -75,7 +75,7 @@ class Home extends React.Component<Props, {}> {
                     this.props.homeContainer.passwordField.reset();
                   }}
                 >
-                  Creating Vault
+                  Create Vault
                 </Button>
               </FormControl>
             </form>
@@ -97,12 +97,12 @@ class Home extends React.Component<Props, {}> {
         >
           <Grid item className={this.props.classes.alignCenter}>
             <img src={logo} alt="logo" width={120} />
-            <Typography variant={'h5'} align={'center'}>
+            <Typography variant={'h6'} align={'center'}>
               You have {this.props.authContainer.userAccounts.length} account
               key(s)
             </Typography>
             {this.props.authContainer.selectedUserAccount && (
-              <Typography variant={'h5'} align={'center'}>
+              <Typography variant={'h6'} align={'center'}>
                 Active key:{' '}
                 <span style={{ wordBreak: 'break-all' }}>
                   {this.props.authContainer.selectedUserAccount.name}
