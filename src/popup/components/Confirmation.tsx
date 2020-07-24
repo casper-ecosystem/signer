@@ -1,11 +1,17 @@
 import React from 'react';
-import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
 import {
   confirmable,
   createConfirmation,
   ReactConfirmProps
 } from 'react-confirm';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
+} from '@material-ui/core';
 
 interface Props extends ReactConfirmProps {
   proceedLabel: string;
@@ -16,26 +22,38 @@ interface Props extends ReactConfirmProps {
 class Confirmation extends React.Component<Props, {}> {
   render() {
     return (
-      <div className="static-modal">
-        <Modal show={this.props.show} onHide={this.props.dismiss}>
-          <Modal.Header>
-            <Modal.Title>{this.props.title}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>{this.props.confirmation}</Modal.Body>
-          <Modal.Footer>
-            <Button onClick={() => this.props.cancel()}>
-              {this.props.cancelLabel}
-            </Button>
-            <Button
-              className="button-l"
-              variant="primary"
-              onClick={() => this.props.proceed()}
-            >
-              {this.props.proceedLabel}
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      </div>
+      <Dialog
+        open={this.props.show}
+        onClose={this.props.dismiss}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{this.props.title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            {this.props.confirmation}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              this.props.cancel();
+            }}
+            color="secondary"
+          >
+            {this.props.cancelLabel}
+          </Button>
+          <Button
+            onClick={() => {
+              this.props.proceed();
+            }}
+            color="primary"
+            autoFocus
+          >
+            {this.props.proceedLabel}
+          </Button>
+        </DialogActions>
+      </Dialog>
     );
   }
 }
