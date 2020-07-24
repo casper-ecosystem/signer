@@ -40,7 +40,6 @@ const MoreMenu = observer((props: Props) => {
       <Menu
         id={'simple-menu'}
         anchorEl={anchorEl}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         open={Boolean(anchorEl)}
         onClose={handleClose}
@@ -74,6 +73,18 @@ const MoreMenu = observer((props: Props) => {
             );
           })}
           <Divider light />
+          <ListItem
+            dense={true}
+            button
+            onClick={() => {
+              props.authContainer.downloadActiveKey();
+            }}
+          >
+            <CloudDownloadIcon
+              style={{ color: green[500], marginRight: '4px' }}
+            />
+            <ListItemText primary="Download active key" />
+          </ListItem>
           <ListItem
             dense={true}
             button
