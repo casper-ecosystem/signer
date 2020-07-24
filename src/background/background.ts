@@ -48,6 +48,14 @@ async function setupPopupAPIServer() {
     accountController.importUserAccount.bind(accountController)
   );
   rpc.register(
+    'account.removeUserAccount',
+    accountController.removeUserAccount.bind(accountController)
+  );
+  rpc.register(
+    'account.swapTwoAccount',
+    accountController.swapTwoAccount.bind(accountController)
+  );
+  rpc.register(
     'account.getSelectUserAccount',
     accountController.getSelectUserAccount.bind(accountController)
   );

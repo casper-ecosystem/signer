@@ -109,6 +109,45 @@ class AuthController {
     this.persistVault();
   }
 
+  @action
+  async removeUserAccount(publicKeyBase64: string) {
+    if (!this.appState.isUnlocked) {
+      throw new Error('Unlock it before adding new account');
+    }
+
+    let account = this.appState.userAccounts.find(account => {
+      return encodeBase64(account.signKeyPair.publicKey) === publicKeyBase64;
+    });
+
+    if (!account) {
+      throw new Error(`The account does't exists`);
+    }
+
+    this.appState.userAccounts.remove(account);
+
+    if (this.appState.selectedUserAccount?.name === account.name) {
+      this.appState.selectedUserAccount = null;
+    }
+    this.persistVault();
+  }
+
+  @action
+  async swapTwoAccount(index1: number, index2: number) {
+    const len = this.appState.userAccounts.length;
+    if (index1 < 0 || index2 < 0 || index1 >= len || index2 >= len) {
+      throw new Error('Invalid index number');
+    }
+    if (index1 == index2) {
+      return;
+    }
+
+    const temp = this.appState.userAccounts[index1];
+    this.appState.userAccounts[index1] = this.appState.userAccounts[index2];
+    this.appState.userAccounts[index2] = temp;
+
+    this.persistVault();
+  }
+
   /**
    * Serialize and Deserialize is needed for ByteArray(or Uint8Array),
    * since JSON.parse(JSON.stringify(ByteArray)) !== ByteArray

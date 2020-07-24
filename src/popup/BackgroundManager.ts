@@ -53,6 +53,18 @@ export class BackgroundManager {
     );
   }
 
+  public swapTwoAccount(index1: number, index2: number) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.swapTwoAccount', index1, index2)
+    );
+  }
+
+  public removeUserAccount(publicKeyBase64: string) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.removeUserAccount', publicKeyBase64)
+    );
+  }
+
   public signMessage(msgId: number) {
     return this.errors.withCapture(
       this.rpc.call<void>('sign.signMessage', msgId)

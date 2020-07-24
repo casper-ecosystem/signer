@@ -26,6 +26,14 @@ class AccountManager {
     return this.backgroundManager.importUserAccount(name, privateKey);
   }
 
+  async removeUserAccount(publicKeyBase64: string) {
+    return this.backgroundManager.removeUserAccount(publicKeyBase64);
+  }
+
+  async swapTwoAccount(index1: number, index2: number) {
+    return this.backgroundManager.swapTwoAccount(index1, index2);
+  }
+
   switchToAccount(accountName: string) {
     return this.backgroundManager.switchToAccount(accountName);
   }
