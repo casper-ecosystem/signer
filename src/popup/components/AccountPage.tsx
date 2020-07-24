@@ -85,12 +85,7 @@ class AccountPage extends React.Component<Props, {}> {
 
   renderImportForm() {
     return (
-      <form
-        className={this.props.classes.root}
-        onSubmitCapture={() => {
-          this.onImportAccount();
-        }}
-      >
+      <form className={this.props.classes.root}>
         <TextFieldWithFormState
           fullWidth
           label="Private Key"
@@ -108,9 +103,11 @@ class AccountPage extends React.Component<Props, {}> {
         <FormControl fullWidth className={this.props.classes.importButton}>
           <Button
             disabled={this.accountForm.submitDisabled}
-            type="submit"
             color="primary"
             variant={'contained'}
+            onClick={() => {
+              this.onImportAccount();
+            }}
           >
             Import
           </Button>
@@ -122,12 +119,7 @@ class AccountPage extends React.Component<Props, {}> {
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
     return (
-      <form
-        className={this.props.classes.root}
-        onSubmit={() => {
-          this.onCreateAccount();
-        }}
-      >
+      <form className={this.props.classes.root}>
         <TextFieldWithFormState
           fullWidth
           label="Name"
@@ -170,9 +162,11 @@ class AccountPage extends React.Component<Props, {}> {
           <Button
             className="mt-5"
             disabled={this.accountForm.submitDisabled}
-            type="submit"
             color="primary"
             variant="contained"
+            onClick={() => {
+              this.onCreateAccount();
+            }}
           >
             Create
           </Button>
