@@ -52,8 +52,8 @@ async function setupPopupAPIServer() {
     accountController.removeUserAccount.bind(accountController)
   );
   rpc.register(
-    'account.swapTwoAccount',
-    accountController.swapTwoAccount.bind(accountController)
+    'account.reorderAccount',
+    accountController.reorderAccount.bind(accountController)
   );
   rpc.register(
     'account.getSelectUserAccount',

@@ -131,19 +131,34 @@ class AuthController {
     this.persistVault();
   }
 
+  /**
+   * Reorder account
+   * In UI page, a user could drag the account whose index is startIndex, and drop to
+   * a new position endIndex.
+   *
+   * For example, if we have a list, [a,b,c,d,e], now startIndex is 2, endIndex is 4.
+   * After this operation, the result is [a,b,d,e,c]
+   *
+   * @param startIndex
+   * @param endIndex
+   */
   @action
-  async swapTwoAccount(index1: number, index2: number) {
+  async reorderAccount(startIndex: number, endIndex: number) {
     const len = this.appState.userAccounts.length;
-    if (index1 < 0 || index2 < 0 || index1 >= len || index2 >= len) {
+    if (
+      startIndex < 0 ||
+      endIndex < 0 ||
+      startIndex >= len ||
+      endIndex >= len
+    ) {
       throw new Error('Invalid index number');
     }
-    if (index1 == index2) {
+    if (startIndex == endIndex) {
       return;
     }
 
-    const temp = this.appState.userAccounts[index1];
-    this.appState.userAccounts[index1] = this.appState.userAccounts[index2];
-    this.appState.userAccounts[index2] = temp;
+    const removed = this.appState.userAccounts.spliceWithArray(startIndex, 1);
+    this.appState.userAccounts.spliceWithArray(endIndex, 0, removed);
 
     this.persistVault();
   }

@@ -53,9 +53,9 @@ export class BackgroundManager {
     );
   }
 
-  public swapTwoAccount(index1: number, index2: number) {
+  public reorderAccount(index1: number, index2: number) {
     return this.errors.withCapture(
-      this.rpc.call<void>('account.swapTwoAccount', index1, index2)
+      this.rpc.call<void>('account.reorderAccount', index1, index2)
     );
   }
 

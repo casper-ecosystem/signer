@@ -56,7 +56,7 @@ export class AccountManagementPage extends Component<Props, { items: Item[] }> {
       return;
     }
 
-    this.props.authContainer.swapTwoAccount(
+    this.props.authContainer.reorderAccount(
       result.source.index,
       result.destination.index
     );
@@ -80,6 +80,7 @@ export class AccountManagementPage extends Component<Props, { items: Item[] }> {
                   >
                     {(provided, snapshot) => (
                       <ListItem
+                        innerRef={provided.innerRef}
                         ContainerProps={{
                           ...provided.draggableProps,
                           ...provided.dragHandleProps,
@@ -91,7 +92,7 @@ export class AccountManagementPage extends Component<Props, { items: Item[] }> {
                       >
                         <ListItemText primary={item.name} />
                         <ListItemSecondaryAction>
-                          <IconButton edge={'end'}>
+                          <IconButton edge={'end'} onClick={() => {}}>
                             <EditIcon />
                           </IconButton>
                           <IconButton
