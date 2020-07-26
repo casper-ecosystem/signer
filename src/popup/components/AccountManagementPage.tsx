@@ -48,74 +48,66 @@ interface Props {
   authContainer: AccountManager;
 }
 
-@observer
-export class AccountManagementPage extends Component<Props, { items: Item[] }> {
-  onDragEnd(result: DropResult) {
+export const AccountManagementPage = observer((props: Props) => {
+  const onDragEnd = (result: DropResult) => {
     // dropped outside the list
     if (!result.destination) {
       return;
     }
 
-    this.props.authContainer.reorderAccount(
+    props.authContainer.reorderAccount(
       result.source.index,
       result.destination.index
     );
-  }
+  };
 
-  // Normally you would want to split things out into separate components.
-  // But in this example everything is just done in one place for simplicity
-  render() {
-    console.log(this.props.authContainer.userAccounts.length);
-    return (
-      <DragDropContext onDragEnd={result => this.onDragEnd(result)}>
-        <Droppable droppableId="droppable">
-          {(provided, snapshot) => (
-            <RootRef rootRef={provided.innerRef}>
-              <List>
-                {this.props.authContainer.userAccounts.map((item, index) => (
-                  <Draggable
-                    key={item.name}
-                    draggableId={item.name}
-                    index={index}
-                  >
-                    {(provided, snapshot) => (
-                      <ListItem
-                        innerRef={provided.innerRef}
-                        ContainerProps={{
-                          ...provided.draggableProps,
-                          ...provided.dragHandleProps,
-                          style: getItemStyle(
-                            snapshot.isDragging,
-                            provided.draggableProps.style
-                          )
-                        }}
-                      >
-                        <ListItemText primary={item.name} />
-                        <ListItemSecondaryAction>
-                          <IconButton edge={'end'} onClick={() => {}}>
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            edge={'end'}
-                            onClick={() => {
-                              this.props.authContainer.removeUserAccount(
-                                item.name
-                              );
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </List>
-            </RootRef>
-          )}
-        </Droppable>
-      </DragDropContext>
-    );
-  }
-}
+  return (
+    <DragDropContext onDragEnd={result => onDragEnd(result)}>
+      <Droppable droppableId="droppable">
+        {(provided, snapshot) => (
+          <RootRef rootRef={provided.innerRef}>
+            <List>
+              {props.authContainer.userAccounts.map((item, index) => (
+                <Draggable
+                  key={item.name}
+                  draggableId={item.name}
+                  index={index}
+                >
+                  {(provided, snapshot) => (
+                    <ListItem
+                      innerRef={provided.innerRef}
+                      ContainerProps={{
+                        ...provided.draggableProps,
+                        ...provided.dragHandleProps,
+                        style: getItemStyle(
+                          snapshot.isDragging,
+                          provided.draggableProps.style
+                        )
+                      }}
+                    >
+                      <ListItemText primary={item.name} />
+                      <ListItemSecondaryAction>
+                        <IconButton edge={'end'} onClick={() => {}}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          edge={'end'}
+                          onClick={() => {
+                            props.authContainer.removeUserAccount(item.name);
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </List>
+          </RootRef>
+        )}
+      </Droppable>
+    </DragDropContext>
+  );
+});
