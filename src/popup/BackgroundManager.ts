@@ -59,9 +59,9 @@ export class BackgroundManager {
     );
   }
 
-  public removeUserAccount(publicKeyBase64: string) {
+  public removeUserAccount(name: string) {
     return this.errors.withCapture(
-      this.rpc.call<void>('account.removeUserAccount', publicKeyBase64)
+      this.rpc.call<void>('account.removeUserAccount', name)
     );
   }
 

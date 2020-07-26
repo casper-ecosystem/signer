@@ -110,13 +110,13 @@ class AuthController {
   }
 
   @action
-  async removeUserAccount(publicKeyBase64: string) {
+  async removeUserAccount(name: string) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock it before adding new account');
     }
 
     let account = this.appState.userAccounts.find(account => {
-      return encodeBase64(account.signKeyPair.publicKey) === publicKeyBase64;
+      return account.name === name;
     });
 
     if (!account) {
@@ -126,7 +126,10 @@ class AuthController {
     this.appState.userAccounts.remove(account);
 
     if (this.appState.selectedUserAccount?.name === account.name) {
-      this.appState.selectedUserAccount = null;
+      this.appState.selectedUserAccount =
+        this.appState.userAccounts.length > 0
+          ? this.appState.userAccounts[0]
+          : null;
     }
     this.persistVault();
   }

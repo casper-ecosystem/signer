@@ -26,8 +26,8 @@ class AccountManager {
     return this.backgroundManager.importUserAccount(name, privateKey);
   }
 
-  async removeUserAccount(publicKeyBase64: string) {
-    return this.backgroundManager.removeUserAccount(publicKeyBase64);
+  async removeUserAccount(name: string) {
+    return this.backgroundManager.removeUserAccount(name);
   }
 
   async reorderAccount(startIndex: number, endIndex: number) {

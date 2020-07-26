@@ -98,11 +98,8 @@ export class AccountManagementPage extends Component<Props, { items: Item[] }> {
                           <IconButton
                             edge={'end'}
                             onClick={() => {
-                              const pkBase64 = nacl.encodeBase64(
-                                item.signKeyPair.publicKey
-                              );
                               this.props.authContainer.removeUserAccount(
-                                pkBase64
+                                item.name
                               );
                             }}
                           >
