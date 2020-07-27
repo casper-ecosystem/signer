@@ -13,6 +13,7 @@ import AccountPage from './components/AccountPage';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { Container, createStyles, Theme } from '@material-ui/core';
 import { MainAppBar } from './components/MainAppBar';
+import AnalyticsProvider from './components/AnalyticsProvider';
 
 export interface AppProps {
   errors: ErrorContainer;
@@ -24,6 +25,7 @@ export interface AppProps {
 const App = (props: AppProps) => {
   return (
     <div>
+      <AnalyticsProvider />
       <MainAppBar authContainer={props.authContainer} />
       <Container>
         <Alerts {...props} />
