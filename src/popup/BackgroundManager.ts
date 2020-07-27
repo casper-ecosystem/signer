@@ -94,4 +94,10 @@ export class BackgroundManager {
   public resetVault() {
     return this.errors.withCapture(this.rpc.call<void>('account.resetVault'));
   }
+
+  public renameUserAccount(oldName: string, newName: string) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.renameUserAccount', oldName, newName)
+    );
+  }
 }

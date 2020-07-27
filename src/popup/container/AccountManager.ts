@@ -107,6 +107,10 @@ class AccountManager {
   get toSignMessages() {
     return this.appState.toSignMessages;
   }
+
+  async renameUserAccount(oldName: string, newName: string) {
+    return this.backgroundManager.renameUserAccount(oldName, newName);
+  }
 }
 
 export default AccountManager;

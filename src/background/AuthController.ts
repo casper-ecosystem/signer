@@ -166,6 +166,28 @@ class AuthController {
     this.persistVault();
   }
 
+  @action
+  async renameUserAccount(oldName: string, newName: string) {
+    const account = this.appState.userAccounts.find(
+      account => account.name === oldName
+    );
+    if (!account) {
+      throw new Error('Invalid old name');
+    }
+
+    const accountWithNewName = this.appState.userAccounts.find(
+      account => account.name === newName
+    );
+
+    if (accountWithNewName) {
+      throw new Error('There is another account with the same name');
+    }
+
+    account.name = newName;
+
+    this.persistVault();
+  }
+
   /**
    * Serialize and Deserialize is needed for ByteArray(or Uint8Array),
    * since JSON.parse(JSON.stringify(ByteArray)) !== ByteArray
