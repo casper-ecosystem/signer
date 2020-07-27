@@ -11,7 +11,7 @@ import SignMessagePage from './components/SignMessagePage';
 import SignMessageContainer from './container/SignMessageContainer';
 import AccountPage from './components/AccountPage';
 import { Alert, AlertTitle } from '@material-ui/lab';
-import { Container, createStyles, Theme } from '@material-ui/core';
+import { Container } from '@material-ui/core';
 import { MainAppBar } from './components/MainAppBar';
 import AnalyticsProvider from './components/AnalyticsProvider';
 
