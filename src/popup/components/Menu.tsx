@@ -87,27 +87,31 @@ const MoreMenu = observer((props: Props) => {
             );
           })}
           <Divider light />
-          <ListItem
-            dense={true}
-            component={Link}
-            to={Pages.AccountManagement}
-            button
-            onClick={handleClose}
-          >
-            <SettingsIcon className={classes.menuIcon} />
-            <ListItemText primary="Key Management" />
-          </ListItem>
-          <ListItem
-            dense={true}
-            button
-            onClick={() => {
-              props.authContainer.downloadActiveKey();
-              handleClose();
-            }}
-          >
-            <CloudDownloadIcon className={classes.menuIcon} />
-            <ListItemText primary="Download Active Key" />
-          </ListItem>
+          {props.authContainer.userAccounts.length > 0 && (
+            <ListItem
+              dense={true}
+              component={Link}
+              to={Pages.AccountManagement}
+              button
+              onClick={handleClose}
+            >
+              <SettingsIcon className={classes.menuIcon} />
+              <ListItemText primary="Key Management" />
+            </ListItem>
+          )}
+          {props.authContainer.selectedUserAccount && (
+            <ListItem
+              dense={true}
+              button
+              onClick={() => {
+                props.authContainer.downloadActiveKey();
+                handleClose();
+              }}
+            >
+              <CloudDownloadIcon className={classes.menuIcon} />
+              <ListItemText primary="Download Active Key" />
+            </ListItem>
+          )}
           <ListItem
             dense={true}
             button

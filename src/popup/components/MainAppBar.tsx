@@ -9,7 +9,6 @@ import HomeIcon from '@material-ui/icons/Home';
 import AccountManager from '../container/AccountManager';
 import { observer } from 'mobx-react';
 import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -35,8 +34,6 @@ interface Props {
 
 export const MainAppBar = observer((props: Props) => {
   const classes = useStyles();
-  console.log(props.authContainer.hasCreatedVault);
-  console.log(props.authContainer.isUnLocked);
 
   if (props.authContainer.hasCreatedVault && props.authContainer.isUnLocked) {
     return (
