@@ -13,7 +13,7 @@ export const TextFieldWithFormState = observer(
     return (
       <TextField
         value={fieldState?.value}
-        onChange={e => {
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           fieldState?.onChange(e.target.value);
         }}
         error={fieldState?.hasError}
@@ -23,14 +23,3 @@ export const TextFieldWithFormState = observer(
     );
   }
 );
-
-export const ErrorMessage = (props: { error: string | null }) =>
-  props.error ? (
-    <div
-      className="alert alert-danger"
-      role="alert"
-      style={{ fontSize: 'small' }}
-    >
-      {props.error}
-    </div>
-  ) : null;
