@@ -1,4 +1,6 @@
 import React from 'react';
+// see https://github.com/mobxjs/mobx-react-lite/#observer-batching
+import 'mobx-react-lite/batchingForReactDom';
 import './App.scss';
 import { Route, Switch } from 'react-router-dom';
 import Pages from './components/Pages';
@@ -11,7 +13,7 @@ import SignMessagePage from './components/SignMessagePage';
 import SignMessageContainer from './container/SignMessageContainer';
 import AccountPage from './components/AccountPage';
 import { Alert, AlertTitle } from '@material-ui/lab';
-import { Container, createStyles, Theme } from '@material-ui/core';
+import { Container } from '@material-ui/core';
 import { MainAppBar } from './components/MainAppBar';
 import AnalyticsProvider from './components/AnalyticsProvider';
 import { AccountManagementPage } from './components/AccountManagementPage';
