@@ -23,6 +23,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import AccountManager from '../container/AccountManager';
 import { observer, Observer } from 'mobx-react';
 import Dialog from '@material-ui/core/Dialog';
+import { confirm } from './Confirmation';
 
 interface Item {
   id: string;
@@ -91,6 +92,13 @@ export const AccountManagementPage = observer((props: Props) => {
     );
   };
 
+  const handleClickRemove = (name: string) => {
+    confirm(
+      <div className="text-danger">Remove account</div>,
+      'Are you sure to remove this account?'
+    ).then(() => props.authContainer.removeUserAccount(name));
+  };
+
   return (
     <React.Fragment>
       <DragDropContext onDragEnd={result => onDragEnd(result)}>
@@ -131,9 +139,7 @@ export const AccountManagementPage = observer((props: Props) => {
                               <IconButton
                                 edge={'end'}
                                 onClick={() => {
-                                  props.authContainer.removeUserAccount(
-                                    item.name
-                                  );
+                                  handleClickRemove(item.name);
                                 }}
                               >
                                 <DeleteIcon />
