@@ -1,7 +1,5 @@
 import { observer } from 'mobx-react';
 import React from 'react';
-import { Button } from 'react-bootstrap';
-import { Form, TextField } from './Forms';
 import AccountManager, { saveToFile } from '../container/AccountManager';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { observable } from 'mobx';
@@ -9,10 +7,25 @@ import {
   CreateAccountFormData,
   ImportAccountFormData
 } from '../container/ImportAccountContainer';
-import * as nacl from 'tweetnacl-ts';
 import ErrorContainer from '../container/ErrorContainer';
+import { Button, createStyles, Theme, WithStyles } from '@material-ui/core';
+import { TextFieldWithFormState } from './Forms';
+import withStyles from '@material-ui/core/styles/withStyles';
+import FormControl from '@material-ui/core/FormControl';
 
-interface Props extends RouteComponentProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      '& .MuiTextField-root': {
+        marginTop: theme.spacing(2)
+      }
+    },
+    importButton: {
+      marginTop: theme.spacing(8)
+    }
+  });
+
+interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   authContainer: AccountManager;
   errors: ErrorContainer;
   action: 'Import' | 'Create';
@@ -72,81 +85,93 @@ class AccountPage extends React.Component<Props, {}> {
 
   renderImportForm() {
     return (
-      <Form
-        onSubmit={() => {
-          this.onImportAccount();
-        }}
-      >
-        <TextField
+      <form className={this.props.classes.root}>
+        <TextFieldWithFormState
+          fullWidth
           label="Private Key"
           placeholder="Base64 encoded Ed25519 secret key"
           id="import-private-key"
           fieldState={this.accountForm.privateKeyBase64}
         />
-        <TextField
+        <TextFieldWithFormState
+          fullWidth
           label="Name"
           placeholder="Human Readable Alias"
           id="import-name"
           fieldState={this.accountForm.name}
         />
-        <Button
-          className="mt-5"
-          disabled={this.accountForm.submitDisabled}
-          type="submit"
-          block={true}
-        >
-          Import
-        </Button>
-      </Form>
+        <FormControl fullWidth className={this.props.classes.importButton}>
+          <Button
+            disabled={this.accountForm.submitDisabled}
+            color="primary"
+            variant={'contained'}
+            onClick={() => {
+              this.onImportAccount();
+            }}
+          >
+            Import
+          </Button>
+        </FormControl>
+      </form>
     );
   }
 
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
     return (
-      <Form
-        onSubmit={() => {
-          this.onCreateAccount();
-        }}
-      >
-        <TextField
+      <form className={this.props.classes.root}>
+        <TextFieldWithFormState
+          fullWidth
           label="Name"
           placeholder="Human Readable Alias"
           id="import-name"
           fieldState={this.accountForm.name}
         />
-        <TextField
-          readonly={true}
+        <TextFieldWithFormState
+          fullWidth
           id="id-signature-algorithm"
           label="Signature Algorithm"
-          fieldState={'Ed25519'}
+          InputProps={{
+            readOnly: true,
+            disabled: true
+          }}
+          defaultValue={'Ed25519'}
         />
-        <TextField
-          readonly={true}
+        <TextFieldWithFormState
+          fullWidth
+          InputProps={{ readOnly: true, disabled: true }}
           label="Public Key (Base16)"
           id="create-public-key"
-          fieldState={
+          value={
             formData.publicKeyBase64.$
-              ? nacl.encodeHex(nacl.decodeBase64(formData.publicKeyBase64.$))
+              ? Buffer.from(formData.publicKeyBase64.$, 'base64').toString(
+                  'hex'
+                )
               : ''
           }
         />
-        <TextField
-          readonly={true}
+        <TextFieldWithFormState
+          fullWidth
+          InputProps={{ readOnly: true, disabled: true }}
           label="Private Key (Base64)"
           placeholder="Base64 encoded Ed25519 secret key"
           id="create-private-key"
-          fieldState={formData.privateKeyBase64}
+          defaultValue={formData.privateKeyBase64.value}
         />
-        <Button
-          className="mt-5"
-          disabled={this.accountForm.submitDisabled}
-          type="submit"
-          block={true}
-        >
-          Create
-        </Button>
-      </Form>
+        <FormControl fullWidth margin={'normal'}>
+          <Button
+            className="mt-5"
+            disabled={this.accountForm.submitDisabled}
+            color="primary"
+            variant="contained"
+            onClick={() => {
+              this.onCreateAccount();
+            }}
+          >
+            Create
+          </Button>
+        </FormControl>
+      </form>
     );
   }
 
@@ -163,4 +188,4 @@ class AccountPage extends React.Component<Props, {}> {
   }
 }
 
-export default withRouter(AccountPage);
+export default withStyles(styles, { withTheme: true })(withRouter(AccountPage));

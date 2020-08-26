@@ -1,12 +1,14 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import { Redirect, RouteComponentProps, withRouter } from 'react-router';
-import { ListInline } from './Utils';
-import { Button } from 'react-bootstrap';
 import SignMessageContainer from '../container/SignMessageContainer';
 import Pages from './Pages';
 import { browser } from 'webextension-polyfill-ts';
 import AccountManager from '../container/AccountManager';
+import { Button } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 
 interface Props extends RouteComponentProps {
   signMessageContainer: SignMessageContainer;
@@ -27,48 +29,52 @@ class SignMessagePage extends React.Component<Props, {}> {
   render() {
     if (this.props.signMessageContainer.toSignMessage) {
       return (
-        <div>
-          <div className="mt-5 mb-4 text-center">
-            <h5>Your signature is being requested</h5>
-          </div>
+        <div style={{ flexGrow: 1 }}>
+          <Typography align={'center'} variant={'h5'}>
+            Your signature is being requested
+          </Typography>
 
-          <div className="mt-5 mb-3">
+          <Box mt={4} mb={3}>
             {this.props.authContainer.selectedUserAccount && (
-              <React.Fragment>
-                <p>
-                  Active key:{' '}
-                  <span className="font-weight-bold">
-                    {this.props.authContainer.selectedUserAccount.name}
-                  </span>
-                </p>
-              </React.Fragment>
+              <Typography variant={'h6'}>
+                Active key:&nbsp;
+                {this.props.authContainer.selectedUserAccount.name}
+              </Typography>
             )}
-            <p>Deploy hash (base16):</p>
-            <p style={{ wordBreak: 'break-all' }}>
+            <Typography variant={'h6'}>Deploy hash (base16):</Typography>
+            <Typography style={{ wordBreak: 'break-all' }}>
               {this.props.signMessageContainer.toSignMessage!.data}
-            </p>
-          </div>
-          <div className="text-center mt-5">
-            <ListInline>
-              <Button
-                onClick={() => {
-                  this.props.signMessageContainer.cancel();
-                }}
-                variant="secondary"
-                className={'mr-3'}
-                block={true}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => this.props.signMessageContainer.signMessage()}
-                className={'ml-3'}
-                block={true}
-              >
-                Sign
-              </Button>
-            </ListInline>
-          </div>
+            </Typography>
+          </Box>
+          <Box mt={8}>
+            <Grid
+              container
+              spacing={4}
+              justify={'center'}
+              alignItems={'center'}
+            >
+              <Grid item>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => {
+                    this.props.signMessageContainer.cancel();
+                  }}
+                >
+                  Cancel
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button
+                  onClick={() => this.props.signMessageContainer.signMessage()}
+                  variant="contained"
+                  color="primary"
+                >
+                  Sign
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
         </div>
       );
     } else {

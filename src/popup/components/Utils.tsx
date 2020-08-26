@@ -1,6 +1,6 @@
 import { useHistory } from 'react-router-dom';
-import { Button } from 'react-bootstrap';
 import React from 'react';
+import { Button } from '@material-ui/core';
 
 export const LinkButton = (props: { title: string; path: string }) => {
   let history = useHistory();

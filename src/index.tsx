@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import 'fontsource-roboto';
 import './index.css';
 import './popup/styles/sb-admin/sb-admin.scss';
 import App from './popup/App';
@@ -12,6 +13,8 @@ import ErrorContainer from './popup/container/ErrorContainer';
 import './popup/styles/custom.scss';
 import { AppState } from './lib/MemStore';
 import SignMessageContainer from './popup/container/SignMessageContainer';
+import { signerTheme } from './popup/components/Theme';
+import { ThemeProvider } from '@material-ui/core';
 
 const appState = new AppState();
 const errorsContainer = new ErrorContainer();
@@ -29,14 +32,16 @@ const signMessageContainer = new SignMessageContainer(
 const homeContainer = new HomeContainer();
 
 ReactDOM.render(
-  <HashRouter>
-    <App
-      errors={errorsContainer}
-      authContainer={authContainer}
-      homeContainer={homeContainer}
-      signMessageContainer={signMessageContainer}
-    />
-  </HashRouter>,
+  <ThemeProvider theme={signerTheme}>
+    <HashRouter>
+      <App
+        errors={errorsContainer}
+        authContainer={authContainer}
+        homeContainer={homeContainer}
+        signMessageContainer={signMessageContainer}
+      />
+    </HashRouter>
+  </ThemeProvider>,
   document.getElementById('root')
 );
 

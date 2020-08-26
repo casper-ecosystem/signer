@@ -1,19 +1,36 @@
 import React from 'react';
 import logo from '../img/CasperLabs_Logo_Favicon_RGB_50px.png';
-import { Form, TextField } from './Forms';
-import { Button } from 'react-bootstrap';
-import { Redirect } from 'react-router-dom';
+import {
+  Button,
+  createStyles,
+  FormControl,
+  Theme,
+  WithStyles
+} from '@material-ui/core';
+import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
 import { HomeContainer } from '../container/HomeContainer';
 import { observer } from 'mobx-react';
 import Pages from './Pages';
 import { confirm } from './Confirmation';
-import { LinkButton } from './Utils';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { TextFieldWithFormState } from './Forms';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import withStyles from '@material-ui/core/styles/withStyles';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
+const styles = (theme: Theme) =>
+  createStyles({
+    margin: {
+      marginTop: '20px'
+    },
+    alignCenter: {
+      textAlign: 'center'
+    }
+  });
 
-interface Props extends RouteComponentProps {
+interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   authContainer: AccountManager;
   homeContainer: HomeContainer;
 }
@@ -23,35 +40,47 @@ class Home extends React.Component<Props, {}> {
   renderCreateNewVault() {
     return (
       <div>
-        <div className="mt-5 mb-4 text-center">
-          <img src={logo} alt="logo" width={120} />
-        </div>
-        <h2 className="text-center mb-5">New Vault</h2>
+        <Grid
+          container
+          spacing={4}
+          direction={'column'}
+          justify={'flex-start'}
+          alignItems={'center'}
+        >
+          <Grid item className={this.props.classes.alignCenter}>
+            <img src={logo} alt="logo" width={120} />
+            <Typography variant={'h4'} align={'center'}>
+              New Vault
+            </Typography>
+          </Grid>
 
-        <div>
-          <Form
-            onSubmit={async () => {
-              const password = this.props.homeContainer.passwordField.$;
-              await this.props.authContainer.createNewVault(password);
-              this.props.homeContainer.passwordField.reset();
-            }}
-          >
-            <TextField
-              label="Set Password"
-              type="password"
-              placeholder="Password"
-              id="set-password"
-              fieldState={this.props.homeContainer.passwordField}
-            />
-            <Button
-              disabled={this.props.homeContainer.submitDisabled}
-              type="submit"
-              block={true}
-            >
-              Creating Vault
-            </Button>
-          </Form>
-        </div>
+          <Grid item container>
+            <form style={{ textAlign: 'center' }}>
+              <FormControl fullWidth>
+                <TextFieldWithFormState
+                  fieldState={this.props.homeContainer.passwordField}
+                  required
+                  label={'Set Password'}
+                  type={'password'}
+                />
+              </FormControl>
+              <FormControl fullWidth className={this.props.classes.margin}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={this.props.homeContainer.submitDisabled}
+                  onClick={async () => {
+                    const password = this.props.homeContainer.passwordField.$;
+                    await this.props.authContainer.createNewVault(password);
+                    this.props.homeContainer.passwordField.reset();
+                  }}
+                >
+                  Create Vault
+                </Button>
+              </FormControl>
+            </form>
+          </Grid>
+        </Grid>
       </div>
     );
   }
@@ -59,26 +88,53 @@ class Home extends React.Component<Props, {}> {
   renderAccountLists() {
     return (
       <div>
-        <div className="mt-5 mb-4 text-center">
-          <img src={logo} alt="logo" width={120} />
-        </div>
-        <h5 className="mt-4 text-center">
-          You have {this.props.authContainer.userAccounts.length} account key(s)
-        </h5>
-        {this.props.authContainer.selectedUserAccount && (
-          <h5 className="mt-1 mb-2 text-center">
-            Active key:{' '}
-            <span style={{ wordBreak: 'break-all' }}>
-              {this.props.authContainer.selectedUserAccount.name}
-            </span>
-          </h5>
-        )}
-        <div className="text-center" style={{ marginTop: '100px' }}>
-          <LinkButton title="Import Account" path={Pages.ImportAccount} />
-        </div>
-        <div className="text-center mt-2">
-          <LinkButton title="Create Account" path={Pages.CreateAccount} />
-        </div>
+        <Grid
+          container
+          spacing={4}
+          direction={'column'}
+          justify={'flex-start'}
+          alignItems={'center'}
+        >
+          <Grid item className={this.props.classes.alignCenter}>
+            <img src={logo} alt="logo" width={120} />
+            <Typography variant={'h6'} align={'center'}>
+              You have {this.props.authContainer.userAccounts.length} account
+              key(s)
+            </Typography>
+            {this.props.authContainer.selectedUserAccount && (
+              <Typography variant={'h6'} align={'center'}>
+                Active key:{' '}
+                <span style={{ wordBreak: 'break-all' }}>
+                  {this.props.authContainer.selectedUserAccount.name}
+                </span>
+              </Typography>
+            )}
+          </Grid>
+
+          <Grid item>
+            <FormControl fullWidth className={this.props.classes.margin}>
+              <Button
+                component={Link}
+                variant="contained"
+                color="primary"
+                to={Pages.ImportAccount}
+              >
+                Import Account
+              </Button>
+            </FormControl>
+
+            <FormControl fullWidth className={this.props.classes.margin}>
+              <Button
+                component={Link}
+                variant="contained"
+                color="primary"
+                to={Pages.CreateAccount}
+              >
+                Create Account
+              </Button>
+            </FormControl>
+          </Grid>
+        </Grid>
       </div>
     );
   }
@@ -93,46 +149,63 @@ class Home extends React.Component<Props, {}> {
   renderUnlock() {
     return (
       <div>
-        <div className="mt-5 mb-4 text-center">
-          <img src={logo} alt="logo" width={120} />
-        </div>
-        <h2 className="text-center mb-5">Unlock Vault</h2>
-        <div>
-          <Form
-            onSubmit={async () => {
-              let password = this.props.homeContainer.passwordField.$;
-              try {
-                await this.props.authContainer.unlock(password);
-                this.props.homeContainer.passwordField.reset();
-              } catch (e) {
-                this.props.homeContainer.passwordField.setError(e.message);
-              }
-            }}
-          >
-            <TextField
-              type="password"
-              placeholder="Password"
-              id="unlock-password"
-              fieldState={this.props.homeContainer.passwordField}
-            />
-            <Button
-              disabled={this.props.homeContainer.submitDisabled}
-              type="submit"
-              block={true}
-            >
-              Unlock
-            </Button>
-          </Form>
-          <div className="reset-vault">
-            <a
-              href="#"
-              className="text-danger"
-              onClick={() => this.resetVaultOnClick()}
-            >
-              Reset Vault?
-            </a>
-          </div>
-        </div>
+        <Grid
+          container
+          spacing={4}
+          direction={'column'}
+          justify={'flex-start'}
+          alignItems={'center'}
+        >
+          <Grid item className={this.props.classes.alignCenter}>
+            <img src={logo} alt="logo" width={120} />
+            <Typography variant={'h4'} align={'center'}>
+              Unlock Vault
+            </Typography>
+          </Grid>
+
+          <Grid item container>
+            <form style={{ textAlign: 'center' }}>
+              <FormControl fullWidth>
+                <TextFieldWithFormState
+                  fieldState={this.props.homeContainer.passwordField}
+                  required
+                  id={'unlock-password'}
+                  label={'Password'}
+                  type={'password'}
+                />
+              </FormControl>
+              <FormControl fullWidth className={this.props.classes.margin}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={this.props.homeContainer.submitDisabled}
+                  onClick={async () => {
+                    let password = this.props.homeContainer.passwordField.$;
+                    try {
+                      await this.props.authContainer.unlock(password);
+                      this.props.homeContainer.passwordField.reset();
+                    } catch (e) {
+                      this.props.homeContainer.passwordField.setError(
+                        e.message
+                      );
+                    }
+                  }}
+                >
+                  Unlock
+                </Button>
+              </FormControl>
+              <div className="reset-vault">
+                <a
+                  href="#"
+                  className="text-danger"
+                  onClick={() => this.resetVaultOnClick()}
+                >
+                  Reset Vault?
+                </a>
+              </div>
+            </form>
+          </Grid>
+        </Grid>
       </div>
     );
   }
@@ -154,4 +227,4 @@ class Home extends React.Component<Props, {}> {
   }
 }
 
-export default withRouter(Home);
+export default withStyles(styles, { withTheme: true })(withRouter(Home));
