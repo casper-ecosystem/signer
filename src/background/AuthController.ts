@@ -147,6 +147,10 @@ class AuthController {
    */
   @action
   async reorderAccount(startIndex: number, endIndex: number) {
+    if (!this.appState.isUnlocked) {
+      throw new Error('Unlock it before reorder account');
+    }
+
     const len = this.appState.userAccounts.length;
     if (
       startIndex < 0 ||
@@ -168,6 +172,14 @@ class AuthController {
 
   @action
   async renameUserAccount(oldName: string, newName: string) {
+    if (!this.appState.isUnlocked) {
+      throw new Error('Unlock it before rename account');
+    }
+
+    if (!newName) {
+      throw new Error('Invalid new name');
+    }
+
     const account = this.appState.userAccounts.find(
       account => account.name === oldName
     );

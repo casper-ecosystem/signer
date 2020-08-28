@@ -76,7 +76,6 @@ export const AccountManagementPage = observer((props: Props) => {
     if (selectedAccount) {
       props.authContainer.renameUserAccount(selectedAccount.name, name);
       handleClose();
-    } else {
     }
   };
 
