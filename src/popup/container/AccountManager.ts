@@ -44,7 +44,7 @@ class AccountManager {
     ) {
       throw new Error('Invalid index number');
     }
-    if (startIndex == endIndex) {
+    if (startIndex === endIndex) {
       return;
     }
 

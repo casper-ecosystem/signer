@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
   List,
   ListItem,
@@ -30,15 +30,6 @@ interface Item {
   primary: string;
   secondary?: string;
 }
-
-// a little function to help us with reordering the result
-const reorder = (list: Item[], startIndex: number, endIndex: number) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-
-  return result;
-};
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
   // styles we need to apply on draggables
