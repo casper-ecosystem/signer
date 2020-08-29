@@ -109,6 +109,97 @@ class AuthController {
     this.persistVault();
   }
 
+  @action
+  async removeUserAccount(name: string) {
+    if (!this.appState.isUnlocked) {
+      throw new Error('Unlock it before adding new account');
+    }
+
+    let account = this.appState.userAccounts.find(account => {
+      return account.name === name;
+    });
+
+    if (!account) {
+      throw new Error(`The account does't exists`);
+    }
+
+    this.appState.userAccounts.remove(account);
+
+    if (this.appState.selectedUserAccount?.name === account.name) {
+      this.appState.selectedUserAccount =
+        this.appState.userAccounts.length > 0
+          ? this.appState.userAccounts[0]
+          : null;
+    }
+    this.persistVault();
+  }
+
+  /**
+   * Reorder account
+   * In UI page, a user could drag the account whose index is startIndex, and drop to
+   * a new position endIndex.
+   *
+   * For example, if we have a list, [a,b,c,d,e], now startIndex is 2, endIndex is 4.
+   * After this operation, the result is [a,b,d,e,c]
+   *
+   * @param startIndex
+   * @param endIndex
+   */
+  @action
+  async reorderAccount(startIndex: number, endIndex: number) {
+    if (!this.appState.isUnlocked) {
+      throw new Error('Unlock it before reorder account');
+    }
+
+    const len = this.appState.userAccounts.length;
+    if (
+      startIndex < 0 ||
+      endIndex < 0 ||
+      startIndex >= len ||
+      endIndex >= len
+    ) {
+      throw new Error('Invalid index number');
+    }
+    if (startIndex == endIndex) {
+      return;
+    }
+
+    const removed = this.appState.userAccounts.spliceWithArray(startIndex, 1);
+    this.appState.userAccounts.spliceWithArray(endIndex, 0, removed);
+
+    this.persistVault();
+  }
+
+  @action
+  async renameUserAccount(oldName: string, newName: string) {
+    if (!this.appState.isUnlocked) {
+      throw new Error('Unlock it before rename account');
+    }
+
+    if (!newName) {
+      throw new Error('Invalid new name');
+    }
+
+    const account = this.appState.userAccounts.find(
+      account => account.name === oldName
+    );
+    if (!account) {
+      throw new Error('Invalid old name');
+    }
+
+    const accountWithNewName = this.appState.userAccounts.find(
+      account => account.name === newName
+    );
+
+    if (accountWithNewName) {
+      throw new Error('There is another account with the same name');
+    }
+
+    account.name = newName;
+
+    this.persistVault();
+  }
+
   /**
    * Serialize and Deserialize is needed for ByteArray(or Uint8Array),
    * since JSON.parse(JSON.stringify(ByteArray)) !== ByteArray

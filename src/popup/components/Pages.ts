@@ -4,4 +4,5 @@ export default class Pages {
   static readonly ImportAccount = '/import';
   static readonly SignMessage = '/sign-message';
   static readonly CreateAccount = '/create-account';
+  static readonly AccountManagement = '/account-management';
 }

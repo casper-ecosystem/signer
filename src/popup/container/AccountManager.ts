@@ -26,6 +26,33 @@ class AccountManager {
     return this.backgroundManager.importUserAccount(name, privateKey);
   }
 
+  async removeUserAccount(name: string) {
+    return this.backgroundManager.removeUserAccount(name);
+  }
+
+  async reorderAccount(startIndex: number, endIndex: number) {
+    // the data flow is always from background to frontend.
+    // we need do reorder operations on both background and frontend side,
+    // so that UI won't get jitter
+    const len = this.appState.userAccounts.length;
+
+    if (
+      startIndex < 0 ||
+      endIndex < 0 ||
+      startIndex >= len ||
+      endIndex >= len
+    ) {
+      throw new Error('Invalid index number');
+    }
+    if (startIndex === endIndex) {
+      return;
+    }
+
+    const removed = this.appState.userAccounts.spliceWithArray(startIndex, 1);
+    this.appState.userAccounts.spliceWithArray(endIndex, 0, removed);
+    return this.backgroundManager.reorderAccount(startIndex, endIndex);
+  }
+
   switchToAccount(accountName: string) {
     return this.backgroundManager.switchToAccount(accountName);
   }
@@ -79,6 +106,10 @@ class AccountManager {
   @computed
   get toSignMessages() {
     return this.appState.toSignMessages;
+  }
+
+  async renameUserAccount(oldName: string, newName: string) {
+    return this.backgroundManager.renameUserAccount(oldName, newName);
   }
 }
 

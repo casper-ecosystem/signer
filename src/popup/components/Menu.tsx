@@ -1,30 +1,43 @@
 import React from 'react';
 import AccountManager from '../container/AccountManager';
 import { observer } from 'mobx-react';
+import SettingsIcon from '@material-ui/icons/Settings';
 import CheckIcon from '@material-ui/icons/Check';
 import Icon from '@material-ui/core/Icon';
 import Menu from '@material-ui/core/Menu';
 import LockIcon from '@material-ui/icons/Lock';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import { green } from '@material-ui/core/colors';
+import Pages from './Pages';
 import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';
 import { List, ListItem, ListItemText, ListSubheader } from '@material-ui/core';
 import Divider from '@material-ui/core/Divider';
+import { Link } from 'react-router-dom';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
 interface Props {
   authContainer: AccountManager;
 }
 
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    menuIcon: { color: 'green', marginRight: '0.2rem' }
+  })
+);
+
 const MoreMenu = observer((props: Props) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+  const classes = useStyles();
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
   const handleClose = () => {
-    setAnchorEl(null);
+    setTimeout(() => {
+      setAnchorEl(null);
+    }, 200);
   };
 
   return (
@@ -40,7 +53,6 @@ const MoreMenu = observer((props: Props) => {
       <Menu
         id={'simple-menu'}
         anchorEl={anchorEl}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         open={Boolean(anchorEl)}
         onClose={handleClose}
@@ -61,6 +73,7 @@ const MoreMenu = observer((props: Props) => {
                 dense={true}
                 onClick={() => {
                   props.authContainer.switchToAccount(account.name);
+                  handleClose();
                 }}
               >
                 {account.name ===
@@ -74,26 +87,40 @@ const MoreMenu = observer((props: Props) => {
             );
           })}
           <Divider light />
-          <ListItem
-            dense={true}
-            button
-            onClick={() => {
-              props.authContainer.downloadActiveKey();
-            }}
-          >
-            <CloudDownloadIcon
-              style={{ color: green[500], marginRight: '4px' }}
-            />
-            <ListItemText primary="Download active key" />
-          </ListItem>
+          {props.authContainer.userAccounts.length > 0 && (
+            <ListItem
+              dense={true}
+              component={Link}
+              to={Pages.AccountManagement}
+              button
+              onClick={handleClose}
+            >
+              <SettingsIcon className={classes.menuIcon} />
+              <ListItemText primary="Key Management" />
+            </ListItem>
+          )}
+          {props.authContainer.selectedUserAccount && (
+            <ListItem
+              dense={true}
+              button
+              onClick={() => {
+                props.authContainer.downloadActiveKey();
+                handleClose();
+              }}
+            >
+              <CloudDownloadIcon className={classes.menuIcon} />
+              <ListItemText primary="Download Active Key" />
+            </ListItem>
+          )}
           <ListItem
             dense={true}
             button
             onClick={() => {
               props.authContainer.lock();
+              handleClose();
             }}
           >
-            <LockIcon style={{ color: green[500], marginRight: '4px' }} />
+            <LockIcon className={classes.menuIcon} />
             <ListItemText primary="Lock" />
           </ListItem>
         </List>

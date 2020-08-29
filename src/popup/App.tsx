@@ -1,4 +1,6 @@
 import React from 'react';
+// see https://github.com/mobxjs/mobx-react-lite/#observer-batching
+import 'mobx-react-lite/batchingForReactDom';
 import './App.scss';
 import { Route, Switch } from 'react-router-dom';
 import Pages from './components/Pages';
@@ -14,6 +16,7 @@ import { Alert, AlertTitle } from '@material-ui/lab';
 import { Container } from '@material-ui/core';
 import { MainAppBar } from './components/MainAppBar';
 import AnalyticsProvider from './components/AnalyticsProvider';
+import { AccountManagementPage } from './components/AccountManagementPage';
 
 export interface AppProps {
   errors: ErrorContainer;
@@ -38,6 +41,13 @@ const App = (props: AppProps) => {
                 authContainer={props.authContainer}
                 homeContainer={props.homeContainer}
               />
+            )}
+          />
+          <Route
+            exact
+            path={Pages.AccountManagement}
+            render={_ => (
+              <AccountManagementPage authContainer={props.authContainer} />
             )}
           />
           <Route

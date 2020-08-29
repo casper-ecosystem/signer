@@ -53,6 +53,18 @@ export class BackgroundManager {
     );
   }
 
+  public reorderAccount(index1: number, index2: number) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.reorderAccount', index1, index2)
+    );
+  }
+
+  public removeUserAccount(name: string) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.removeUserAccount', name)
+    );
+  }
+
   public signMessage(msgId: number) {
     return this.errors.withCapture(
       this.rpc.call<void>('sign.signMessage', msgId)
@@ -81,5 +93,11 @@ export class BackgroundManager {
 
   public resetVault() {
     return this.errors.withCapture(this.rpc.call<void>('account.resetVault'));
+  }
+
+  public renameUserAccount(oldName: string, newName: string) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.renameUserAccount', oldName, newName)
+    );
   }
 }
