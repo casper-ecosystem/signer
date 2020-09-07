@@ -270,7 +270,7 @@ class AuthController {
    * @param str
    */
   private hash(str: string) {
-    const b = new Buffer(str);
+    const b = Buffer.from(str);
     const h = nacl.hash(Uint8Array.from(b));
     return encodeBase64(h);
   }
