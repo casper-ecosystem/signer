@@ -3,8 +3,10 @@ import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
 import { saveAs } from 'file-saver';
+import { encodeBase16, Keys } from 'casperlabs-sdk';
+import { decodeBase64 } from 'tweetnacl-ts';
 
-export function saveToFile(content: string, filename: string) {
+function saveToFile(content: string, filename: string) {
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   saveAs(blob, filename);
 }
@@ -62,16 +64,31 @@ class AccountManager {
     return this.appState.userAccounts;
   }
 
+  static downloadPemFiles(
+    publicKey: ByteArray,
+    privateKey: ByteArray,
+    accountName: string
+  ) {
+    // Save the private and public keys to disk.
+    saveToFile(
+      Keys.Ed25519.privateKeyEncodeInPem(privateKey),
+      `${accountName}_secret_key.pem`
+    );
+    saveToFile(
+      Keys.Ed25519.publicKeyEncodeInPem(publicKey),
+      `${accountName}_public_key.pem`
+    );
+    const publicKeyBase16 = encodeBase16(publicKey);
+    saveToFile('01' + publicKeyBase16, `${accountName}_public_key_hex`);
+  }
+
   async downloadActiveKey() {
     let userAccount = await this.backgroundManager.getSelectUserAccount();
     // Save the private and public keys to disk.
-    saveToFile(
-      userAccount.signKeyPair.secretKey,
-      `${userAccount.name}.private.key`
-    );
-    saveToFile(
-      userAccount.signKeyPair.publicKey,
-      `${userAccount.name}.public.key`
+    AccountManager.downloadPemFiles(
+      decodeBase64(userAccount.signKeyPair.publicKey),
+      decodeBase64(userAccount.signKeyPair.secretKey),
+      userAccount.name
     );
   }
 

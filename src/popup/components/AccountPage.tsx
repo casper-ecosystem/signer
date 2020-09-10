@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import React from 'react';
-import AccountManager, { saveToFile } from '../container/AccountManager';
+import AccountManager from '../container/AccountManager';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { observable } from 'mobx';
 import {
@@ -63,23 +63,11 @@ class AccountPage extends React.Component<Props, {}> {
       );
     }
 
-    // Save the private and public keys to disk.
-    saveToFile(
-      Keys.Ed25519.privateKeyEncodeInPem(
-        decodeBase64(formData.privateKeyBase64.$!)
-      ),
-      `${formData.name.$}_secret_key.pem`
+    AccountManager.downloadPemFiles(
+      decodeBase64(formData.publicKeyBase64.$),
+      decodeBase64(formData.privateKeyBase64.$),
+      formData.name.$
     );
-    saveToFile(
-      Keys.Ed25519.publicKeyEncodeInPem(
-        decodeBase64(formData.publicKeyBase64.$!)
-      ),
-      `${formData.name.$}_public_key.pem`
-    );
-    const publicKeyBase16 = encodeBase16(
-      decodeBase64(formData.publicKeyBase64.$!)
-    );
-    saveToFile('01' + publicKeyBase16, `${formData.name.$}_public_key_hex`);
     await this._onSubmit();
   }
 
@@ -156,13 +144,11 @@ class AccountPage extends React.Component<Props, {}> {
         <TextFieldWithFormState
           fullWidth
           InputProps={{ readOnly: true, disabled: true }}
-          label="Public Key (Base16)"
+          label="Public Key (Base64)"
           id="create-public-key"
           value={
             formData.publicKeyBase64.$
-              ? Buffer.from(formData.publicKeyBase64.$, 'base64').toString(
-                  'hex'
-                )
+              ? Buffer.from(formData.publicKeyBase64.$, 'base64')
               : ''
           }
         />
