@@ -12,6 +12,8 @@ import { Button, createStyles, Theme, WithStyles } from '@material-ui/core';
 import { TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
 import FormControl from '@material-ui/core/FormControl';
+import { encodeBase16, Keys } from 'casperlabs-sdk';
+import { decodeBase64 } from 'tweetnacl-ts';
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -62,8 +64,22 @@ class AccountPage extends React.Component<Props, {}> {
     }
 
     // Save the private and public keys to disk.
-    saveToFile(formData.privateKeyBase64.$, `${formData.name.$}.private.key`);
-    saveToFile(formData.publicKeyBase64.$, `${formData.name.$}.public.key`);
+    saveToFile(
+      Keys.Ed25519.privateKeyEncodeInPem(
+        decodeBase64(formData.privateKeyBase64.$!)
+      ),
+      `${formData.name.$}_secret_key.pem`
+    );
+    saveToFile(
+      Keys.Ed25519.publicKeyEncodeInPem(
+        decodeBase64(formData.publicKeyBase64.$!)
+      ),
+      `${formData.name.$}_public_key.pem`
+    );
+    const publicKeyBase16 = encodeBase16(
+      decodeBase64(formData.publicKeyBase64.$!)
+    );
+    saveToFile('01' + publicKeyBase16, `${formData.name.$}_public_key_hex`);
     await this._onSubmit();
   }
 
