@@ -5,7 +5,7 @@ import * as nacl from 'tweetnacl-ts';
 import React from 'react';
 import { encodeBase64 } from 'tweetnacl-util';
 import ErrorContainer from './ErrorContainer';
-import { encodeBase16, Keys } from 'casperlabs-sdk';
+import { Keys } from 'casperlabs-sdk';
 import { SignKeyPair } from 'tweetnacl-ts';
 
 export interface SubmittableFormData {
