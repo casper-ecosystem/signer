@@ -8,12 +8,18 @@ import {
   ImportAccountFormData
 } from '../container/ImportAccountContainer';
 import ErrorContainer from '../container/ErrorContainer';
-import { Button, createStyles, Theme, WithStyles } from '@material-ui/core';
+import {
+  Button,
+  createStyles,
+  Theme,
+  Typography,
+  WithStyles
+} from '@material-ui/core';
 import { TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
 import FormControl from '@material-ui/core/FormControl';
-import { encodeBase16, Keys } from 'casperlabs-sdk';
 import { decodeBase64 } from 'tweetnacl-ts';
+import Box from '@material-ui/core/Box';
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -40,9 +46,9 @@ class AccountPage extends React.Component<Props, {}> {
   constructor(props: Props) {
     super(props);
     if (props.action === 'Import') {
-      this.accountForm = new ImportAccountFormData();
+      this.accountForm = new ImportAccountFormData(props.errors);
     } else {
-      this.accountForm = new CreateAccountFormData();
+      this.accountForm = new CreateAccountFormData(props.errors);
     }
   }
 
@@ -88,15 +94,43 @@ class AccountPage extends React.Component<Props, {}> {
   }
 
   renderImportForm() {
+    const form = this.accountForm as ImportAccountFormData;
     return (
       <form className={this.props.classes.root}>
-        <TextFieldWithFormState
-          fullWidth
-          label="Private Key"
-          placeholder="Base64 encoded Ed25519 secret key"
-          id="import-private-key"
-          fieldState={this.accountForm.privateKeyBase64}
-        />
+        <FormControl>
+          <Typography id="continuous-slider" gutterBottom>
+            Private Key File
+          </Typography>
+          <Box
+            display={'flex'}
+            flexDirection={'row'}
+            alignItems={'center'}
+            m={1}
+          >
+            <Button
+              id={'private-key-uploader'}
+              variant="contained"
+              color="primary"
+              component="label"
+            >
+              Upload
+              <input
+                type="file"
+                style={{ display: 'none' }}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  form.handleFileSelect(e)
+                }
+              />
+            </Button>
+            <Box ml={1}>
+              <Typography>
+                <Box fontSize={12}>
+                  {form.file ? form.file.name : 'No file selected'}
+                </Box>
+              </Typography>
+            </Box>
+          </Box>
+        </FormControl>
         <TextFieldWithFormState
           fullWidth
           label="Name"
