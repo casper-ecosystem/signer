@@ -141,7 +141,7 @@ class Home extends React.Component<Props, {}> {
 
   resetVaultOnClick() {
     confirm(
-      <div className="text-danger">Danger!!!</div>,
+      <div className="text-danger">Danger!</div>,
       'Resetting vault will delete all imported accounts.'
     ).then(() => this.props.authContainer.resetVault());
   }
@@ -198,6 +198,7 @@ class Home extends React.Component<Props, {}> {
                 <a
                   href="#"
                   className="text-danger"
+                  id="reset-link"
                   onClick={() => this.resetVaultOnClick()}
                 >
                   Reset Vault?
