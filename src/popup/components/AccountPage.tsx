@@ -180,11 +180,7 @@ class AccountPage extends React.Component<Props, {}> {
           InputProps={{ readOnly: true, disabled: true }}
           label="Public Key (Base64)"
           id="create-public-key"
-          value={
-            formData.publicKeyBase64.$
-              ? Buffer.from(formData.publicKeyBase64.$, 'base64')
-              : ''
-          }
+          value={formData.publicKeyBase64.$ ? formData.publicKeyBase64.$ : ''}
         />
         <TextFieldWithFormState
           fullWidth
