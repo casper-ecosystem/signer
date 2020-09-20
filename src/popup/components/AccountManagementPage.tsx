@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Ref } from 'react';
 import {
   List,
   ListItem,
@@ -9,7 +9,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Input
+  Input,
+  Snackbar
 } from '@material-ui/core';
 import RootRef from '@material-ui/core/RootRef';
 import {
@@ -20,10 +21,13 @@ import {
 } from 'react-beautiful-dnd';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
+import VpnKeyIcon from '@material-ui/icons/VpnKey';
+import FilterNoneIcon from '@material-ui/icons/FilterNone'; // Used for Copy
 import AccountManager from '../container/AccountManager';
 import { observer, Observer } from 'mobx-react';
 import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
+import copy from 'copy-to-clipboard';
 
 interface Item {
   id: string;
@@ -46,11 +50,17 @@ interface Props {
 
 export const AccountManagementPage = observer((props: Props) => {
   const [openDialog, setOpenDialog] = React.useState(false);
+  const [openKeyDialog, setOpenKeyDialog] = React.useState(false);
   const [
     selectedAccount,
     setSelectedAccount
   ] = React.useState<SignKeyPairWithAlias | null>(null);
   const [name, setName] = React.useState('');
+  const [publicKey64, setPublicKey64] = React.useState('');
+  const [publicKeyHex, setPublicKeyHex] = React.useState('');
+  const [copyStatus, setCopyStatus] = React.useState(false);
+  const keyTextRef = React.useRef(null);
+  const addressTextRef = React.useRef(null);
 
   const handleClickOpen = (account: SignKeyPairWithAlias) => {
     setOpenDialog(true);
@@ -58,8 +68,27 @@ export const AccountManagementPage = observer((props: Props) => {
     setName(account.name);
   };
 
+  const handleViewKey = async (accountName: string) => {
+    let publicKey64 = await props.authContainer.getSelectedAccountKey(
+      accountName
+    );
+    let publicKeyHex = await props.authContainer.getPublicKeyHex(accountName);
+    setName(accountName);
+    setPublicKey64(publicKey64);
+    setPublicKeyHex(publicKeyHex);
+    setOpenKeyDialog(true);
+  };
+
+  const handleCopyMessage = (event?: React.SyntheticEvent, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setCopyStatus(false);
+  };
+
   const handleClose = () => {
     setOpenDialog(false);
+    setOpenKeyDialog(false);
     setSelectedAccount(null);
   };
 
@@ -134,6 +163,14 @@ export const AccountManagementPage = observer((props: Props) => {
                               >
                                 <DeleteIcon />
                               </IconButton>
+                              <IconButton
+                                edge={'end'}
+                                onClick={() => {
+                                  handleViewKey(item.name);
+                                }}
+                              >
+                                <VpnKeyIcon />
+                              </IconButton>
                             </ListItemSecondaryAction>
                           </ListItem>
                         )}
@@ -172,6 +209,73 @@ export const AccountManagementPage = observer((props: Props) => {
           </Button>
           <Button onClick={handleUpdateName} color="primary">
             Update
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        fullScreen
+        open={openKeyDialog}
+        onClose={handleClose}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle id="form-dialog-title">Account Details</DialogTitle>
+        <DialogContent>
+          <List>
+            <ListItem>
+              <ListItemText>Name: {name}</ListItemText>
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                ref={addressTextRef}
+                defaultValue="Default Account Address"
+              >
+                <IconButton
+                  edge={'start'}
+                  onClick={() => {
+                    copy('01' + publicKeyHex, {
+                      message: 'Copy Address',
+                      onCopy() {
+                        setCopyStatus(true);
+                      }
+                    });
+                  }}
+                >
+                  <FilterNoneIcon />
+                </IconButton>
+                {/* Note: 01 prefix denotes algorithm used in key generation */}
+                Address: 01{publicKeyHex}
+              </ListItemText>
+            </ListItem>
+            <ListItem>
+              <ListItemText ref={keyTextRef}>
+                <IconButton
+                  edge={'start'}
+                  onClick={() => {
+                    copy(publicKey64, {
+                      message: 'Copy Public Key',
+                      onCopy() {
+                        setCopyStatus(true);
+                      }
+                    });
+                  }}
+                >
+                  <FilterNoneIcon />
+                </IconButton>
+                Public Key: {publicKey64}
+              </ListItemText>
+            </ListItem>
+          </List>
+          <Snackbar
+            open={copyStatus}
+            message="Copied!"
+            autoHideDuration={1500}
+            onClose={handleCopyMessage}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Close
           </Button>
         </DialogActions>
       </Dialog>

@@ -92,6 +92,19 @@ class AccountManager {
     );
   }
 
+  async getSelectedAccountKey(acctName: string) {
+    await this.backgroundManager.switchToAccount(acctName);
+    let account = await this.backgroundManager.getSelectUserAccount();
+    let key = account.signKeyPair.publicKey;
+    return key;
+  }
+
+  async getPublicKeyHex(acctName: string) {
+    let pubKey64 = await this.getSelectedAccountKey(acctName);
+    let pubKeyHex = encodeBase16(decodeBase64(pubKey64));
+    return pubKeyHex;
+  }
+
   async lock() {
     return this.backgroundManager.lock();
   }

@@ -17,6 +17,7 @@
     "axios": "^0.19.2",
     "browser-passworder": "^2.0.3",
     "casperlabs-sdk": "^0.9.2",
+    "copy-to-clipboard": "^3.3.1",
     "file-saver": "^2.0.2",
     "fontsource-roboto": "^2.2.3",
     "formik": "^2.1.4",
