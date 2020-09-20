@@ -221,47 +221,32 @@ export const AccountManagementPage = observer((props: Props) => {
         <DialogContent>
           <List>
             <ListItem>
-              <ListItemText>Name: {name}</ListItemText>
+              <ListItemText primary={'Name: ' + name} />
             </ListItem>
             <ListItem>
-              <ListItemText
-                ref={addressTextRef}
-                defaultValue="Default Account Address"
+              <IconButton
+                edge={'start'}
+                onClick={() => {
+                  copy('01' + publicKeyHex);
+                  setCopyStatus(true);
+                }}
               >
-                <IconButton
-                  edge={'start'}
-                  onClick={() => {
-                    copy('01' + publicKeyHex, {
-                      message: 'Copy Address',
-                      onCopy() {
-                        setCopyStatus(true);
-                      }
-                    });
-                  }}
-                >
-                  <FilterNoneIcon />
-                </IconButton>
-                {/* Note: 01 prefix denotes algorithm used in key generation */}
-                Address: 01{publicKeyHex}
-              </ListItemText>
+                <FilterNoneIcon />
+              </IconButton>
+              {/* Note: 01 prefix denotes algorithm used in key generation */}
+              <ListItemText primary={'Address: 01' + publicKeyHex} />
             </ListItem>
             <ListItem>
-              <ListItemText ref={keyTextRef}>
-                <IconButton
-                  edge={'start'}
-                  onClick={() => {
-                    copy(publicKey64, {
-                      message: 'Copy Public Key',
-                      onCopy() {
-                        setCopyStatus(true);
-                      }
-                    });
-                  }}
-                >
-                  <FilterNoneIcon />
-                </IconButton>
-                Public Key: {publicKey64}
-              </ListItemText>
+              <IconButton
+                edge={'start'}
+                onClick={() => {
+                  copy(publicKey64);
+                  setCopyStatus(true);
+                }}
+              >
+                <FilterNoneIcon />
+              </IconButton>
+              <ListItemText primary={'Public Key: ' + publicKey64} />
             </ListItem>
           </List>
           <Snackbar
