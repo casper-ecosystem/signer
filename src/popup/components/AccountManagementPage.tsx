@@ -59,8 +59,6 @@ export const AccountManagementPage = observer((props: Props) => {
   const [publicKey64, setPublicKey64] = React.useState('');
   const [publicKeyHex, setPublicKeyHex] = React.useState('');
   const [copyStatus, setCopyStatus] = React.useState(false);
-  const keyTextRef = React.useRef(null);
-  const addressTextRef = React.useRef(null);
 
   const handleClickOpen = (account: SignKeyPairWithAlias) => {
     setOpenDialog(true);
