@@ -10,7 +10,9 @@ import {
   DialogActions,
   Button,
   Input,
-  Snackbar
+  Snackbar,
+  ListSubheader,
+  Typography
 } from '@material-ui/core';
 import RootRef from '@material-ui/core/RootRef';
 import {
@@ -222,9 +224,9 @@ export const AccountManagementPage = observer((props: Props) => {
         <DialogTitle id="form-dialog-title">Account Details</DialogTitle>
         <DialogContent>
           <List>
-            <ListItem>
-              <ListItemText primary={'Name: ' + name} />
-            </ListItem>
+            <ListSubheader>
+              <Typography variant={'h6'}>{name}</Typography>
+            </ListSubheader>
             <ListItem>
               <IconButton
                 edge={'start'}
@@ -235,7 +237,10 @@ export const AccountManagementPage = observer((props: Props) => {
               >
                 <FilterNoneIcon />
               </IconButton>
-              <ListItemText primary={'Address: ' + address} />
+              <ListItemText
+                primary={'Address: ' + address}
+                style={{ overflowWrap: 'break-word' }}
+              />
             </ListItem>
             <ListItem>
               <IconButton
@@ -247,7 +252,10 @@ export const AccountManagementPage = observer((props: Props) => {
               >
                 <FilterNoneIcon />
               </IconButton>
-              <ListItemText primary={'Public Key: ' + publicKey64} />
+              <ListItemText
+                primary={'Public Key: ' + publicKey64}
+                style={{ overflowWrap: 'break-word' }}
+              />
             </ListItem>
           </List>
           <Snackbar
