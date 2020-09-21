@@ -58,6 +58,8 @@ export const AccountManagementPage = observer((props: Props) => {
   const [name, setName] = React.useState('');
   const [publicKey64, setPublicKey64] = React.useState('');
   const [publicKeyHex, setPublicKeyHex] = React.useState('');
+  /* Note: 01 prefix denotes algorithm used in key generation */
+  const address = '01' + publicKeyHex;
   const [copyStatus, setCopyStatus] = React.useState(false);
 
   const handleClickOpen = (account: SignKeyPairWithAlias) => {
@@ -227,14 +229,13 @@ export const AccountManagementPage = observer((props: Props) => {
               <IconButton
                 edge={'start'}
                 onClick={() => {
-                  copy('01' + publicKeyHex);
+                  copy(address);
                   setCopyStatus(true);
                 }}
               >
                 <FilterNoneIcon />
               </IconButton>
-              {/* Note: 01 prefix denotes algorithm used in key generation */}
-              <ListItemText primary={'Address: 01' + publicKeyHex} />
+              <ListItemText primary={'Address: ' + address} />
             </ListItem>
             <ListItem>
               <IconButton
