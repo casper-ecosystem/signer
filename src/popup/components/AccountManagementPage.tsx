@@ -116,7 +116,7 @@ export const AccountManagementPage = observer((props: Props) => {
   const handleClickRemove = (name: string) => {
     confirm(
       <div className="text-danger">Remove account</div>,
-      'Are you sure to remove this account?'
+      'Are you sure you want to remove this account?'
     ).then(() => props.authContainer.removeUserAccount(name));
   };
 
