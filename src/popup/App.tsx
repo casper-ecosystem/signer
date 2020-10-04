@@ -11,6 +11,8 @@ import { observer } from 'mobx-react';
 import ErrorContainer from './container/ErrorContainer';
 import SignMessagePage from './components/SignMessagePage';
 import SignMessageContainer from './container/SignMessageContainer';
+import ConnectSignerPage from './components/ConnectSignerPage';
+import ConnectSignerContainer from './container/ConnectSignerContainer';
 import AccountPage from './components/AccountPage';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { Container } from '@material-ui/core';
@@ -23,13 +25,17 @@ export interface AppProps {
   authContainer: AccountManager;
   homeContainer: HomeContainer;
   signMessageContainer: SignMessageContainer;
+  connectSignerContainer: ConnectSignerContainer;
 }
 
 const App = (props: AppProps) => {
   return (
     <div>
       <AnalyticsProvider />
-      <MainAppBar authContainer={props.authContainer} />
+      <MainAppBar
+        authContainer={props.authContainer}
+        connectionContainer={props.connectSignerContainer}
+      />
       <Container>
         <Alerts {...props} />
         <Switch>
@@ -40,6 +46,7 @@ const App = (props: AppProps) => {
               <Home
                 authContainer={props.authContainer}
                 homeContainer={props.homeContainer}
+                connectionContainer={props.connectSignerContainer}
               />
             )}
           />
@@ -79,6 +86,15 @@ const App = (props: AppProps) => {
               <SignMessagePage
                 signMessageContainer={props.signMessageContainer}
                 authContainer={props.authContainer}
+              />
+            )}
+          />
+          <Route
+            path={Pages.ConnectSigner}
+            exact
+            render={_ => (
+              <ConnectSignerPage
+                connectSignerContainer={props.connectSignerContainer}
               />
             )}
           />

@@ -13,6 +13,7 @@ import ErrorContainer from './popup/container/ErrorContainer';
 import './popup/styles/custom.scss';
 import { AppState } from './lib/MemStore';
 import SignMessageContainer from './popup/container/SignMessageContainer';
+import ConnectSignerContainer from './popup/container/ConnectSignerContainer';
 import { signerTheme } from './popup/components/Theme';
 import { ThemeProvider } from '@material-ui/core';
 
@@ -29,6 +30,10 @@ const signMessageContainer = new SignMessageContainer(
   backgroundManager,
   appState
 );
+const connectSignerContainer = new ConnectSignerContainer(
+  backgroundManager,
+  appState
+);
 const homeContainer = new HomeContainer();
 
 ReactDOM.render(
@@ -39,6 +44,7 @@ ReactDOM.render(
         authContainer={authContainer}
         homeContainer={homeContainer}
         signMessageContainer={signMessageContainer}
+        connectSignerContainer={connectSignerContainer}
       />
     </HashRouter>
   </ThemeProvider>,
