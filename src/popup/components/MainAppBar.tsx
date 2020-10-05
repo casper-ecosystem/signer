@@ -55,7 +55,6 @@ export const MainAppBar = observer((props: Props) => {
               size="small"
               onClick={() => {
                 if (connected) {
-                  props.connectionContainer.resetConnectionRequest();
                   props.connectionContainer.disconnectFromSite();
                 } else {
                   props.connectionContainer.connectToSite();

@@ -21,10 +21,12 @@ class ConnectSignerContainer {
 
   async connectToSite() {
     await this.backgroundManager.connectToSite();
+    await this.resetConnectionRequest();
   }
 
   async disconnectFromSite() {
     await this.backgroundManager.disconnectFromSite();
+    await this.resetConnectionRequest();
   }
 
   async resetConnectionRequest() {
