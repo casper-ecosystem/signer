@@ -57,6 +57,10 @@ export function setupInjectPageAPIServer(
     connectionManager.isConnected.bind(connectionManager)
   );
   rpc.register(
+    'requestConnection',
+    connectionManager.requestConnection.bind(connectionManager)
+  );
+  rpc.register(
     'connectToSite',
     connectionManager.connectToSite.bind(connectionManager)
   );

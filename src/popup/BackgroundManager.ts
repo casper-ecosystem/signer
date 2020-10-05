@@ -114,4 +114,10 @@ export class BackgroundManager {
       this.rpc.call<void>('connection.disconnectFromSite')
     );
   }
+
+  public resetConnectionRequest() {
+    return this.errors.withCapture(
+      this.rpc.call<void>('connection.resetConnectionRequest')
+    );
+  }
 }

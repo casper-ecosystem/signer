@@ -85,6 +85,14 @@ async function setupPopupAPIServer() {
     signMessageManager.rejectMsg.bind(signMessageManager)
   );
   rpc.register(
+    'connection.requestConnection',
+    connectionManager.requestConnection.bind(connectionManager)
+  );
+  rpc.register(
+    'connection.resetConnectionRequest',
+    connectionManager.resetConnectionRequest.bind(connectionManager)
+  );
+  rpc.register(
     'connection.connectToSite',
     connectionManager.connectToSite.bind(connectionManager)
   );

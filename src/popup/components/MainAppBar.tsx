@@ -54,9 +54,12 @@ export const MainAppBar = observer((props: Props) => {
               color={connected ? 'primary' : 'default'}
               size="small"
               onClick={() => {
-                connected
-                  ? props.connectionContainer.disconnectFromSite()
-                  : props.connectionContainer.connectToSite();
+                if (connected) {
+                  props.connectionContainer.resetConnectionRequest();
+                  props.connectionContainer.disconnectFromSite();
+                } else {
+                  props.connectionContainer.connectToSite();
+                }
               }}
             >
               {connected ? 'Connected' : 'Disconnected'}

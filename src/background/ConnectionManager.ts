@@ -12,6 +12,10 @@ export default class ConnectionManager {
     this.appState.connectionRequested = true;
   }
 
+  public resetConnectionRequest() {
+    this.appState.connectionRequested = false;
+  }
+
   public connectToSite() {
     this.appState.connectionStatus = true;
   }

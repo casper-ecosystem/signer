@@ -15,6 +15,10 @@ class CasperLabsPluginHelper {
     return this.call<boolean>('isConnected');
   }
 
+  async requestConnection() {
+    return this.call<void>('requestConnection');
+  }
+
   async connectToSite() {
     return this.call<void>('connectToSite');
   }

@@ -36,15 +36,29 @@ class ConnectSignerContainer {
     );
   }
 
+  async resetConnectionRequest() {
+    await this.backgroundManager.resetConnectionRequest();
+  }
+
   async cancel() {
-    this.appState.connectionRequested = false;
+    await this.resetConnectionRequest();
     await this.closeWindow();
   }
 
+  async open() {
+    await this.openWindow();
+  }
+
   private async closeWindow() {
-    let views = browser.extension.getViews();
+    let views = await browser.extension.getViews();
     let popup = views[1].window;
     popup.close();
+  }
+
+  private async openWindow() {
+    let views = await browser.extension.getViews();
+    let popup = views[1].window;
+    popup.open();
   }
 }
 
