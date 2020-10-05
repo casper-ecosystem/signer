@@ -38,10 +38,9 @@ class SignMessageContainer {
   }
 
   private async closeWindow() {
-    let w = await browser.windows.getCurrent();
-    if (w.type === 'popup') {
-      await browser.windows.remove(w.id!);
-    }
+    let views = await browser.extension.getViews();
+    let popup = views[1].window;
+    popup.close();
   }
 }
 
