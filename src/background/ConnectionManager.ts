@@ -10,6 +10,12 @@ export default class ConnectionManager {
 
   public requestConnection() {
     this.appState.connectionRequested = true;
+    browser.notifications.create({
+      title: 'Connection Request',
+      iconUrl: browser.extension.getURL('logo64.png'),
+      message: 'Open Signer to Approve or Reject Connection',
+      type: 'basic'
+    });
   }
 
   public resetConnectionRequest() {
