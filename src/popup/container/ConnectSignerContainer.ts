@@ -20,20 +20,11 @@ class ConnectSignerContainer {
   }
 
   async connectToSite() {
-    console.log('Attempting to connect to Clarity...');
-    if (this.connectionStatus) {
-      throw new Error('Already connected to site');
-    }
     await this.backgroundManager.connectToSite();
-    console.log(this.connectionStatus ? 'Connected!' : 'Connection failed');
   }
 
   async disconnectFromSite() {
-    console.log('Disconnecting from Clarity...');
     await this.backgroundManager.disconnectFromSite();
-    console.log(
-      !this.connectionStatus ? 'Disconnected' : 'Disconnection failed'
-    );
   }
 
   async resetConnectionRequest() {
