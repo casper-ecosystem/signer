@@ -112,7 +112,7 @@ steps:
     event:
     - push
     branch:
-    - debug-publish
+    - publish-debug
 
 - name: upload-extension-IT-WONT-UPDATE
   image: "casperlabs/buildenv:latest"
@@ -133,11 +133,11 @@ steps:
     event:
     - push
     branch:
-    - debug-publish
+    - publish-debug
 
 trigger:
   branch:
-    - debug-publish
+    - publish-debug
 ---
 kind: pipeline
 name: failed-build-alert
