@@ -80,6 +80,66 @@ trigger:
 
 ---
 kind: pipeline
+name: debug-publish
+
+steps:
+- name: install-dependencies
+  commands:
+  - npm install
+  image: "casperlabs/buildenv:latest"
+
+- name: run-build
+  commands:
+  - npm run build
+  image: "casperlabs/buildenv:latest"
+  depends_on:
+  - install-dependencies
+
+- name: run-test
+  commands:
+  - npm run test_ci
+  image: "casperlabs/buildenv:latest"
+  depends_on:
+  - run-build
+
+- name: run-complete
+  commands:
+  - npm run complete
+  image: "casperlabs/buildenv:latest"
+  depends_on:
+  - run-test
+  when:
+    event:
+    - push
+    branch:
+    - debug-publish
+
+- name: upload-extension-IT-WONT-UPDATE
+  image: "casperlabs/buildenv:latest"
+  commands:
+  - "./publish.sh"
+  environment:
+    APPLICATION_ID:
+      from_secret: plugin_application
+    CLIENT_ID:
+      from_secret: plugin_client_id
+    CLIENT_SECRET:
+      from_secret: plugin_client_secret
+    REFRESH_TOKEN:
+      from_secret: plugin_refresh_token
+  depends_on:
+  - run-complete
+  when:
+    event:
+    - push
+    branch:
+    - debug-publish
+
+trigger:
+  branch:
+    - debug-publish
+---
+kind: pipeline
 name: failed-build-alert
 
 clone:
