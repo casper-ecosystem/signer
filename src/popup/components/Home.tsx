@@ -10,6 +10,7 @@ import {
 import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
 import { HomeContainer } from '../container/HomeContainer';
+import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer } from 'mobx-react';
 import Pages from './Pages';
 import { confirm } from './Confirmation';
@@ -33,6 +34,7 @@ const styles = (theme: Theme) =>
 interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   authContainer: AccountManager;
   homeContainer: HomeContainer;
+  connectionContainer: ConnectSignerContainer;
 }
 
 @observer
@@ -214,10 +216,18 @@ class Home extends React.Component<Props, {}> {
   render() {
     if (this.props.authContainer.hasCreatedVault) {
       if (this.props.authContainer.isUnLocked) {
-        if (this.props.authContainer.toSignMessages.length > 0) {
-          return <Redirect to={Pages.SignMessage} />;
+        if (
+          !this.props.connectionContainer.connectionStatus &&
+          this.props.connectionContainer.connectionRequested
+        ) {
+          // Not connected and there is a request to connect
+          return <Redirect to={Pages.ConnectSigner} />;
         } else {
-          return this.renderAccountLists();
+          if (this.props.authContainer.toSignMessages.length > 0) {
+            return <Redirect to={Pages.SignMessage} />;
+          } else {
+            return this.renderAccountLists();
+          }
         }
       } else {
         return this.renderUnlock();

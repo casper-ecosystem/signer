@@ -5,4 +5,5 @@ export default class Pages {
   static readonly SignMessage = '/sign-message';
   static readonly CreateAccount = '/create-account';
   static readonly AccountManagement = '/account-management';
+  static readonly ConnectSigner = '/connect-signer';
 }

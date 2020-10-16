@@ -1,14 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
 import MoreMenu from './Menu';
 import HomeIcon from '@material-ui/icons/Home';
 import AccountManager from '../container/AccountManager';
+import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer } from 'mobx-react';
-import IconButton from '@material-ui/core/IconButton';
+import { AppBar, Toolbar, IconButton, Button } from '@material-ui/core';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -30,10 +28,12 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface Props {
   authContainer: AccountManager;
+  connectionContainer: ConnectSignerContainer;
 }
 
 export const MainAppBar = observer((props: Props) => {
   const classes = useStyles();
+  const connected = props.connectionContainer.connectionStatus;
 
   if (props.authContainer.hasCreatedVault && props.authContainer.isUnLocked) {
     return (
@@ -47,7 +47,22 @@ export const MainAppBar = observer((props: Props) => {
             <IconButton edge="start" component={Link} to={'/'}>
               <HomeIcon />
             </IconButton>
-            <Typography variant="h6" className={classes.title}></Typography>
+            <Button
+              // Toggles connection status
+              variant="outlined"
+              className={classes.title}
+              color={connected ? 'primary' : 'default'}
+              size="small"
+              onClick={() => {
+                if (connected) {
+                  props.connectionContainer.disconnectFromSite();
+                } else {
+                  props.connectionContainer.connectToSite();
+                }
+              }}
+            >
+              {connected ? 'Connected' : 'Disconnected'}
+            </Button>
             <MoreMenu authContainer={props.authContainer} />
           </Toolbar>
         </AppBar>

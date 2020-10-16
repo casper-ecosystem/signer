@@ -11,8 +11,16 @@ class CasperLabsPluginHelper {
     this.call = registerClient();
   }
 
-  isConnected() {
-    return true;
+  async isConnected() {
+    return this.call<boolean>('isConnected');
+  }
+
+  async requestConnection() {
+    return this.call<void>('requestConnection');
+  }
+
+  async connectToSite() {
+    return this.call<void>('connectToSite');
   }
 
   async sign(message: string, publicKeyBase64?: string) {

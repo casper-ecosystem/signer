@@ -3,6 +3,8 @@ import { SignMessage } from '../background/SignMessageManager';
 
 export class AppState {
   @observable isUnlocked: boolean = false;
+  @observable connectionStatus: boolean = false;
+  @observable connectionRequested: boolean = false;
   @observable hasCreatedVault: boolean = false;
   @observable selectedUserAccount: SignKeyPairWithAlias | null = null;
   userAccounts: IObservableArray<SignKeyPairWithAlias> = observable.array<

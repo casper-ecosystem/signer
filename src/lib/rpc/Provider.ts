@@ -1,6 +1,7 @@
 import { browser } from 'webextension-polyfill-ts';
 import { Rpc } from './rpc';
 import SignMessageManager from '../../background/SignMessageManager';
+import ConnectionManager from '../../background/ConnectionManager';
 
 /*
  * A proxy set up in Content Script
@@ -33,7 +34,8 @@ let rpc: Rpc;
 // Setup RPC server for inject page
 // used in background.ts
 export function setupInjectPageAPIServer(
-  provider: SignMessageManager,
+  signMessageManager: SignMessageManager,
+  connectionManager: ConnectionManager,
   logMessages: boolean = false
 ) {
   rpc = new Rpc({
@@ -42,9 +44,24 @@ export function setupInjectPageAPIServer(
     destination: 'page',
     source: 'background'
   });
-  rpc.register('sign', provider.addUnsignedMessageBase16Async.bind(provider));
+  rpc.register(
+    'sign',
+    signMessageManager.addUnsignedMessageBase16Async.bind(signMessageManager)
+  );
   rpc.register(
     'getSelectedPublicKeyBase64',
-    provider.getSelectedPublicKeyBase64.bind(provider)
+    signMessageManager.getSelectedPublicKeyBase64.bind(signMessageManager)
+  );
+  rpc.register(
+    'isConnected',
+    connectionManager.isConnected.bind(connectionManager)
+  );
+  rpc.register(
+    'requestConnection',
+    connectionManager.requestConnection.bind(connectionManager)
+  );
+  rpc.register(
+    'connectToSite',
+    connectionManager.connectToSite.bind(connectionManager)
   );
 }

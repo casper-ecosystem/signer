@@ -4,19 +4,21 @@ import { Rpc } from '../lib/rpc/rpc';
 import { AppState } from '../lib/MemStore';
 import { autorun } from 'mobx';
 import SignMessageManager from './SignMessageManager';
+import ConnectionManager from './ConnectionManager';
 import { updateBadge } from './utils';
 import { setupInjectPageAPIServer } from '../lib/rpc/Provider';
 
 const appState = new AppState();
 const accountController = new AccountController(appState);
 const signMessageManager = new SignMessageManager(appState);
+const connectionManager = new ConnectionManager(appState);
 
 initialize().catch(console.log);
 
 async function initialize() {
   await setupPopupAPIServer();
   // Setup RPC server for inject page
-  setupInjectPageAPIServer(signMessageManager);
+  setupInjectPageAPIServer(signMessageManager, connectionManager);
 }
 
 // Setup RPC server for Popup
@@ -81,5 +83,21 @@ async function setupPopupAPIServer() {
   rpc.register(
     'sign.rejectMessage',
     signMessageManager.rejectMsg.bind(signMessageManager)
+  );
+  rpc.register(
+    'connection.requestConnection',
+    connectionManager.requestConnection.bind(connectionManager)
+  );
+  rpc.register(
+    'connection.resetConnectionRequest',
+    connectionManager.resetConnectionRequest.bind(connectionManager)
+  );
+  rpc.register(
+    'connection.connectToSite',
+    connectionManager.connectToSite.bind(connectionManager)
+  );
+  rpc.register(
+    'connection.disconnectFromSite',
+    connectionManager.disconnectFromSite.bind(connectionManager)
   );
 }
