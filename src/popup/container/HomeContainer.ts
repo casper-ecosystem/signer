@@ -33,7 +33,7 @@ export class HomeContainer {
       (this.homeForm.$.confirmPasswordField.hasBeenValidated &&
         this.homeForm.$.confirmPasswordField.hasError) ||
       !(
-        this.homeForm.$.setPasswordField.value ==
+        this.homeForm.$.setPasswordField.value ===
         this.homeForm.$.confirmPasswordField.value
       )
     );
