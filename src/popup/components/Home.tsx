@@ -50,9 +50,13 @@ class Home extends React.Component<Props, {}> {
           alignItems={'center'}
         >
           <Grid item className={this.props.classes.alignCenter}>
-            <img src={logo} alt="logo" width={120} />
-            <Typography variant={'h4'} align={'center'}>
+            <img src={logo} alt="logo" width={80} />
+            <Typography variant={'h6'} align={'center'}>
               New Vault
+            </Typography>
+            <Typography>
+              Please set a password for your vault. You will need it later to
+              unlock it so keep it safe.
             </Typography>
           </Grid>
 
@@ -60,21 +64,39 @@ class Home extends React.Component<Props, {}> {
             <form style={{ textAlign: 'center' }}>
               <FormControl fullWidth>
                 <TextFieldWithFormState
-                  fieldState={this.props.homeContainer.passwordField}
+                  fieldState={
+                    this.props.homeContainer.homeForm.$.setPasswordField
+                  }
                   required
                   label={'Set Password'}
                   type={'password'}
                 />
               </FormControl>
+              <FormControl fullWidth>
+                <TextFieldWithFormState
+                  fieldState={
+                    this.props.homeContainer.homeForm.$.confirmPasswordField
+                  }
+                  required
+                  label={'Confirm Password'}
+                  type={'password'}
+                />
+              </FormControl>
+              <Typography variant="subtitle2" className="text-danger">
+                {this.props.homeContainer.homeForm.showFormError &&
+                  this.props.homeContainer.homeForm.formError}
+              </Typography>
               <FormControl fullWidth className={this.props.classes.margin}>
                 <Button
                   variant="contained"
                   color="primary"
-                  disabled={this.props.homeContainer.submitDisabled}
+                  disabled={this.props.homeContainer.createVaultDisabled}
                   onClick={async () => {
-                    const password = this.props.homeContainer.passwordField.$;
+                    const password = this.props.homeContainer.homeForm.$
+                      .setPasswordField.$;
                     await this.props.authContainer.createNewVault(password);
-                    this.props.homeContainer.passwordField.reset();
+                    this.props.homeContainer.homeForm.$.setPasswordField.reset();
+                    this.props.homeContainer.homeForm.$.confirmPasswordField.reset();
                   }}
                 >
                   Create Vault
@@ -169,7 +191,9 @@ class Home extends React.Component<Props, {}> {
             <form style={{ textAlign: 'center' }}>
               <FormControl fullWidth>
                 <TextFieldWithFormState
-                  fieldState={this.props.homeContainer.passwordField}
+                  fieldState={
+                    this.props.homeContainer.homeForm.$.setPasswordField
+                  }
                   required
                   id={'unlock-password'}
                   label={'Password'}
@@ -182,12 +206,13 @@ class Home extends React.Component<Props, {}> {
                   color="primary"
                   disabled={this.props.homeContainer.submitDisabled}
                   onClick={async () => {
-                    let password = this.props.homeContainer.passwordField.$;
+                    let password = this.props.homeContainer.homeForm.$
+                      .setPasswordField.$;
                     try {
                       await this.props.authContainer.unlock(password);
-                      this.props.homeContainer.passwordField.reset();
+                      this.props.homeContainer.homeForm.$.setPasswordField.reset();
                     } catch (e) {
-                      this.props.homeContainer.passwordField.setError(
+                      this.props.homeContainer.homeForm.$.setPasswordField.setError(
                         e.message
                       );
                     }
