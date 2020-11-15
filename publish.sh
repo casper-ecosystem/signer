@@ -18,7 +18,7 @@ abspath() {
 }
 
 export RUN_DIR=$(dirname $(abspath $0))
-
+echo "[DEBUG] list $RUN_DIR/artifacts"
 ls -al $RUN_DIR/artifacts/*zip
 
 # get version from package.json
@@ -34,6 +34,7 @@ ACCESS_TOKEN=$(curl https://accounts.google.com/o/oauth2/token -d "client_id=${C
 
 exit 0
 # upload
+echo "Going to upload: $ZIP_FILE"
 UPLOAD_OUTPUT=$(curl --write-out %{http_code} -s -f -H "Authorization: Bearer ${ACCESS_TOKEN}" -H 'x-goog-api-version: 2' -X PUT -T $ZIP_FILE "https://www.googleapis.com/upload/chromewebstore/v1.1/items/${APPLICATION_ID}")
 
 if echo ${UPLOAD_OUTPUT} | grep "FAILURE" 2>&1 > /dev/null; then
