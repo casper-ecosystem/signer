@@ -3,9 +3,8 @@
 ls -al /drone/src/artifacts/*zip
 
 ZIP_FILE=$(ls /drone/src/artifacts/*zip)
-
+echo "Debug"
 echo $ZIP_FILE
-
 
 if [ ! -f $ZIP_FILE ]; then
   echo "[ERROR] No such file $ZIP_FILE"
