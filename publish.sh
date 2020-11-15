@@ -1,10 +1,29 @@
 #!/bin/bash 
 
-ls -al /drone/src/artifacts/*zip
+abspath() {
+  # generate absolute path from relative path
+  # $1     : relative filename
+  # return : absolute path
+  if [ -d "$1" ]; then
+    # dir
+    (cd "$1"; pwd)
+  elif [ -f "$1" ]; then
+    # file
+    if [[ $1 == */* ]]; then
+      echo "$(cd "${1%/*}"; pwd)/${1##*/}"
+    else
+      echo "$(pwd)/$1"
+    fi
+  fi
+}
 
-ZIP_FILE=$(ls /drone/src/artifacts/*zip)
-echo "Debug"
-echo $ZIP_FILE
+export RUN_DIR=$(dirname $(abspath $0))
+
+ls -al $RUN_DIR/artifacts/*zip
+
+# get version from package.json
+APP_VERSION=$(cat $RUN_DIR/package.json | jq -r .version)
+ZIP_FILE="$RUN_DIR/artifacts/casperlabs_signer-$APP_VERSION.zip"
 
 if [ ! -f $ZIP_FILE ]; then
   echo "[ERROR] No such file $ZIP_FILE"
