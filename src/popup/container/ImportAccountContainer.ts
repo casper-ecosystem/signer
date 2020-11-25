@@ -49,9 +49,15 @@ export class ImportAccountFormData implements SubmittableFormData {
         const errorMsg = this.checkFileContent(reader.result as string);
         if (errorMsg === null) {
           const fileName = this.file?.name!.split('.')[0];
-          const name = fileName.replace(/_secret_key$/, '');
-          this.name.onChange(name);
-          this.privateKeyBase64.onChange(encodeBase64(this.key?.secretKey!));
+          if (fileName !== undefined) {
+            const name = fileName.replace(/_secret_key$/, '');
+            this.name.onChange(name);
+            this.privateKeyBase64.onChange(encodeBase64(this.key?.secretKey!));
+          } else {
+            this.errors.capture(
+              Promise.reject(new Error('fileName was undefined.'))
+            );
+          }
         } else {
           this.errors.capture(Promise.reject(new Error(errorMsg)));
         }
