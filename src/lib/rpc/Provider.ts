@@ -2,6 +2,7 @@ import { browser } from 'webextension-polyfill-ts';
 import { Rpc } from './rpc';
 import SignMessageManager from '../../background/SignMessageManager';
 import ConnectionManager from '../../background/ConnectionManager';
+import AuthController from '../../background/AuthController';
 
 /*
  * A proxy set up in Content Script
@@ -36,6 +37,7 @@ let rpc: Rpc;
 export function setupInjectPageAPIServer(
   signMessageManager: SignMessageManager,
   connectionManager: ConnectionManager,
+  authController: AuthController,
   logMessages: boolean = false
 ) {
   rpc = new Rpc({
@@ -63,5 +65,14 @@ export function setupInjectPageAPIServer(
   rpc.register(
     'connectToSite',
     connectionManager.connectToSite.bind(connectionManager)
+  );
+  // Used in testing
+  rpc.register(
+    'createNewVault',
+    authController.createNewVault.bind(authController)
+  );
+  rpc.register(
+    'hasCreatedVault',
+    connectionManager.hasCreatedVault.bind(connectionManager)
   );
 }

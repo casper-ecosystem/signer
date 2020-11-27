@@ -18,7 +18,11 @@ initialize().catch(console.log);
 async function initialize() {
   await setupPopupAPIServer();
   // Setup RPC server for inject page
-  setupInjectPageAPIServer(signMessageManager, connectionManager);
+  setupInjectPageAPIServer(
+    signMessageManager,
+    connectionManager,
+    accountController
+  );
 }
 
 // Setup RPC server for Popup

@@ -8,14 +8,20 @@ export default class ConnectionManager {
     return this.appState.connectionStatus;
   }
 
+  public hasCreatedVault() {
+    return this.appState.hasCreatedVault;
+  }
+
   public requestConnection() {
-    this.appState.connectionRequested = true;
-    browser.notifications.create({
-      title: 'Connection Request',
-      iconUrl: browser.extension.getURL('logo64.png'),
-      message: 'Open Signer to Approve or Reject Connection',
-      type: 'basic'
-    });
+    if (!this.isConnected()) {
+      this.appState.connectionRequested = true;
+      browser.notifications.create({
+        title: 'Connection Request',
+        iconUrl: browser.extension.getURL('logo64.png'),
+        message: 'Open Signer to Approve or Reject Connection',
+        type: 'basic'
+      });
+    }
   }
 
   public resetConnectionRequest() {

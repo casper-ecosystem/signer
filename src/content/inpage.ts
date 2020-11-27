@@ -30,6 +30,17 @@ class CasperLabsPluginHelper {
   async getSelectedPublicKeyBase64() {
     return this.call<string>('getSelectedPublicKeyBase64');
   }
+
+  // TESTING
+  async forceConnection() {
+    return this.call<void>('connectToSite');
+  }
+  async hasCreatedVault() {
+    return this.call<boolean>('hasCreatedVault');
+  }
+  async createNewVault(password: string) {
+    return this.call<void>('createNewVault', password);
+  }
 }
 
 // inject to window, so that Clarity code could use it.
