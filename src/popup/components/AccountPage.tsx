@@ -69,6 +69,7 @@ class AccountPage extends React.Component<Props, {}> {
       );
     }
 
+    // George: This should be made optional - users will not expect account creation to trigger a download.
     AccountManager.downloadPemFiles(
       decodeBase64(formData.publicKeyBase64.$),
       decodeBase64(formData.privateKeyBase64.$),

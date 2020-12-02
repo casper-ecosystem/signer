@@ -68,11 +68,27 @@ export function setupInjectPageAPIServer(
   );
   // Used in testing
   rpc.register(
+    'resetExistingVault',
+    authController.resetVault.bind(authController)
+  );
+  rpc.register(
     'createNewVault',
     authController.createNewVault.bind(authController)
   );
   rpc.register(
     'hasCreatedVault',
     connectionManager.hasCreatedVault.bind(connectionManager)
+  );
+  rpc.register(
+    'createTestAccount',
+    authController.importUserAccount.bind(authController)
+  );
+  rpc.register(
+    'getToSignMessageID',
+    signMessageManager.getToSignMessageID.bind(signMessageManager)
+  );
+  rpc.register(
+    'signTestDeploy',
+    signMessageManager.approveMsg.bind(signMessageManager)
   );
 }

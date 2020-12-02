@@ -81,6 +81,7 @@ export default class SignMessageManager extends events.EventEmitter {
 
   // Approve signature request
   public approveMsg(msgId: number) {
+    console.log(msgId);
     const msg = this.getMsg(msgId);
     if (!this.appState.selectedUserAccount) {
       throw new Error(`Please select the account firstly`);
@@ -186,5 +187,15 @@ export default class SignMessageManager extends events.EventEmitter {
       throw new Error(`Could not find message with id: ${msgId}`);
     }
     return signMessage;
+  }
+
+  /**
+   * Used in tests
+   */
+  public getToSignMessageID() {
+    if (this.appState.toSignMessages.length > 0) {
+      return this.appState.toSignMessages[0].id;
+    }
+    return null;
   }
 }

@@ -14,3 +14,6 @@ export class AppState {
     SignMessage
   >([], { deep: true });
 }
+
+// REMOVE
+// add rpc method to grab toSignMessages and then pass the [0] to signMessageManager.approveMsg(msgID)
