@@ -4,7 +4,7 @@ module.exports = {
   artifactsDir: "./artifacts",
   // Leave out the testing methods for security
   ignoreFiles: [
-    './build/scripts/content/signerTestMethods.js'
+    './scripts/content/signerTestMethods.js'
   ],
   // Build.
   build: {
