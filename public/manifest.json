@@ -19,7 +19,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.casperlabs.io/*", "*://localhost/*"],
+      "matches": ["file://*/*", "http://*/*", "https://*/*"],
       "js": ["./scripts/content/content.js"],
       "run_at": "document_start",
       "all_frames": true
