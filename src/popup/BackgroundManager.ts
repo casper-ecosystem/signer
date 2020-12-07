@@ -120,10 +120,4 @@ export class BackgroundManager {
       this.rpc.call<void>('connection.resetConnectionRequest')
     );
   }
-
-  public forceConnection() {
-    return this.errors.withCapture(
-      this.rpc.call<void>('connection.forceConnection')
-    );
-  }
 }
