@@ -28,6 +28,7 @@
   "permissions": ["notifications"],
   "web_accessible_resources": [
     "scripts/content/inpage.js",
+    "scripts/content/signerTestMethods.js",
     "logo64.png"
   ],
   "browser_action": {
