@@ -21,6 +21,10 @@ class SignerTestingHelper {
     return this.call<void>('connectToSite');
   }
 
+  async forceDisconnect() {
+    return this.call<void>('disconnectFromSite');
+  }
+
   async hasCreatedVault() {
     return this.call<boolean>('hasCreatedVault');
   }
