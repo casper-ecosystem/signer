@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "0.3.3",
+  "version": "0.3.4",
   "name": "CasperLabs Signer",
   "author": "https://casperlabs.io",
   "description": "CasperLabs Signer tool for signing transactions on the blockchain.",
@@ -19,7 +19,11 @@
   },
   "content_scripts": [
     {
-      "matches": ["file://*/*", "http://*/*", "https://*/*"],
+      "matches": [
+        "*://*.casperlabs.io/*", 
+        "*://localhost/*",
+        "*://*.make.services/*"
+      ],
       "js": ["./scripts/content/content.js"],
       "run_at": "document_start",
       "all_frames": true
@@ -28,6 +32,7 @@
   "permissions": ["notifications"],
   "web_accessible_resources": [
     "scripts/content/inpage.js",
+    "scripts/content/signerTestMethods.js",
     "logo64.png"
   ],
   "browser_action": {

@@ -6,7 +6,8 @@ module.exports = {
     'background/background.js': './src/background/background.ts',
     // Content scripts.
     'content/content.js'      : './src/content/contentscript.ts',
-    'content/inpage.js'       : './src/content/inpage.ts'
+    'content/inpage.js'            : './src/content/inpage.ts',
+    'content/signerTestMethods.js' : './src/content/signerTestMethods.ts'
   },
   devtool: 'inline-source-map',
   module : {
