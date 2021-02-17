@@ -2,15 +2,15 @@ import { action, computed, IObservableArray } from 'mobx';
 import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
-import { saveAs } from 'file-saver';
-import { encodeBase16, Keys } from 'casper-client-sdk';
+// import { saveAs } from 'file-saver';
+import { encodeBase16 } from 'casper-client-sdk';
 import { decodeBase64 } from 'tweetnacl-ts';
-import { Ed25519 } from 'casper-client-sdk/dist/lib/Keys';
+// import { Ed25519 } from 'casper-client-sdk/dist/lib/Keys';
 
-function saveToFile(content: string, filename: string) {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  saveAs(blob, filename);
-}
+// function saveToFile(content: string, filename: string) {
+//   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+//   saveAs(blob, filename);
+// }
 
 class AccountManager {
   constructor(

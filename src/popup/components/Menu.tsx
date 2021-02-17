@@ -6,7 +6,7 @@ import CheckIcon from '@material-ui/icons/Check';
 import Icon from '@material-ui/core/Icon';
 import Menu from '@material-ui/core/Menu';
 import LockIcon from '@material-ui/icons/Lock';
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+// import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import Pages from './Pages';
 import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';

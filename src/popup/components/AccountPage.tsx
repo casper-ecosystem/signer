@@ -18,7 +18,7 @@ import {
 import { TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
 import FormControl from '@material-ui/core/FormControl';
-import { decodeBase64 } from 'tweetnacl-ts';
+// import { decodeBase64 } from 'tweetnacl-ts';
 import Box from '@material-ui/core/Box';
 
 const styles = (theme: Theme) =>
