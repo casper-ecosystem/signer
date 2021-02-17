@@ -69,11 +69,11 @@ class AccountPage extends React.Component<Props, {}> {
       );
     }
 
-    AccountManager.downloadPemFiles(
-      decodeBase64(formData.publicKeyBase64.$),
-      decodeBase64(formData.privateKeyBase64.$),
-      formData.name.$
-    );
+    // AccountManager.downloadPemFiles(
+    //   decodeBase64(formData.publicKeyBase64.$),
+    //   decodeBase64(formData.privateKeyBase64.$),
+    //   formData.name.$
+    // );
     await this._onSubmit();
   }
 

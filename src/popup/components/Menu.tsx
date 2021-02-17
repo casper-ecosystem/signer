@@ -99,7 +99,7 @@ const MoreMenu = observer((props: Props) => {
               <ListItemText primary="Key Management" />
             </ListItem>
           )}
-          {props.authContainer.selectedUserAccount && (
+          {/* {props.authContainer.selectedUserAccount && (
             <ListItem
               dense={true}
               button
@@ -111,7 +111,7 @@ const MoreMenu = observer((props: Props) => {
               <CloudDownloadIcon className={classes.menuIcon} />
               <ListItemText primary="Download Active Key" />
             </ListItem>
-          )}
+          )} */}
           <ListItem
             dense={true}
             button
