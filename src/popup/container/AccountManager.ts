@@ -3,7 +3,7 @@ import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
 import { saveAs } from 'file-saver';
-import { encodeBase16, Keys } from 'casperlabs-sdk';
+import { encodeBase16, Keys } from 'casper-client-sdk';
 import { decodeBase64 } from 'tweetnacl-ts';
 
 function saveToFile(content: string, filename: string) {
@@ -69,13 +69,15 @@ class AccountManager {
     privateKey: ByteArray,
     accountName: string
   ) {
+    // Parse keys
+    let ed25519KeyPair = Keys.Ed25519.parseKeyPair(publicKey, privateKey);
     // Save the private and public keys to disk.
     saveToFile(
-      Keys.Ed25519.privateKeyEncodeInPem(privateKey),
+      ed25519KeyPair.exportPrivateKeyInPem(),
       `${accountName}_secret_key.pem`
     );
     saveToFile(
-      Keys.Ed25519.publicKeyEncodeInPem(publicKey),
+      ed25519KeyPair.exportPublicKeyInPem(),
       `${accountName}_public_key.pem`
     );
     const publicKeyBase16 = encodeBase16(publicKey);
