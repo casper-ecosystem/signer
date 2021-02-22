@@ -140,6 +140,7 @@ class AccountPage extends React.Component<Props, {}> {
         />
         <FormControl fullWidth className={this.props.classes.importButton}>
           <Button
+            type="submit"
             disabled={this.accountForm.submitDisabled}
             color="primary"
             variant={'contained'}
@@ -192,6 +193,7 @@ class AccountPage extends React.Component<Props, {}> {
         />
         <FormControl fullWidth margin={'normal'}>
           <Button
+            type="submit"
             className="mt-5"
             disabled={this.accountForm.submitDisabled}
             color="primary"

@@ -88,6 +88,7 @@ class Home extends React.Component<Props, {}> {
               </Typography>
               <FormControl fullWidth className={this.props.classes.margin}>
                 <Button
+                  type="submit"
                   variant="contained"
                   color="primary"
                   disabled={this.props.homeContainer.createVaultDisabled}
@@ -202,6 +203,7 @@ class Home extends React.Component<Props, {}> {
               </FormControl>
               <FormControl fullWidth className={this.props.classes.margin}>
                 <Button
+                  type="submit"
                   variant="contained"
                   color="primary"
                   disabled={this.props.homeContainer.submitDisabled}
