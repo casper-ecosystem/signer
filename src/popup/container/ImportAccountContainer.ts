@@ -5,7 +5,7 @@ import * as nacl from 'tweetnacl-ts';
 import React from 'react';
 import { encodeBase64 } from 'tweetnacl-util';
 import ErrorContainer from './ErrorContainer';
-import { Keys } from 'casperlabs-sdk';
+import { Keys } from 'casper-client-sdk';
 import { SignKeyPair } from 'tweetnacl-ts';
 
 export interface SubmittableFormData {
@@ -49,9 +49,15 @@ export class ImportAccountFormData implements SubmittableFormData {
         const errorMsg = this.checkFileContent(reader.result as string);
         if (errorMsg === null) {
           const fileName = this.file?.name!.split('.')[0];
-          const name = fileName.replace(/_secret_key$/, '');
-          this.name.onChange(name);
-          this.privateKeyBase64.onChange(encodeBase64(this.key?.secretKey!));
+          if (fileName === undefined) {
+            this.errors.capture(
+              Promise.reject(new Error('File name undefined'))
+            );
+          } else {
+            const name = fileName.replace(/_secret_key$/, '');
+            this.name.onChange(name);
+            this.privateKeyBase64.onChange(encodeBase64(this.key?.secretKey!));
+          }
         } else {
           this.errors.capture(Promise.reject(new Error(errorMsg)));
         }
