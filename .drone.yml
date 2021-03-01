@@ -14,35 +14,36 @@ clone:
           EMAIL=ci git merge --no-edit FETCH_HEAD
       fi
       git rev-parse HEAD
-    image: "casperlabs/buildenv:latest"
+    image: "casperlabs/clarity-build:latest"
 
 kind: pipeline
+type: docker
 name: build-test-publish
 
 steps:
 - name: install-dependencies
   commands:
   - npm install
-  image: "casperlabs/buildenv:latest"
+  image: "casperlabs/clarity-build:latest"
 
 - name: run-build
   commands:
   - npm run build
-  image: "casperlabs/buildenv:latest"
+  image: "casperlabs/clarity-build:latest"
   depends_on:
   - install-dependencies
 
 - name: run-test
   commands:
   - npm run test_ci
-  image: "casperlabs/buildenv:latest"
+  image: "casperlabs/clarity-build:latest"
   depends_on:
   - run-build
 
 - name: run-complete
   commands:
   - npm run complete
-  image: "casperlabs/buildenv:latest"
+  image: "casperlabs/clarity-build:latest"
   depends_on:
   - run-test
   when:
@@ -52,7 +53,7 @@ steps:
     - master
 
 - name: upload-extension
-  image: "casperlabs/buildenv:latest"
+  image: "casperlabs/clarity-build:latest"
   commands:
   - "./publish.sh"
   environment:
@@ -80,6 +81,7 @@ trigger:
 
 ---
 kind: pipeline
+type: docker
 name: failed-build-alert
 
 clone:
