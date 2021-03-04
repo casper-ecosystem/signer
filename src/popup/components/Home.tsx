@@ -9,6 +9,7 @@ import {
 } from '@material-ui/core';
 import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
+import PopupManager from '../../background/PopupManager';
 import { HomeContainer } from '../container/HomeContainer';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer } from 'mobx-react';
@@ -35,6 +36,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   authContainer: AccountManager;
   homeContainer: HomeContainer;
   connectionContainer: ConnectSignerContainer;
+  popupManager: PopupManager;
 }
 
 @observer
@@ -142,6 +144,7 @@ class Home extends React.Component<Props, {}> {
                 component={Link}
                 variant="contained"
                 color="primary"
+                onClick={() => this.props.popupManager.openPopup('import')}
                 to={Pages.ImportAccount}
               >
                 Import Account

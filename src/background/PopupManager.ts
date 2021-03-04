@@ -9,14 +9,16 @@ import { browser } from 'webextension-polyfill-ts';
 export default class PopupManager {
   constructor() {}
 
-  openPopup(purpose: 'connect' | 'sign') {
+  openPopup(purpose: 'connect' | 'sign' | 'import') {
     browser.windows
       .getCurrent()
       .then(window => {
         let width = window.width ? window.width : 300;
         browser.windows.create({
           url:
-            'chrome-extension://clibiolanfdjhcccambhedamdankekik/index.html?#/',
+            purpose === 'import'
+              ? 'chrome-extension://clibiolanfdjhcccambhedamdankekik/index.html?#/import'
+              : 'chrome-extension://clibiolanfdjhcccambhedamdankekik/index.html?#/',
           type: 'popup',
           height: 480,
           width: 300,

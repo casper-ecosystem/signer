@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import AccountManager from '../container/AccountManager';
+import PopupManager from '../../background/PopupManager';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { observable } from 'mobx';
 import {
@@ -48,6 +49,8 @@ class AccountPage extends React.Component<
 > {
   @observable accountForm: ImportAccountFormData | CreateAccountFormData;
 
+  private popupManager: PopupManager;
+
   constructor(props: Props) {
     super(props);
     if (props.action === 'Import') {
@@ -58,6 +61,7 @@ class AccountPage extends React.Component<
     this.state = {
       keyDownloadEnabled: false
     };
+    this.popupManager = new PopupManager();
   }
 
   async onCreateAccount() {
@@ -102,6 +106,7 @@ class AccountPage extends React.Component<
     );
     this.accountForm.resetFields();
     this.props.history.goBack();
+    this.popupManager.closePopup();
   }
 
   renderImportForm() {
