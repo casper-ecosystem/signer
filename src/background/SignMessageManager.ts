@@ -83,7 +83,7 @@ export default class SignMessageManager extends events.EventEmitter {
   public approveMsg(msgId: number) {
     const msg = this.getMsg(msgId);
     if (!this.appState.selectedUserAccount) {
-      throw new Error(`Please select the account firstly`);
+      throw new Error(`Please select the account first`);
     }
     let activePublicKey = encodeBase64(
       this.appState.selectedUserAccount.signKeyPair.publicKey
