@@ -7,8 +7,6 @@ import { browser } from 'webextension-polyfill-ts';
  * Provide inject and background a way to show popup.
  */
 export default class PopupManager {
-  constructor() {}
-
   openPopup(purpose: 'connect' | 'sign' | 'import') {
     browser.windows
       .getCurrent()
@@ -27,12 +25,13 @@ export default class PopupManager {
         });
       })
       .catch(() => {
+        var title, message;
         if (purpose === 'connect') {
-          var title = 'Connection Request';
-          var message = 'Open Signer to Approve or Reject Connection';
+          title = 'Connection Request';
+          message = 'Open Signer to Approve or Reject Connection';
         } else if (purpose === 'sign') {
-          var title = 'Signature Request';
-          var message = 'Open Signer to Approve or Cancel Signing';
+          title = 'Signature Request';
+          message = 'Open Signer to Approve or Cancel Signing';
         } else {
           throw new Error('Purpose for alert message not found!');
         }
