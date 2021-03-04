@@ -1,8 +1,13 @@
 import { browser } from 'webextension-polyfill-ts';
 import { AppState } from '../lib/MemStore';
+import PopupManager from '../background/PopupManager';
 
 export default class ConnectionManager {
-  constructor(private appState: AppState) {}
+  private popupManager: PopupManager;
+
+  constructor(private appState: AppState) {
+    this.popupManager = new PopupManager();
+  }
 
   public isConnected() {
     return this.appState.connectionStatus;
@@ -10,20 +15,17 @@ export default class ConnectionManager {
 
   public requestConnection() {
     this.appState.connectionRequested = true;
-    browser.notifications.create({
-      title: 'Connection Request',
-      iconUrl: browser.extension.getURL('logo64.png'),
-      message: 'Open Signer to Approve or Reject Connection',
-      type: 'basic'
-    });
+    this.popupManager.openPopup('connect');
   }
 
   public resetConnectionRequest() {
     this.appState.connectionRequested = false;
+    this.popupManager.closePopup();
   }
 
   public connectToSite() {
     this.appState.connectionStatus = true;
+    this.popupManager.closePopup();
   }
 
   public disconnectFromSite() {
