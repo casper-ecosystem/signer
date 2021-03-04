@@ -19,10 +19,6 @@ class CasperLabsPluginHelper {
     return this.call<void>('requestConnection');
   }
 
-  async connectToSite() {
-    return this.call<void>('connectToSite');
-  }
-
   async sign(message: string, publicKeyBase64?: string) {
     return this.call<string>('sign', message, publicKeyBase64);
   }
