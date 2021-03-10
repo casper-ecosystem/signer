@@ -11,7 +11,13 @@ export default class PopupManager {
     browser.windows
       .getCurrent()
       .then(window => {
-        let width = window.width ? window.width : 300;
+        let popupWidth = 300;
+        let bufferRight = 20;
+        let bufferTop = 40;
+        let windowWidth =
+          window.width === undefined || null ? 300 : window.width;
+        let xOffset = window.left === undefined || null ? 0 : window.left;
+        let yOffset = window.top === undefined || null ? 0 : window.top;
         browser.windows.create({
           url:
             purpose === 'import'
@@ -20,8 +26,8 @@ export default class PopupManager {
           type: 'popup',
           height: 480,
           width: 300,
-          left: width - 300 - 20,
-          top: 80
+          left: windowWidth + xOffset - popupWidth - bufferRight,
+          top: yOffset + bufferTop
         });
       })
       .catch(() => {
