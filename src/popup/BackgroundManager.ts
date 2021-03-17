@@ -49,9 +49,9 @@ export class BackgroundManager {
     return this.rpc.call<void>('account.lock');
   }
 
-  public importUserAccount(name: string, privateKey: string) {
+  public importUserAccount(name: string, secretKey: string) {
     return this.errors.withCapture(
-      this.rpc.call<void>('account.importUserAccount', name, privateKey)
+      this.rpc.call<void>('account.importUserAccount', name, secretKey)
     );
   }
 

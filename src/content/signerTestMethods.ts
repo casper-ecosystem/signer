@@ -37,8 +37,8 @@ class SignerTestingHelper {
     return this.call<void>('createNewVault', password);
   }
 
-  async createTestAccount(name: string, privateKey: string) {
-    return this.call<void>('createTestAccount', name, privateKey);
+  async createTestAccount(name: string, secretKey: string) {
+    return this.call<void>('createTestAccount', name, secretKey);
   }
 
   async getToSignMessageID() {
