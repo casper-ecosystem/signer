@@ -1,0 +1,33 @@
+name: publish-casper-signer
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish:
+
+    runs-on: ubuntu-18.04
+
+    strategy:
+      matrix:
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [14.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+    - run: npm audit --audit-level=low
+    - run: npm run complete
+    - name: Publish Extension
+      uses: trmcnvn/chrome-addon@v2
+      with:
+        extension: 'djhndpllfiibmcdbnmaaahkhchcoijce'
+        zip: 'artifacts/casperlabs_signer-0.3.4.zip'
+        client-id: ${{ secrets.client_id }}
+        client-secret: ${{ secrets.client_secret }}
+        refresh-token: ${{ secrets.refresh_token }}
