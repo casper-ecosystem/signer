@@ -1,4 +1,4 @@
-name: publish-casper-client-sdk
+name: publish-casper-signer
 
 on:
   release:
