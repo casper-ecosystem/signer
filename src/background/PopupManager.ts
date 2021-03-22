@@ -19,10 +19,7 @@ export default class PopupManager {
         let xOffset = window.left === undefined || null ? 0 : window.left;
         let yOffset = window.top === undefined || null ? 0 : window.top;
         browser.windows.create({
-          url:
-            purpose === 'import'
-              ? 'chrome-extension://clibiolanfdjhcccambhedamdankekik/index.html?#/import'
-              : 'chrome-extension://clibiolanfdjhcccambhedamdankekik/index.html?#/',
+          url: purpose === 'import' ? 'index.html?#/import' : 'index.html?#/',
           type: 'popup',
           height: 480,
           width: 300,
