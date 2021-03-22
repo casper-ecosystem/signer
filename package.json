@@ -16,7 +16,7 @@
     "@types/react-dom": "^16.9.5",
     "axios": "^0.21.1",
     "browser-passworder": "^2.0.3",
-    "casper-client-sdk": "latest",
+    "casper-client-sdk": "^1.0.32",
     "copy-to-clipboard": "^3.3.1",
     "file-saver": "^2.0.2",
     "fontsource-roboto": "^2.2.3",
@@ -34,7 +34,7 @@
     "react-confirm": "^0.1.20",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.1.0",
-    "react-scripts": "3.4.4",
+    "react-scripts": "^4.0.3",
     "store": "^2.0.12",
     "tweetnacl": "^1.0.3",
     "tweetnacl-ts": "latest",
@@ -112,7 +112,7 @@
     "prettier": "^2.0.4",
     "ts-loader": "^6.2.1",
     "typescript": "^3.8.3",
-    "web-ext": "^4.3.0",
+    "web-ext": "^6.0.0",
     "webextension-polyfill-ts": "^0.12.0",
     "webpack-cli": "^3.3.11"
   }
