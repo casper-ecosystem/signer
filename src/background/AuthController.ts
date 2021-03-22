@@ -75,7 +75,7 @@ class AuthController {
   }
 
   @action
-  async importUserAccount(name: string, privateKeyBase64: string) {
+  async importUserAccount(name: string, secretKeyBase64: string) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock it before adding new account');
     }
@@ -83,20 +83,20 @@ class AuthController {
     let account = this.appState.userAccounts.find(account => {
       return (
         account.name === name ||
-        encodeBase64(account.signKeyPair.secretKey) === privateKeyBase64
+        encodeBase64(account.signKeyPair.secretKey) === secretKeyBase64
       );
     });
 
     if (account) {
       throw new Error(
         `A account with same ${
-          account.name === name ? 'name' : 'private key'
+          account.name === name ? 'name' : 'secret key'
         } already exists`
       );
     }
 
     const keyPair = nacl.sign.keyPair.fromSecretKey(
-      decodeBase64(privateKeyBase64)
+      decodeBase64(secretKeyBase64)
     );
 
     this.appState.userAccounts.push({
