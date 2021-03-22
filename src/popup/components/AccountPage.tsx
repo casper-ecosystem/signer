@@ -84,7 +84,7 @@ class AccountPage extends React.Component<
     if (this.state.keyDownloadEnabled) {
       AccountManager.downloadPemFiles(
         decodeBase64(formData.publicKeyBase64.$),
-        decodeBase64(formData.secretKeyBase64.$),
+        decodeBase64(formData.privateKeyBase64.$),
         formData.name.$
       );
     }
@@ -102,7 +102,7 @@ class AccountPage extends React.Component<
   async _onSubmit() {
     await this.props.authContainer.importUserAccount(
       this.accountForm.name.$,
-      this.accountForm.secretKeyBase64.$
+      this.accountForm.privateKeyBase64.$
     );
     this.accountForm.resetFields();
     this.props.history.goBack();
@@ -211,7 +211,7 @@ class AccountPage extends React.Component<
           label="Private Key (Base64)"
           placeholder="Base64 encoded Ed25519 secret key"
           id="create-private-key"
-          defaultValue={formData.secretKeyBase64.value}
+          defaultValue={formData.privateKeyBase64.value}
         />
         <FormControlLabel
           control={

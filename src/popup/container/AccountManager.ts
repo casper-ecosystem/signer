@@ -24,8 +24,8 @@ class AccountManager {
     );
   }
 
-  async importUserAccount(name: string, secretKey: string) {
-    return this.backgroundManager.importUserAccount(name, secretKey);
+  async importUserAccount(name: string, privateKey: string) {
+    return this.backgroundManager.importUserAccount(name, privateKey);
   }
 
   async removeUserAccount(name: string) {
@@ -66,15 +66,14 @@ class AccountManager {
 
   static downloadPemFiles(
     publicKey: Uint8Array,
-    secretKey: Uint8Array,
+    privateKey: Uint8Array,
     accountName: string
   ) {
     // Parse keys
     console.log(publicKey);
-    let ed25519KeyPair = Keys.Ed25519.parseKeyPair(publicKey, secretKey);
+    let ed25519KeyPair = Keys.Ed25519.parseKeyPair(publicKey, privateKey);
     // Save the private and public keys to disk.
     saveToFile(
-      // the name of the method in the SDK will need to be changed to align with the use of 'secret' over 'private'
       ed25519KeyPair.exportPrivateKeyInPem(),
       `${accountName}_secret_key.pem`
     );

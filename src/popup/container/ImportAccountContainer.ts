@@ -14,7 +14,7 @@ export interface SubmittableFormData {
 }
 
 export class ImportAccountFormData implements SubmittableFormData {
-  secretKeyBase64: FieldState<string> = new FieldState<string>('').validators(
+  privateKeyBase64: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
   name: FieldState<string> = new FieldState<string>('').validators(
@@ -28,11 +28,10 @@ export class ImportAccountFormData implements SubmittableFormData {
       return 'The content of imported file cannot be empty!';
     }
     try {
-      // the name of the method in the SDK will need to be changed to align with the use of 'secret' over 'private'
-      const secretKey = Keys.Ed25519.parsePrivateKey(
+      const privateKey = Keys.Ed25519.parsePrivateKey(
         Keys.Ed25519.readBase64WithPEM(fileContent)
       );
-      this.key = nacl.sign_keyPair_fromSeed(secretKey);
+      this.key = nacl.sign_keyPair_fromSeed(privateKey);
     } catch (e) {
       return e.message;
     }
@@ -57,7 +56,7 @@ export class ImportAccountFormData implements SubmittableFormData {
           } else {
             const name = fileName.replace(/_secret_key$/, '');
             this.name.onChange(name);
-            this.secretKeyBase64.onChange(encodeBase64(this.key?.secretKey!));
+            this.privateKeyBase64.onChange(encodeBase64(this.key?.secretKey!));
           }
         } else {
           this.errors.capture(Promise.reject(new Error(errorMsg)));
@@ -69,13 +68,13 @@ export class ImportAccountFormData implements SubmittableFormData {
   @computed
   get submitDisabled(): boolean {
     return !(
-      fieldSubmittable(this.secretKeyBase64) && fieldSubmittable(this.name)
+      fieldSubmittable(this.privateKeyBase64) && fieldSubmittable(this.name)
     );
   }
 
   @action
   resetFields() {
-    this.secretKeyBase64.reset();
+    this.privateKeyBase64.reset();
     this.name.reset();
   }
 }
@@ -89,13 +88,13 @@ export class CreateAccountFormData extends ImportAccountFormData {
     super(errors);
     let newKeyPair = nacl.sign_keyPair();
     this.publicKeyBase64.onChange(nacl.encodeBase64(newKeyPair.publicKey));
-    this.secretKeyBase64.onChange(nacl.encodeBase64(newKeyPair.secretKey));
+    this.privateKeyBase64.onChange(nacl.encodeBase64(newKeyPair.secretKey));
   }
 
   @computed
   get submitDisabled(): boolean {
     return !(
-      fieldSubmittable(this.secretKeyBase64) &&
+      fieldSubmittable(this.privateKeyBase64) &&
       fieldSubmittable(this.name) &&
       fieldSubmittable(this.publicKeyBase64)
     );

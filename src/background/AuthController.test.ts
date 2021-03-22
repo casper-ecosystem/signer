@@ -77,7 +77,7 @@ describe('AuthController', () => {
     expect(authController.isUnlocked).toBeTruthy();
   });
 
-  it('should be able to add new account and failed when either name or secret key duplicated', async () => {
+  it('should be able to add new account and failed when either name or private key duplicated', async () => {
     let signKeyPair1 = nacl.sign_keyPair();
     let duplicateAccountName = 'account1';
     await expect(
@@ -98,7 +98,7 @@ describe('AuthController', () => {
         'new name',
         encodeBase64(signKeyPair1.secretKey)
       )
-    ).rejects.toThrow(/same secret key/g);
+    ).rejects.toThrow(/same private key/g);
   });
 
   it('should be able to switch account by account name', async () => {
