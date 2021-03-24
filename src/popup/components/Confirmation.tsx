@@ -48,7 +48,6 @@ class Confirmation extends React.Component<Props, {}> {
               this.props.proceed();
             }}
             color="primary"
-            autoFocus
           >
             {this.props.proceedLabel}
           </Button>

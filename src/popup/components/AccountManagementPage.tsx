@@ -194,7 +194,6 @@ export const AccountManagementPage = observer((props: Props) => {
         <DialogTitle id="form-dialog-title">Rename</DialogTitle>
         <DialogContent>
           <Input
-            autoFocus
             margin="dense"
             id="name"
             type="text"
