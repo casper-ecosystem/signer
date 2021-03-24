@@ -141,6 +141,7 @@ class Home extends React.Component<Props, {}> {
           <Grid item>
             <FormControl fullWidth className={this.props.classes.margin}>
               <Button
+                aria-label="This will open a new window to import a key to your vault"
                 component={Link}
                 variant="contained"
                 color="primary"
@@ -153,6 +154,7 @@ class Home extends React.Component<Props, {}> {
 
             <FormControl fullWidth className={this.props.classes.margin}>
               <Button
+                aria-label="This will open a form to create an account - focus will be given to the input field for key name"
                 component={Link}
                 variant="contained"
                 color="primary"
@@ -195,6 +197,7 @@ class Home extends React.Component<Props, {}> {
             <form style={{ textAlign: 'center' }}>
               <FormControl fullWidth>
                 <TextFieldWithFormState
+                  aria-label="Enter password for vault"
                   fieldState={
                     this.props.homeContainer.homeForm.$.setPasswordField
                   }
@@ -228,6 +231,7 @@ class Home extends React.Component<Props, {}> {
               </FormControl>
               <div className="reset-vault">
                 <a
+                  aria-label="Reset vault - this will open a confirmation before erasing keys"
                   href="#"
                   className="text-danger"
                   id="reset-link"

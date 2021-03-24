@@ -182,6 +182,8 @@ class AccountPage extends React.Component<
     return (
       <form className={this.props.classes.root}>
         <TextFieldWithFormState
+          aria-label="Input for setting name of key"
+          autoFocus
           fullWidth
           label="Name"
           placeholder="Human Readable Alias"

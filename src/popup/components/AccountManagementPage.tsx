@@ -150,6 +150,7 @@ export const AccountManagementPage = observer((props: Props) => {
                             <ListItemText primary={item.name} />
                             <ListItemSecondaryAction>
                               <IconButton
+                                aria-label="Button will open a dialog to rename key"
                                 edge={'end'}
                                 onClick={() => {
                                   handleClickOpen(item);
@@ -189,11 +190,13 @@ export const AccountManagementPage = observer((props: Props) => {
       <Dialog
         open={openDialog}
         onClose={handleClose}
+        aria-label="Form to rename account - focus will be given to name input field"
         aria-labelledby="form-dialog-title"
       >
         <DialogTitle id="form-dialog-title">Rename</DialogTitle>
         <DialogContent>
           <Input
+            autoFocus
             margin="dense"
             id="name"
             type="text"
