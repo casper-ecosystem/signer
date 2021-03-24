@@ -27,7 +27,7 @@ jobs:
       uses: trmcnvn/chrome-addon@v2
       with:
         extension: 'djhndpllfiibmcdbnmaaahkhchcoijce'
-        zip: 'artifacts/casperlabs_signer-*.zip'
+        zip: "artifacts/casperlabs_signer-*.zip"
         client-id: ${{ secrets.client_id }}
         client-secret: ${{ secrets.client_secret }}
         refresh-token: ${{ secrets.refresh_token }}
