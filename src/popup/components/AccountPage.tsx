@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import AccountManager from '../container/AccountManager';
+import PopupManager from '../../background/PopupManager';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { observable } from 'mobx';
 import {
@@ -10,16 +11,18 @@ import {
 import ErrorContainer from '../container/ErrorContainer';
 import {
   Button,
+  Checkbox,
   createStyles,
   Theme,
   Typography,
-  WithStyles
+  WithStyles,
+  FormControlLabel,
+  FormControl,
+  Box
 } from '@material-ui/core';
 import { TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
-import FormControl from '@material-ui/core/FormControl';
 import { decodeBase64 } from 'tweetnacl-ts';
-import Box from '@material-ui/core/Box';
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -40,8 +43,13 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
 }
 
 @observer
-class AccountPage extends React.Component<Props, {}> {
+class AccountPage extends React.Component<
+  Props,
+  { keyDownloadEnabled: boolean }
+> {
   @observable accountForm: ImportAccountFormData | CreateAccountFormData;
+
+  private popupManager: PopupManager;
 
   constructor(props: Props) {
     super(props);
@@ -50,6 +58,10 @@ class AccountPage extends React.Component<Props, {}> {
     } else {
       this.accountForm = new CreateAccountFormData(props.errors);
     }
+    this.state = {
+      keyDownloadEnabled: false
+    };
+    this.popupManager = new PopupManager();
   }
 
   async onCreateAccount() {
@@ -69,11 +81,14 @@ class AccountPage extends React.Component<Props, {}> {
       );
     }
 
-    AccountManager.downloadPemFiles(
-      decodeBase64(formData.publicKeyBase64.$),
-      decodeBase64(formData.privateKeyBase64.$),
-      formData.name.$
-    );
+    if (this.state.keyDownloadEnabled) {
+      AccountManager.downloadPemFiles(
+        decodeBase64(formData.publicKeyBase64.$),
+        decodeBase64(formData.privateKeyBase64.$),
+        formData.name.$
+      );
+    }
+
     await this._onSubmit();
   }
 
@@ -91,6 +106,7 @@ class AccountPage extends React.Component<Props, {}> {
     );
     this.accountForm.resetFields();
     this.props.history.goBack();
+    this.popupManager.closePopup();
   }
 
   renderImportForm() {
@@ -140,6 +156,7 @@ class AccountPage extends React.Component<Props, {}> {
         />
         <FormControl fullWidth className={this.props.classes.importButton}>
           <Button
+            type="submit"
             disabled={this.accountForm.submitDisabled}
             color="primary"
             variant={'contained'}
@@ -156,9 +173,17 @@ class AccountPage extends React.Component<Props, {}> {
 
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
+    const toggleDownloadKey = (event: React.ChangeEvent<HTMLInputElement>) => {
+      this.setState({
+        ...this.state,
+        keyDownloadEnabled: event.target.checked
+      });
+    };
     return (
       <form className={this.props.classes.root}>
         <TextFieldWithFormState
+          aria-label="Input for setting name of key"
+          autoFocus
           fullWidth
           label="Name"
           placeholder="Human Readable Alias"
@@ -190,8 +215,19 @@ class AccountPage extends React.Component<Props, {}> {
           id="create-private-key"
           defaultValue={formData.privateKeyBase64.value}
         />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={this.state.keyDownloadEnabled}
+              onChange={toggleDownloadKey}
+              name="checkedA"
+            />
+          }
+          label="Download Key"
+        />
         <FormControl fullWidth margin={'normal'}>
           <Button
+            type="submit"
             className="mt-5"
             disabled={this.accountForm.submitDisabled}
             color="primary"

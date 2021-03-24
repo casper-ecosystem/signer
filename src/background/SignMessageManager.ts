@@ -1,5 +1,6 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
+import PopupManager from '../background/PopupManager';
 import { encodeBase64 } from 'tweetnacl-ts';
 import * as nacl from 'tweetnacl-ts';
 import { browser } from 'webextension-polyfill-ts';
@@ -29,11 +30,13 @@ export interface SignMessage {
 export default class SignMessageManager extends events.EventEmitter {
   private messages: SignMessage[];
   private nextId: number;
+  private popupManager: PopupManager;
 
   constructor(private appState: AppState) {
     super();
     this.messages = [];
     this.nextId = Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
+    this.popupManager = new PopupManager();
   }
 
   public addUnsignedMessageBase16Async(
@@ -42,6 +45,7 @@ export default class SignMessageManager extends events.EventEmitter {
   ) {
     return new Promise((resolve, reject) => {
       const msgId = this.addUnsignedMessage(rawMessageBase16, publicKeyBase64);
+      this.popupManager.openPopup('sign');
       // await finished, listen to finish event, which will be fired by `rejectMsg` or `signMsg`.
       this.once(`${msgId}:finished`, data => {
         switch (data.status) {
@@ -77,13 +81,14 @@ export default class SignMessageManager extends events.EventEmitter {
     msg.status = 'rejected';
     msg.errMsg = 'User denied message signature.';
     this.saveAndEmitEventIfNeeded(msg);
+    this.popupManager.closePopup();
   }
 
   // Approve signature request
   public approveMsg(msgId: number) {
     const msg = this.getMsg(msgId);
     if (!this.appState.selectedUserAccount) {
-      throw new Error(`Please select the account firstly`);
+      throw new Error(`Please select the account first`);
     }
     let activePublicKey = encodeBase64(
       this.appState.selectedUserAccount.signKeyPair.publicKey
@@ -158,12 +163,6 @@ export default class SignMessageManager extends events.EventEmitter {
     // Add msg to local cached message and push it to UI if necessary.
     this.messages.push(msg);
     this.updateAppState();
-    browser.notifications.create({
-      title: 'New Signature Request',
-      iconUrl: browser.extension.getURL('logo64.png'),
-      message: 'Open Signer to Approve or Reject the Request',
-      type: 'basic'
-    });
     return msgId;
   }
 

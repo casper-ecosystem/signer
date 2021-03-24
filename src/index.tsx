@@ -6,6 +6,7 @@ import './popup/styles/sb-admin/sb-admin.scss';
 import App from './popup/App';
 import * as serviceWorker from './serviceWorker';
 import AccountManager from './popup/container/AccountManager';
+import PopupManager from './background/PopupManager';
 import { HomeContainer } from './popup/container/HomeContainer';
 import { HashRouter } from 'react-router-dom';
 import { BackgroundManager } from './popup/BackgroundManager';
@@ -35,6 +36,7 @@ const connectSignerContainer = new ConnectSignerContainer(
   appState
 );
 const homeContainer = new HomeContainer();
+const popupManager = new PopupManager();
 
 ReactDOM.render(
   <ThemeProvider theme={signerTheme}>
@@ -45,6 +47,7 @@ ReactDOM.render(
         homeContainer={homeContainer}
         signMessageContainer={signMessageContainer}
         connectSignerContainer={connectSignerContainer}
+        popupManager={popupManager}
       />
     </HashRouter>
   </ThemeProvider>,

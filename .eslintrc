@@ -11,7 +11,10 @@
   ],
   "rules": {
     "semi": 1,
-    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx", ".ts", ".tsx"] }],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["error"],
+    "jsx-a11y/no-autofocus": "off",
     "prettier/prettier": [
       "error", {
         "semi": true

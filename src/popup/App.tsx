@@ -6,6 +6,7 @@ import { Route, Switch } from 'react-router-dom';
 import Pages from './components/Pages';
 import Home from './components/Home';
 import AccountManager from './container/AccountManager';
+import PopupManager from '../background/PopupManager';
 import { HomeContainer } from './container/HomeContainer';
 import { observer } from 'mobx-react';
 import ErrorContainer from './container/ErrorContainer';
@@ -23,6 +24,7 @@ import { AccountManagementPage } from './components/AccountManagementPage';
 export interface AppProps {
   errors: ErrorContainer;
   authContainer: AccountManager;
+  popupManager: PopupManager;
   homeContainer: HomeContainer;
   signMessageContainer: SignMessageContainer;
   connectSignerContainer: ConnectSignerContainer;
@@ -47,6 +49,7 @@ const App = (props: AppProps) => {
                 authContainer={props.authContainer}
                 homeContainer={props.homeContainer}
                 connectionContainer={props.connectSignerContainer}
+                popupManager={props.popupManager}
               />
             )}
           />
