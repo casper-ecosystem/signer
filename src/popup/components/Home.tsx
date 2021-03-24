@@ -9,6 +9,7 @@ import {
 } from '@material-ui/core';
 import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
+import PopupManager from '../../background/PopupManager';
 import { HomeContainer } from '../container/HomeContainer';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer } from 'mobx-react';
@@ -35,6 +36,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   authContainer: AccountManager;
   homeContainer: HomeContainer;
   connectionContainer: ConnectSignerContainer;
+  popupManager: PopupManager;
 }
 
 @observer
@@ -88,6 +90,7 @@ class Home extends React.Component<Props, {}> {
               </Typography>
               <FormControl fullWidth className={this.props.classes.margin}>
                 <Button
+                  type="submit"
                   variant="contained"
                   color="primary"
                   disabled={this.props.homeContainer.createVaultDisabled}
@@ -138,9 +141,11 @@ class Home extends React.Component<Props, {}> {
           <Grid item>
             <FormControl fullWidth className={this.props.classes.margin}>
               <Button
+                aria-label="This will open a new window to import a key to your vault"
                 component={Link}
                 variant="contained"
                 color="primary"
+                onClick={() => this.props.popupManager.openPopup('import')}
                 to={Pages.ImportAccount}
               >
                 Import Account
@@ -149,6 +154,7 @@ class Home extends React.Component<Props, {}> {
 
             <FormControl fullWidth className={this.props.classes.margin}>
               <Button
+                aria-label="This will open a form to create an account - focus will be given to the input field for key name"
                 component={Link}
                 variant="contained"
                 color="primary"
@@ -191,6 +197,7 @@ class Home extends React.Component<Props, {}> {
             <form style={{ textAlign: 'center' }}>
               <FormControl fullWidth>
                 <TextFieldWithFormState
+                  aria-label="Enter password for vault"
                   fieldState={
                     this.props.homeContainer.homeForm.$.setPasswordField
                   }
@@ -202,6 +209,7 @@ class Home extends React.Component<Props, {}> {
               </FormControl>
               <FormControl fullWidth className={this.props.classes.margin}>
                 <Button
+                  type="submit"
                   variant="contained"
                   color="primary"
                   disabled={this.props.homeContainer.submitDisabled}
@@ -223,6 +231,7 @@ class Home extends React.Component<Props, {}> {
               </FormControl>
               <div className="reset-vault">
                 <a
+                  aria-label="Reset vault - this will open a confirmation before erasing keys"
                   href="#"
                   className="text-danger"
                   id="reset-link"

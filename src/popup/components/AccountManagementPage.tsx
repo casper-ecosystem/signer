@@ -31,11 +31,11 @@ import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
 
-interface Item {
-  id: string;
-  primary: string;
-  secondary?: string;
-}
+// interface Item {
+//   id: string;
+//   primary: string;
+//   secondary?: string;
+// }
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
   // styles we need to apply on draggables
@@ -150,6 +150,7 @@ export const AccountManagementPage = observer((props: Props) => {
                             <ListItemText primary={item.name} />
                             <ListItemSecondaryAction>
                               <IconButton
+                                aria-label="Button will open a dialog to rename key"
                                 edge={'end'}
                                 onClick={() => {
                                   handleClickOpen(item);
@@ -189,6 +190,7 @@ export const AccountManagementPage = observer((props: Props) => {
       <Dialog
         open={openDialog}
         onClose={handleClose}
+        aria-label="Form to rename account - focus will be given to name input field"
         aria-labelledby="form-dialog-title"
       >
         <DialogTitle id="form-dialog-title">Rename</DialogTitle>
