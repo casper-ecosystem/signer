@@ -31,11 +31,11 @@ import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
 
-interface Item {
-  id: string;
-  primary: string;
-  secondary?: string;
-}
+// interface Item {
+//   id: string;
+//   primary: string;
+//   secondary?: string;
+// }
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
   // styles we need to apply on draggables
