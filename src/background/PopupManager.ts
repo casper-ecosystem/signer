@@ -28,7 +28,7 @@ export default class PopupManager {
         });
       })
       .catch(() => {
-        var title, message;
+        let title, message;
         if (purpose === 'connect') {
           title = 'Connection Request';
           message = 'Open Signer to Approve or Reject Connection';
