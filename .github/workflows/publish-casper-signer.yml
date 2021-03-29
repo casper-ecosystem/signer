@@ -23,11 +23,14 @@ jobs:
     - run: npm install
     - run: npm audit --audit-level=low
     - run: npm run complete
+    - name: Get latest Signer version number
+      id: get_signer_version
+      uses: battila7/get-version-action@v2
     - name: Publish Extension
       uses: trmcnvn/chrome-addon@v2
       with:
         extension: 'djhndpllfiibmcdbnmaaahkhchcoijce'
-        zip: "artifacts/casperlabs_signer-*.zip"
+        zip: artifacts/casperlabs_signer-${{ steps.get_signer_version.outputs.version-without-v }}.zip
         client-id: ${{ secrets.client_id }}
         client-secret: ${{ secrets.client_secret }}
         refresh-token: ${{ secrets.refresh_token }}
