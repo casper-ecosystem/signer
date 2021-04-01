@@ -53,7 +53,7 @@
     "scripts_watch": "export INLINE_RUNTIME_CHUNK=false && webpack --watch",
     "package": "web-ext build --config=webext.config.js",
     "complete": "npm run build && npm run package",
-    "test": "react-scripts test",
+    "test": "react-scripts test --env=./custom-test-env.js",
     "test_ci": "react-scripts test --watchAll=false",
     "lint": "eslint .",
     "eject": "react-scripts eject"

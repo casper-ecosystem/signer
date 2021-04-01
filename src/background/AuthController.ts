@@ -295,8 +295,7 @@ class AuthController {
    * @param str string to get bytes of
    */
   private stringToBytes(str: string) {
-    let buff = Buffer.from(str);
-    return Uint8Array.from(buff);
+    return new TextEncoder().encode(str);
   }
 
   /**
@@ -312,7 +311,7 @@ class AuthController {
   ): [Uint8Array, Uint8Array] {
     let passwordSalt: Uint8Array;
     salt !== null
-      ? (passwordSalt = salt)
+      ? (passwordSalt = Uint8Array.from(Object.values(salt)))
       : (passwordSalt = nacl.randomBytes(64));
     let passwordBytes = this.stringToBytes(password);
     let saltedPasswordBytes = new Uint8Array(
