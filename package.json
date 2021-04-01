@@ -54,7 +54,7 @@
     "package": "web-ext build --config=webext.config.js",
     "complete": "npm run build && npm run package",
     "test": "react-scripts test --env=./custom-test-env.js",
-    "test_ci": "react-scripts test --watchAll=false",
+    "test_ci": "react-scripts test --watchAll=false --env=./custom-test-env.js",
     "lint": "eslint .",
     "eject": "react-scripts eject"
   },
