@@ -292,7 +292,7 @@ class AuthController {
 
   /**
    * Helper function to convert a string into a Uint8array
-   * @param str string to get bytes of
+   * @param {string} str to get bytes of
    */
   private stringToBytes(str: string) {
     return new TextEncoder().encode(str);
