@@ -50,6 +50,7 @@ const App = (props: AppProps) => {
                 homeContainer={props.homeContainer}
                 connectionContainer={props.connectSignerContainer}
                 popupManager={props.popupManager}
+                errors={props.errors}
               />
             )}
           />
