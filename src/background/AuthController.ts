@@ -319,15 +319,6 @@ class AuthController {
     );
     saltedPasswordBytes.set(passwordSalt);
     saltedPasswordBytes.set(passwordBytes, passwordSalt.length);
-    // TODO: Remove console.logs once bug is fixed
-    console.log(`\
-      Salt Stored?\t    : ${salt !== null ? 'Yes' : 'No'}\n\
-      Salt:\t\t ${passwordSalt.length} : ${encodeBase64(passwordSalt)}\n\
-      Password:\t ${passwordBytes.length} : ${encodeBase64(passwordBytes)}\n\
-      S.Password:\t ${saltedPasswordBytes.length} : ${encodeBase64(
-      saltedPasswordBytes
-    )}\n\
-    `);
     return [passwordSalt, saltedPasswordBytes];
   }
 
