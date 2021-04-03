@@ -175,7 +175,11 @@ class Home extends React.Component<Props, {}> {
     confirm(
       <div className="text-danger">Danger!</div>,
       'Resetting vault will delete all imported accounts.'
-    ).then(() => this.props.authContainer.resetVault());
+    ).then(() => {
+      this.props.authContainer.resetVault();
+      this.props.errors.dismissLast();
+      this.props.homeContainer.homeForm.$.setPasswordField.reset();
+    });
   }
 
   renderUnlock() {
