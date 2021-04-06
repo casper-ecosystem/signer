@@ -23,10 +23,12 @@ const config = configFactory("development");
 
 // The classic webpack-dev-server can't be used to develop browser extensions,
 // so we remove the "webpackHotDevClient" from the config "entry" point.
-config.entry = config.entry.filter(function(entry) {
-  return !entry.includes("webpackHotDevClient");
-});
-
+if (config.entry.filter) {
+  config.entry = config.entry.filter(function(entry) {
+    return !entry.includes("webpackHotDevClient");
+  });
+}
+  
 // Edit the Webpack config by setting the output directory to "./build".
 config.output.path = paths.appBuild;
 paths.publicUrl = paths.appBuild + "/";
