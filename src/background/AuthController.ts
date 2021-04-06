@@ -19,25 +19,30 @@ interface PersistentVaultData {
 }
 
 class AuthController {
-  // we store hashed password instead of original password
+  // we store the salted password hash instead of original password
   private passwordHash: string | null = null;
+  private passwordSalt: Uint8Array | null = null;
 
-  // we will use the passwordHash above to encrypt the valut object
-  // and then using this key to store it in local storage
+  // we will use the passwordHash above to encrypt the value object
+  // and then using this key to store it in local storage along with
+  // the plain text salt for the password.
   private encryptedVaultKey = 'encryptedVault';
+  private saltKey = 'passwordSalt';
 
   constructor(private appState: AppState) {
-    if (this.getEncryptedVault()) {
+    if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
       this.appState.hasCreatedVault = true;
     }
   }
 
   @action.bound
   async createNewVault(password: string): Promise<void> {
-    if (this.getEncryptedVault()) {
+    if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
       throw new Error('There is a vault already');
     }
-    const hash = this.hash(password);
+    let [salt, saltedPassword] = this.saltPassword(password);
+    let hash = this.hash(saltedPassword);
+    this.passwordSalt = salt;
     this.passwordHash = hash;
     await this.clearAccount();
     await this.persistVault();
@@ -234,7 +239,9 @@ class AuthController {
   }
 
   /**
-   * encrypted userAccounts by using passwordHash, and save it to local storage.
+   * Encrypt user accounts using salted password hash.
+   * Save the encryptedVault string to the store.
+   * Save the plain text passwordSalt to the store.
    */
   private async persistVault() {
     const encryptedVault = await passworder.encrypt(this.passwordHash!, {
@@ -245,34 +252,84 @@ class AuthController {
         ? this.serializeSignKeyPairWithAlias(this.appState.selectedUserAccount)
         : null
     });
-    this.saveEncryptedVault(encryptedVault);
-  }
 
-  private getEncryptedVault() {
-    return store.get(this.encryptedVaultKey);
-  }
-
-  private saveEncryptedVault(encryptedVault: string) {
-    store.set(this.encryptedVaultKey, encryptedVault);
-  }
-
-  private async restoreVault(password: string): Promise<PersistentVaultData> {
-    let encryptedVault = this.getEncryptedVault();
-    if (!encryptedVault) {
-      throw new Error('There is no vault');
-    }
-    const vault = await passworder.decrypt(password, encryptedVault);
-    return vault as PersistentVaultData;
+    this.saveKeyValuetoStore(this.encryptedVaultKey, encryptedVault);
+    this.saveKeyValuetoStore(this.saltKey, this.passwordSalt!);
   }
 
   /**
-   * Hash the user input password for storing locally
-   * @param str
+   * Saves a given value under a given key in the store.
+   * @param key Key to save value under in store.
+   * @param value Value to save under Key in store.
    */
-  private hash(str: string) {
-    const b = Buffer.from(str);
-    const h = nacl.hash(Uint8Array.from(b));
-    return encodeBase64(h);
+  private saveKeyValuetoStore(key: string, value: any) {
+    store.set(key, value);
+  }
+
+  /**
+   * Get a stored value by key. If no key exists then return null.
+   * @param key Key under which value is stored.
+   * @returns Stored value by given key.
+   */
+  private getStoredValueWithKey(key: string) {
+    return store.get(key, null);
+  }
+
+  private async restoreVault(
+    password: string
+  ): Promise<[PersistentVaultData, string]> {
+    let encryptedVault = this.getStoredValueWithKey(this.encryptedVaultKey);
+    if (!encryptedVault) {
+      throw new Error('There is no vault');
+    }
+    let storedSalt = this.getStoredValueWithKey(this.saltKey);
+    let [, saltedPassword] = this.saltPassword(password, storedSalt);
+    let saltedPasswordHash = this.hash(saltedPassword);
+
+    const vault = await passworder.decrypt(saltedPasswordHash, encryptedVault);
+    return [vault as PersistentVaultData, saltedPasswordHash];
+  }
+
+  /**
+   * Helper function to convert a string into a Uint8array
+   * @param {string} str to get bytes of
+   */
+  private stringToBytes(str: string) {
+    return new TextEncoder().encode(str);
+  }
+
+  /**
+   * Generate a salted password for hashing.
+   * @param {string} password for salting.
+   * @param  {Uint8Array} [salt=null] will use instead of random bytes if provided.
+   * @returns {Uint8Array} Salt bytes.
+   * @returns {Uint8Array} Salted password bytes.
+   */
+  private saltPassword(
+    password: string,
+    salt: Uint8Array | null = null
+  ): [Uint8Array, Uint8Array] {
+    let passwordSalt: Uint8Array;
+    salt !== null
+      ? (passwordSalt = Uint8Array.from(Object.values(salt)))
+      : (passwordSalt = nacl.randomBytes(64));
+    let passwordBytes = this.stringToBytes(password);
+    let saltedPasswordBytes = new Uint8Array(
+      passwordSalt.length + passwordBytes.length
+    );
+    saltedPasswordBytes.set(passwordSalt);
+    saltedPasswordBytes.set(passwordBytes, passwordSalt.length);
+    return [passwordSalt, saltedPasswordBytes];
+  }
+
+  /**
+   * Hash given bytes and encodes in base64
+   * @param {Uint8Array} bytes Bytes for hashing.
+   * @returns {String} Base64 encoded hash.
+   */
+  private hash(bytes: Uint8Array) {
+    let hashedBytes = nacl.hash(bytes);
+    return encodeBase64(hashedBytes);
   }
 
   /*
@@ -292,9 +349,9 @@ class AuthController {
    */
   @action.bound
   async unlock(password: string) {
-    const passwordHash = this.hash(password);
-    const vault = await this.restoreVault(passwordHash);
-    this.passwordHash = passwordHash;
+    let vaultResponse = await this.restoreVault(password);
+    let vault = vaultResponse[0];
+    this.passwordHash = vaultResponse[1];
     this.appState.isUnlocked = true;
     this.appState.userAccounts.replace(
       vault.userAccounts.map(this.deserializeSignKeyPairWithAlias)

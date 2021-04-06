@@ -12,6 +12,7 @@ import AccountManager from '../container/AccountManager';
 import PopupManager from '../../background/PopupManager';
 import { HomeContainer } from '../container/HomeContainer';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
+import ErrorContainer from '../container/ErrorContainer';
 import { observer } from 'mobx-react';
 import Pages from './Pages';
 import { confirm } from './Confirmation';
@@ -37,6 +38,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   homeContainer: HomeContainer;
   connectionContainer: ConnectSignerContainer;
   popupManager: PopupManager;
+  errors: ErrorContainer;
 }
 
 @observer
@@ -173,7 +175,11 @@ class Home extends React.Component<Props, {}> {
     confirm(
       <div className="text-danger">Danger!</div>,
       'Resetting vault will delete all imported accounts.'
-    ).then(() => this.props.authContainer.resetVault());
+    ).then(() => {
+      this.props.authContainer.resetVault();
+      this.props.errors.dismissLast();
+      this.props.homeContainer.homeForm.$.setPasswordField.reset();
+    });
   }
 
   renderUnlock() {
@@ -219,6 +225,7 @@ class Home extends React.Component<Props, {}> {
                     try {
                       await this.props.authContainer.unlock(password);
                       this.props.homeContainer.homeForm.$.setPasswordField.reset();
+                      this.props.errors.dismissLast();
                     } catch (e) {
                       this.props.homeContainer.homeForm.$.setPasswordField.setError(
                         e.message
