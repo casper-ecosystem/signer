@@ -147,7 +147,9 @@ class Home extends React.Component<Props, {}> {
                 component={Link}
                 variant="contained"
                 color="primary"
-                onClick={() => this.props.popupManager.openPopup('import')}
+                onClick={() =>
+                  this.props.popupManager.openPopup('importAccount')
+                }
                 to={Pages.ImportAccount}
               >
                 Import Account

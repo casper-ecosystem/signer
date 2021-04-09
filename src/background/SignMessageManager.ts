@@ -3,7 +3,6 @@ import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
 import { encodeBase64 } from 'tweetnacl-ts';
 import * as nacl from 'tweetnacl-ts';
-import { browser } from 'webextension-polyfill-ts';
 
 type SignMessageStatus = 'unsigned' | 'signed' | 'rejected';
 
@@ -66,13 +65,18 @@ export default class SignMessageManager extends events.EventEmitter {
     });
   }
 
-  // return base64 encoded public key of the current selected account
+  // return base64 encoded public key of the current selected account only if connected
   public getSelectedPublicKeyBase64() {
-    let pk = this.appState.selectedUserAccount?.signKeyPair.publicKey;
-    if (pk) {
-      return encodeBase64(pk);
-    }
-    return undefined;
+    return new Promise((resolve, reject) => {
+      let publicKey = this.appState.selectedUserAccount?.signKeyPair.publicKey;
+      if (publicKey === undefined) {
+        return reject(new Error('Please create an account first.'));
+      } else if (!this.appState.connectionStatus) {
+        return reject(new Error('Please connect to the Signer first.'));
+      }
+      // ! syntax to satisfy compiler as undefined public key is handled above
+      return resolve(encodeBase64(publicKey!));
+    });
   }
 
   // Reject signature request

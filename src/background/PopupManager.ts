@@ -2,12 +2,14 @@
 
 import { browser } from 'webextension-polyfill-ts';
 
+export type openPurpose = 'connect' | 'sign' | 'importAccount' | 'noAccount';
+
 /**
  * A Class to manager Popup
  * Provide inject and background a way to show popup.
  */
 export default class PopupManager {
-  openPopup(purpose: 'connect' | 'sign' | 'import') {
+  openPopup(openFor: openPurpose) {
     browser.windows
       .getCurrent()
       .then(window => {
@@ -19,7 +21,10 @@ export default class PopupManager {
         let xOffset = window.left === undefined || null ? 0 : window.left;
         let yOffset = window.top === undefined || null ? 0 : window.top;
         browser.windows.create({
-          url: purpose === 'import' ? 'index.html?#/import' : 'index.html?#/',
+          url:
+            openFor === 'importAccount'
+              ? 'index.html?#/import'
+              : 'index.html?#/',
           type: 'popup',
           height: 480,
           width: 300,
@@ -29,10 +34,10 @@ export default class PopupManager {
       })
       .catch(() => {
         let title, message;
-        if (purpose === 'connect') {
+        if (openFor === 'connect') {
           title = 'Connection Request';
           message = 'Open Signer to Approve or Reject Connection';
-        } else if (purpose === 'sign') {
+        } else if (openFor === 'sign') {
           title = 'Signature Request';
           message = 'Open Signer to Approve or Cancel Signing';
         } else {

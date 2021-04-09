@@ -1,4 +1,3 @@
-import { browser } from 'webextension-polyfill-ts';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
 
