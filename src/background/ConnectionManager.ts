@@ -13,6 +13,10 @@ export default class ConnectionManager {
   }
 
   public requestConnection() {
+    if (this.appState.userAccounts.length === 0) {
+      this.popupManager.openPopup('noAccount');
+      return;
+    }
     this.appState.connectionRequested = true;
     this.popupManager.openPopup('connect');
   }
