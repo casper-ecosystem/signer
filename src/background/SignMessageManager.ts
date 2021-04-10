@@ -69,10 +69,10 @@ export default class SignMessageManager extends events.EventEmitter {
   public getSelectedPublicKeyBase64() {
     return new Promise((resolve, reject) => {
       let publicKey = this.appState.selectedUserAccount?.signKeyPair.publicKey;
-      if (publicKey === undefined) {
-        return reject(new Error('Please create an account first.'));
-      } else if (!this.appState.connectionStatus) {
+      if (!this.appState.connectionStatus) {
         return reject(new Error('Please connect to the Signer first.'));
+      } else if (publicKey === undefined) {
+        return reject(new Error('Please create an account first.'));
       }
       // ! syntax to satisfy compiler as undefined public key is handled above
       return resolve(encodeBase64(publicKey!));
