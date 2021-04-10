@@ -1,4 +1,5 @@
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   List,
   ListItem,
@@ -12,7 +13,8 @@ import {
   Input,
   Snackbar,
   ListSubheader,
-  Typography
+  Typography,
+  Tooltip
 } from '@material-ui/core';
 import RootRef from '@material-ui/core/RootRef';
 import {
@@ -30,6 +32,7 @@ import { observer, Observer } from 'mobx-react';
 import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
+import Pages from './Pages';
 
 // interface Item {
 //   id: string;
@@ -63,6 +66,7 @@ export const AccountManagementPage = observer((props: Props) => {
   /* Note: 01 prefix denotes algorithm used in key generation */
   const address = '01' + publicKeyHex;
   const [copyStatus, setCopyStatus] = React.useState(false);
+  const history = useHistory();
 
   const handleClickOpen = (account: SignKeyPairWithAlias) => {
     setOpenDialog(true);
@@ -117,7 +121,15 @@ export const AccountManagementPage = observer((props: Props) => {
     confirm(
       <div className="text-danger">Remove account</div>,
       'Are you sure you want to remove this account?'
-    ).then(() => props.authContainer.removeUserAccount(name));
+    )
+      .then(() => props.authContainer.removeUserAccount(name))
+      .then(() => {
+        // If there are no users accounts left after deletion then
+        // redirect to the home screen
+        if (!(props.authContainer.userAccounts.length > 0)) {
+          history.push(Pages.Home);
+        }
+      });
   };
 
   return (
@@ -149,31 +161,37 @@ export const AccountManagementPage = observer((props: Props) => {
                           >
                             <ListItemText primary={item.name} />
                             <ListItemSecondaryAction>
-                              <IconButton
-                                aria-label="Button will open a dialog to rename key"
-                                edge={'end'}
-                                onClick={() => {
-                                  handleClickOpen(item);
-                                }}
-                              >
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton
-                                edge={'end'}
-                                onClick={() => {
-                                  handleClickRemove(item.name);
-                                }}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                              <IconButton
-                                edge={'end'}
-                                onClick={() => {
-                                  handleViewKey(item.name);
-                                }}
-                              >
-                                <VpnKeyIcon />
-                              </IconButton>
+                              <Tooltip title="Edit">
+                                <IconButton
+                                  aria-label="Button will open a dialog to rename key"
+                                  edge={'end'}
+                                  onClick={() => {
+                                    handleClickOpen(item);
+                                  }}
+                                >
+                                  <EditIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  edge={'end'}
+                                  onClick={() => {
+                                    handleClickRemove(item.name);
+                                  }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="View">
+                                <IconButton
+                                  edge={'end'}
+                                  onClick={() => {
+                                    handleViewKey(item.name);
+                                  }}
+                                >
+                                  <VpnKeyIcon />
+                                </IconButton>
+                              </Tooltip>
                             </ListItemSecondaryAction>
                           </ListItem>
                         )}
