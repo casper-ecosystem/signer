@@ -58,7 +58,10 @@ const App = (props: AppProps) => {
             exact
             path={Pages.AccountManagement}
             render={_ => (
-              <AccountManagementPage authContainer={props.authContainer} />
+              <AccountManagementPage
+                authContainer={props.authContainer}
+                connectionContainer={props.connectSignerContainer}
+              />
             )}
           />
           <Route

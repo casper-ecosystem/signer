@@ -28,6 +28,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import VpnKeyIcon from '@material-ui/icons/VpnKey';
 import FilterNoneIcon from '@material-ui/icons/FilterNone'; // Used for Copy
 import AccountManager from '../container/AccountManager';
+import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer, Observer } from 'mobx-react';
 import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
@@ -51,6 +52,7 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
 
 interface Props {
   authContainer: AccountManager;
+  connectionContainer: ConnectSignerContainer;
 }
 
 export const AccountManagementPage = observer((props: Props) => {
@@ -123,10 +125,12 @@ export const AccountManagementPage = observer((props: Props) => {
       'Are you sure you want to remove this account?'
     )
       .then(() => props.authContainer.removeUserAccount(name))
-      .then(() => {
+      .then(async () => {
         // If there are no users accounts left after deletion then
+        // disconnect from the site and
         // redirect to the home screen
         if (!(props.authContainer.userAccounts.length > 0)) {
+          await props.connectionContainer.disconnectFromSite();
           history.push(Pages.Home);
         }
       });
