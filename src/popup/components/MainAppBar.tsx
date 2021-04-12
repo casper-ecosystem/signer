@@ -7,6 +7,7 @@ import AccountManager from '../container/AccountManager';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer } from 'mobx-react';
 import { AppBar, Toolbar, IconButton, Button } from '@material-ui/core';
+import { confirm } from './Confirmation';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -57,7 +58,14 @@ export const MainAppBar = observer((props: Props) => {
                 if (connected) {
                   props.connectionContainer.disconnectFromSite();
                 } else {
-                  props.connectionContainer.connectToSite();
+                  confirm(
+                    <div className="text-danger">Approve Connection</div>,
+                    'Connecting allows this site to access your vault, are you sure you want to connect?',
+                    'Connect',
+                    'Cancel'
+                  ).then(() => {
+                    props.connectionContainer.connectToSite();
+                  });
                 }
               }}
             >
