@@ -60,7 +60,15 @@ export const MainAppBar = observer((props: Props) => {
                 } else {
                   confirm(
                     <div className="text-danger">Approve Connection</div>,
-                    'Connecting allows this site to access your vault, are you sure you want to connect?',
+                    <div>
+                      Connecting allows this site to:
+                      <br />
+                      <ul>
+                        <li>View your selected public key.</li>
+                        <li>Make signing requests.</li>
+                      </ul>
+                      are you sure you want to connect?
+                    </div>,
                     'Connect',
                     'Cancel'
                   ).then(() => {
