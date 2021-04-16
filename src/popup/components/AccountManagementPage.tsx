@@ -30,6 +30,7 @@ import { observer, Observer } from 'mobx-react';
 import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
+import { encodeBase64, decodeBase64, Keys } from 'casper-client-sdk';
 
 // interface Item {
 //   id: string;
@@ -59,9 +60,9 @@ export const AccountManagementPage = observer((props: Props) => {
   ] = React.useState<SignKeyPairWithAlias | null>(null);
   const [name, setName] = React.useState('');
   const [publicKey64, setPublicKey64] = React.useState('');
-  const [publicKeyHex, setPublicKeyHex] = React.useState('');
-  /* Note: 01 prefix denotes algorithm used in key generation */
-  const address = '01' + publicKeyHex;
+  const accountAddress = encodeBase64(
+    Keys.Ed25519.accountHash(decodeBase64(publicKey64))
+  );
   const [copyStatus, setCopyStatus] = React.useState(false);
 
   const handleClickOpen = (account: SignKeyPairWithAlias) => {
@@ -74,10 +75,8 @@ export const AccountManagementPage = observer((props: Props) => {
     let publicKey64 = await props.authContainer.getSelectedAccountKey(
       accountName
     );
-    let publicKeyHex = await props.authContainer.getPublicKeyHex(accountName);
     setName(accountName);
     setPublicKey64(publicKey64);
-    setPublicKeyHex(publicKeyHex);
     setOpenKeyDialog(true);
   };
 
@@ -233,14 +232,14 @@ export const AccountManagementPage = observer((props: Props) => {
               <IconButton
                 edge={'start'}
                 onClick={() => {
-                  copy(address);
+                  copy(accountAddress);
                   setCopyStatus(true);
                 }}
               >
                 <FilterNoneIcon />
               </IconButton>
               <ListItemText
-                primary={'Address: ' + address}
+                primary={'Account Address: ' + accountAddress}
                 style={{ overflowWrap: 'break-word' }}
               />
             </ListItem>
