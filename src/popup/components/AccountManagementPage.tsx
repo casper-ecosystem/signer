@@ -176,16 +176,27 @@ export const AccountManagementPage = observer((props: Props) => {
                                   <EditIcon />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton
-                                  edge={'end'}
-                                  onClick={() => {
-                                    handleClickRemove(item.name);
-                                  }}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Tooltip>
+                              {props.authContainer.userAccounts.length > 1 ? (
+                                <Tooltip title="Delete">
+                                  <IconButton
+                                    edge={'end'}
+                                    onClick={() => {
+                                      handleClickRemove(item.name);
+                                    }}
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              ) : (
+                                <Tooltip title="Can't delete only account">
+                                  {/* span required to wrap disabled button for the tooltip to work */}
+                                  <span>
+                                    <IconButton edge={'end'} disabled>
+                                      <DeleteIcon />
+                                    </IconButton>
+                                  </span>
+                                </Tooltip>
+                              )}
                               <Tooltip title="View">
                                 <IconButton
                                   edge={'end'}
