@@ -22,7 +22,9 @@
       "matches": [
         "*://*.casperlabs.io/*", 
         "*://localhost/*",
-        "*://*.make.services/*"
+        "*://*.make.services/*",
+        "*://cspr.live/*",
+        "*://*.cspr.live/*"
       ],
       "js": ["./scripts/content/content.js"],
       "run_at": "document_start",
