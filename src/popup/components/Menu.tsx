@@ -61,7 +61,9 @@ const MoreMenu = observer((props: Props) => {
           aria-labelledby="nested-list-subheader"
           subheader={
             <ListSubheader component="div" id="nested-list-subheader">
-              Accounts
+              {props.authContainer.userAccounts.length > 0
+                ? 'Accounts'
+                : 'No Account'}
             </ListSubheader>
           }
         >

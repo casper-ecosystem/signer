@@ -5,8 +5,12 @@ import {
   createStyles,
   FormControl,
   Theme,
-  WithStyles
+  WithStyles,
+  Typography,
+  withStyles,
+  Grid
 } from '@material-ui/core';
+import AddCircleIcon from '@material-ui/icons/AddCircle';
 import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
 import PopupManager from '../../background/PopupManager';
@@ -18,9 +22,6 @@ import Pages from './Pages';
 import { confirm } from './Confirmation';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import withStyles from '@material-ui/core/styles/withStyles';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -124,21 +125,30 @@ class Home extends React.Component<Props, {}> {
           justify={'flex-start'}
           alignItems={'center'}
         >
-          <Grid item className={this.props.classes.alignCenter}>
-            <img src={logo} alt="logo" width={120} />
-            <Typography variant={'h6'} align={'center'}>
-              You have {this.props.authContainer.userAccounts.length} account
-              key(s)
-            </Typography>
-            {this.props.authContainer.selectedUserAccount && (
+          {this.props.authContainer.userAccounts.length > 0 ? (
+            <Grid item className={this.props.classes.alignCenter}>
+              <img src={logo} alt="logo" width={120} />
               <Typography variant={'h6'} align={'center'}>
-                Active key:{' '}
-                <span style={{ wordBreak: 'break-all' }}>
-                  {this.props.authContainer.selectedUserAccount.name}
-                </span>
+                You have {this.props.authContainer.userAccounts.length} account
+                key(s)
               </Typography>
-            )}
-          </Grid>
+              {this.props.authContainer.selectedUserAccount && (
+                <Typography variant={'h6'} align={'center'}>
+                  Active key:{' '}
+                  <span style={{ wordBreak: 'break-all' }}>
+                    {this.props.authContainer.selectedUserAccount.name}
+                  </span>
+                </Typography>
+              )}
+            </Grid>
+          ) : (
+            <Grid item className={this.props.classes.alignCenter}>
+              <AddCircleIcon style={{ color: '#e24c2c', fontSize: '4rem' }} />
+              <Typography variant={'h5'} align={'center'}>
+                Please create or import an account to get started
+              </Typography>
+            </Grid>
+          )}
 
           <Grid item>
             <FormControl fullWidth className={this.props.classes.margin}>

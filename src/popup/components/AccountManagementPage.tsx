@@ -1,4 +1,5 @@
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   List,
   ListItem,
@@ -12,7 +13,8 @@ import {
   Input,
   Snackbar,
   ListSubheader,
-  Typography
+  Typography,
+  Tooltip
 } from '@material-ui/core';
 import RootRef from '@material-ui/core/RootRef';
 import {
@@ -26,10 +28,12 @@ import EditIcon from '@material-ui/icons/Edit';
 import VpnKeyIcon from '@material-ui/icons/VpnKey';
 import FilterNoneIcon from '@material-ui/icons/FilterNone'; // Used for Copy
 import AccountManager from '../container/AccountManager';
+import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer, Observer } from 'mobx-react';
 import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
+import Pages from './Pages';
 
 // interface Item {
 //   id: string;
@@ -48,6 +52,7 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
 
 interface Props {
   authContainer: AccountManager;
+  connectionContainer: ConnectSignerContainer;
 }
 
 export const AccountManagementPage = observer((props: Props) => {
@@ -63,6 +68,7 @@ export const AccountManagementPage = observer((props: Props) => {
   /* Note: 01 prefix denotes algorithm used in key generation */
   const address = '01' + publicKeyHex;
   const [copyStatus, setCopyStatus] = React.useState(false);
+  const history = useHistory();
 
   const handleClickOpen = (account: SignKeyPairWithAlias) => {
     setOpenDialog(true);
@@ -117,7 +123,17 @@ export const AccountManagementPage = observer((props: Props) => {
     confirm(
       <div className="text-danger">Remove account</div>,
       'Are you sure you want to remove this account?'
-    ).then(() => props.authContainer.removeUserAccount(name));
+    )
+      .then(() => props.authContainer.removeUserAccount(name))
+      .then(async () => {
+        // If there are no users accounts left after deletion then
+        // disconnect from the site and
+        // redirect to the home screen
+        if (!(props.authContainer.userAccounts.length > 0)) {
+          await props.connectionContainer.disconnectFromSite();
+          history.push(Pages.Home);
+        }
+      });
   };
 
   return (
@@ -149,31 +165,48 @@ export const AccountManagementPage = observer((props: Props) => {
                           >
                             <ListItemText primary={item.name} />
                             <ListItemSecondaryAction>
-                              <IconButton
-                                aria-label="Button will open a dialog to rename key"
-                                edge={'end'}
-                                onClick={() => {
-                                  handleClickOpen(item);
-                                }}
-                              >
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton
-                                edge={'end'}
-                                onClick={() => {
-                                  handleClickRemove(item.name);
-                                }}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                              <IconButton
-                                edge={'end'}
-                                onClick={() => {
-                                  handleViewKey(item.name);
-                                }}
-                              >
-                                <VpnKeyIcon />
-                              </IconButton>
+                              <Tooltip title="Edit">
+                                <IconButton
+                                  aria-label="Button will open a dialog to rename key"
+                                  edge={'end'}
+                                  onClick={() => {
+                                    handleClickOpen(item);
+                                  }}
+                                >
+                                  <EditIcon />
+                                </IconButton>
+                              </Tooltip>
+                              {props.authContainer.userAccounts.length > 1 ? (
+                                <Tooltip title="Delete">
+                                  <IconButton
+                                    edge={'end'}
+                                    onClick={() => {
+                                      handleClickRemove(item.name);
+                                    }}
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              ) : (
+                                // span is required for tooltip to work on disabled button
+                                <Tooltip title="Can't delete only account">
+                                  <span>
+                                    <IconButton edge={'end'} disabled>
+                                      <DeleteIcon />
+                                    </IconButton>
+                                  </span>
+                                </Tooltip>
+                              )}
+                              <Tooltip title="View">
+                                <IconButton
+                                  edge={'end'}
+                                  onClick={() => {
+                                    handleViewKey(item.name);
+                                  }}
+                                >
+                                  <VpnKeyIcon />
+                                </IconButton>
+                              </Tooltip>
                             </ListItemSecondaryAction>
                           </ListItem>
                         )}
