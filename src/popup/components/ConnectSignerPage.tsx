@@ -5,6 +5,7 @@ import { Redirect, RouteComponentProps, withRouter } from 'react-router-dom';
 import { browser } from 'webextension-polyfill-ts';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import Pages from './Pages';
+import confirmConnect from './ConfirmConnect';
 
 interface Props extends RouteComponentProps {
   connectSignerContainer: ConnectSignerContainer;
@@ -49,9 +50,11 @@ class ConnectSignerPage extends React.Component<Props, {}> {
               </Grid>
               <Grid item>
                 <Button
-                  onClick={() =>
-                    this.props.connectSignerContainer.connectToSite()
-                  }
+                  onClick={() => {
+                    confirmConnect().then(() =>
+                      this.props.connectSignerContainer.connectToSite()
+                    );
+                  }}
                   variant="contained"
                   color="primary"
                 >

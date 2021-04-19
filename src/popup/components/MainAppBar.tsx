@@ -7,6 +7,7 @@ import AccountManager from '../container/AccountManager';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer } from 'mobx-react';
 import { AppBar, Toolbar, IconButton, Button } from '@material-ui/core';
+import confirmConnect from './ConfirmConnect';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -57,7 +58,9 @@ export const MainAppBar = observer((props: Props) => {
                 if (connected) {
                   props.connectionContainer.disconnectFromSite();
                 } else {
-                  props.connectionContainer.connectToSite();
+                  confirmConnect().then(() => {
+                    props.connectionContainer.connectToSite();
+                  });
                 }
               }}
             >
