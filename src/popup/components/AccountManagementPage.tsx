@@ -188,8 +188,8 @@ export const AccountManagementPage = observer((props: Props) => {
                                   </IconButton>
                                 </Tooltip>
                               ) : (
+                                // span is required for tooltip to work on disabled button
                                 <Tooltip title="Can't delete only account">
-                                  {/* span required to wrap disabled button for the tooltip to work */}
                                   <span>
                                     <IconButton edge={'end'} disabled>
                                       <DeleteIcon />
