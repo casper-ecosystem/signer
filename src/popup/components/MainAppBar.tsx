@@ -7,7 +7,7 @@ import AccountManager from '../container/AccountManager';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer } from 'mobx-react';
 import { AppBar, Toolbar, IconButton, Button } from '@material-ui/core';
-import { confirm } from './Confirmation';
+import confirmConnect from './ConfirmConnect';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -58,20 +58,7 @@ export const MainAppBar = observer((props: Props) => {
                 if (connected) {
                   props.connectionContainer.disconnectFromSite();
                 } else {
-                  confirm(
-                    <div className="text-danger">Approve Connection</div>,
-                    <div>
-                      Connecting allows this site to:
-                      <br />
-                      <ul>
-                        <li>View your selected public key.</li>
-                        <li>Make signing requests.</li>
-                      </ul>
-                      are you sure you want to connect?
-                    </div>,
-                    'Connect',
-                    'Cancel'
-                  ).then(() => {
+                  confirmConnect().then(() => {
                     props.connectionContainer.connectToSite();
                   });
                 }
