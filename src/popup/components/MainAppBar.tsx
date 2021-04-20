@@ -6,7 +6,13 @@ import HomeIcon from '@material-ui/icons/Home';
 import AccountManager from '../container/AccountManager';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer } from 'mobx-react';
-import { AppBar, Toolbar, IconButton, Button } from '@material-ui/core';
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Button,
+  Tooltip
+} from '@material-ui/core';
 import confirmConnect from './ConfirmConnect';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -21,8 +27,13 @@ const useStyles = makeStyles((theme: Theme) =>
     menuButton: {
       marginRight: theme.spacing(2)
     },
-    title: {
-      flexGrow: 1
+    toggleWrapper: {
+      flexGrow: 1,
+      textAlign: 'center'
+    },
+    toggleButton: {
+      width: '100%',
+      height: '2rem'
     }
   })
 );
@@ -48,24 +59,35 @@ export const MainAppBar = observer((props: Props) => {
             <IconButton edge="start" component={Link} to={'/'}>
               <HomeIcon />
             </IconButton>
-            <Button
-              // Toggles connection status
-              variant="outlined"
-              className={classes.title}
-              color={connected ? 'primary' : 'default'}
-              size="small"
-              onClick={() => {
-                if (connected) {
-                  props.connectionContainer.disconnectFromSite();
-                } else {
-                  confirmConnect().then(() => {
-                    props.connectionContainer.connectToSite();
-                  });
-                }
-              }}
+            <Tooltip
+              title={
+                props.authContainer.userAccounts.length
+                  ? 'Toggle Connection to Site'
+                  : 'Add an Account to Connect'
+              }
             >
-              {connected ? 'Connected' : 'Disconnected'}
-            </Button>
+              <span className={classes.toggleWrapper}>
+                <Button
+                  // Toggles connection status
+                  className={classes.toggleButton}
+                  disabled={!props.authContainer.userAccounts.length}
+                  variant="outlined"
+                  color={connected ? 'primary' : 'default'}
+                  size="large"
+                  onClick={() => {
+                    if (connected) {
+                      props.connectionContainer.disconnectFromSite();
+                    } else {
+                      confirmConnect().then(() => {
+                        props.connectionContainer.connectToSite();
+                      });
+                    }
+                  }}
+                >
+                  {connected ? 'Connected' : 'Disconnected'}
+                </Button>
+              </span>
+            </Tooltip>
             <MoreMenu authContainer={props.authContainer} />
           </Toolbar>
         </AppBar>
