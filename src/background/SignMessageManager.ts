@@ -3,6 +3,17 @@ import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
 import { encodeBase64 } from 'tweetnacl-ts';
 import * as nacl from 'tweetnacl-ts';
+import { encodeBase16 } from 'casper-client-sdk';
+
+const ed25519Key = {
+  prefix: '01',
+  length: 32
+};
+
+const secp256k1Key = {
+  prefix: '02',
+  length: 33
+};
 
 type SignMessageStatus = 'unsigned' | 'signed' | 'rejected';
 
@@ -62,6 +73,31 @@ export default class SignMessageManager extends events.EventEmitter {
             );
         }
       });
+    });
+  }
+
+  /**
+   * Retrieve the active public key .
+   * @returns {string} Hex-encoded public key with algorithm prefix.
+   */
+  public getActivePublicKey() {
+    return new Promise<string>((resolve, reject) => {
+      let publicKeyBytes = this.appState.selectedUserAccount?.signKeyPair
+        .publicKey;
+      if (!this.appState.connectionStatus) {
+        return reject(new Error('Please connect to the Signer first.'));
+      } else if (publicKeyBytes === undefined) {
+        return reject(new Error('Please create an account first.'));
+      }
+
+      switch (publicKeyBytes.length) {
+        case ed25519Key.length:
+          return resolve(ed25519Key.prefix + encodeBase16(publicKeyBytes));
+        case secp256k1Key.length:
+          return resolve(secp256k1Key.prefix + encodeBase16(publicKeyBytes));
+        default:
+          return reject(new Error('Key was not of expected format!'));
+      }
     });
   }
 

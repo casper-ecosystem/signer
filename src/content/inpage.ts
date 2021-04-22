@@ -26,6 +26,10 @@ class CasperLabsPluginHelper {
   async getSelectedPublicKeyBase64() {
     return this.call<string>('getSelectedPublicKeyBase64');
   }
+
+  async getActivePublicKey() {
+    return this.call<string>('getActivePublicKey');
+  }
 }
 
 // inject to window, so that Clarity code could use it.

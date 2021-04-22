@@ -53,6 +53,10 @@ export function setupInjectPageAPIServer(
     signMessageManager.getSelectedPublicKeyBase64.bind(signMessageManager)
   );
   rpc.register(
+    'getActivePublicKey',
+    signMessageManager.getActivePublicKey.bind(signMessageManager)
+  );
+  rpc.register(
     'isConnected',
     connectionManager.isConnected.bind(connectionManager)
   );
