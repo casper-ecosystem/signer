@@ -2,8 +2,9 @@ import { action, computed } from 'mobx';
 import passworder from 'browser-passworder';
 import store from 'store';
 import * as nacl from 'tweetnacl';
-import { encodeBase16, decodeBase16 } from 'casper-client-sdk';
+import { encodeBase16, decodeBase16, Keys } from 'casper-client-sdk';
 import { AppState } from '../lib/MemStore';
+import { KeyPairWithAlias } from '../@types/models';
 
 export interface SerializedSignKeyPairWithAlias {
   name: string;
@@ -65,9 +66,7 @@ class AuthController {
     if (!this.appState.selectedUserAccount) {
       throw new Error('There is no active key');
     }
-    return this.serializeSignKeyPairWithAlias(
-      this.appState.selectedUserAccount
-    );
+    return this.serializeKeyPairWithAlias(this.appState.selectedUserAccount);
   }
 
   @action
@@ -100,7 +99,31 @@ class AuthController {
       );
     }
 
-    const keyPair = nacl.sign.keyPair.fromSecretKey(decodeBase16(secretKeyHex));
+    const secretKeyBytes = decodeBase16(secretKeyHex);
+    let publicKeyBytes;
+    let keyPair;
+
+    /**
+     * TODO: How to discern algorithm from secret key?
+     * Both Ed25519 and Secp256k1 are 32 bytes.
+     */
+
+    switch (secretKeyHex.substring(0, 2)) {
+      case '01':
+        publicKeyBytes = Keys.Ed25519.privateToPublicKey(secretKeyBytes);
+        keyPair = Keys.Ed25519.parseKeyPair(publicKeyBytes, secretKeyBytes);
+        break;
+      case '02':
+        publicKeyBytes = Keys.Secp256K1.privateToPublicKey(secretKeyBytes);
+        keyPair = Keys.Secp256K1.parseKeyPair(
+          publicKeyBytes,
+          secretKeyBytes,
+          'raw' // TODO: how to know whether this is 'raw' or 'der'?
+        );
+        break;
+      default:
+        throw new Error('Secret key did not have compatible algorithm prefix.');
+    }
 
     this.appState.userAccounts.push({
       alias: name,
@@ -128,7 +151,7 @@ class AuthController {
 
     this.appState.userAccounts.remove(account);
 
-    if (this.appState.selectedUserAccount?.name === account.name) {
+    if (this.appState.selectedUserAccount?.alias === account.alias) {
       this.appState.selectedUserAccount =
         this.appState.userAccounts.length > 0
           ? this.appState.userAccounts[0]
@@ -184,21 +207,21 @@ class AuthController {
     }
 
     const account = this.appState.userAccounts.find(
-      account => account.name === oldName
+      account => account.alias === oldName
     );
     if (!account) {
       throw new Error('Invalid old name');
     }
 
     const accountWithNewName = this.appState.userAccounts.find(
-      account => account.name === newName
+      account => account.alias === newName
     );
 
     if (accountWithNewName) {
       throw new Error('There is another account with the same name');
     }
 
-    account.name = newName;
+    account.alias = newName;
 
     this.persistVault();
   }
@@ -206,26 +229,52 @@ class AuthController {
   /**
    * Serialize and Deserialize is needed for ByteArray(or Uint8Array),
    * since JSON.parse(JSON.stringify(ByteArray)) !== ByteArray
-   * @param signKeyPairWithAlias
+   * @param KeyPairWithAlias
    */
-  private serializeSignKeyPairWithAlias(
-    signKeyPairWithAlias: SignKeyPairWithAlias
+  private serializeKeyPairWithAlias(
+    KeyPairWithAlias: KeyPairWithAlias
   ): SerializedSignKeyPairWithAlias {
+    const algorithm = KeyPairWithAlias.KeyPair.signatureAlgorithm;
+    let prefix;
+    switch (algorithm) {
+      case 'ed25519':
+        prefix = '01';
+        break;
+      case 'secp256k1':
+        prefix = '02';
+        break;
+      default:
+        throw new Error('Public key did not have compatible algorithm prefix');
+    }
+
     return {
-      name: signKeyPairWithAlias.name,
+      name: KeyPairWithAlias.alias,
       signKeyPair: {
-        publicKey: encodeBase16(signKeyPairWithAlias.signKeyPair.publicKey),
-        secretKey: encodeBase16(signKeyPairWithAlias.signKeyPair.secretKey)
+        publicKey:
+          prefix + encodeBase16(KeyPairWithAlias.KeyPair.publicKey.toBytes()),
+        secretKey: encodeBase16(KeyPairWithAlias.KeyPair.privateKey)
       }
     };
   }
 
-  private deserializeSignKeyPairWithAlias(
+  private deserializeKeyPairWithAlias(
     serializedKeyPairWithAlias: SerializedSignKeyPairWithAlias
-  ): SignKeyPairWithAlias {
+  ): KeyPairWithAlias {
+    let encodedPublicKey;
+    switch (serializedKeyPairWithAlias.signKeyPair.publicKey.substring(0, 2)) {
+      case '01':
+        encodedPublicKey = Keys.Ed25519.parsePublicKey(
+          decodeBase16(serializedKeyPairWithAlias.signKeyPair.publicKey)
+        );
+
+        break;
+
+      default:
+        break;
+    }
     return {
-      name: serializedKeyPairWithAlias.name,
-      signKeyPair: {
+      alias: serializedKeyPairWithAlias.name,
+      KeyPair: {
         publicKey: decodeBase16(
           serializedKeyPairWithAlias.signKeyPair.publicKey
         ),
@@ -244,10 +293,10 @@ class AuthController {
   private async persistVault() {
     const encryptedVault = await passworder.encrypt(this.passwordHash!, {
       userAccounts: this.appState.userAccounts.map(
-        this.serializeSignKeyPairWithAlias
+        this.serializeKeyPairWithAlias
       ),
       selectedUserAccount: this.appState.selectedUserAccount
-        ? this.serializeSignKeyPairWithAlias(this.appState.selectedUserAccount)
+        ? this.serializeKeyPairWithAlias(this.appState.selectedUserAccount)
         : null
     });
 
@@ -352,10 +401,10 @@ class AuthController {
     this.passwordHash = vaultResponse[1];
     this.appState.isUnlocked = true;
     this.appState.userAccounts.replace(
-      vault.userAccounts.map(this.deserializeSignKeyPairWithAlias)
+      vault.userAccounts.map(this.deserializeKeyPairWithAlias)
     );
     this.appState.selectedUserAccount = vault.selectedUserAccount
-      ? this.deserializeSignKeyPairWithAlias(vault.selectedUserAccount)
+      ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
       : null;
   }
 
