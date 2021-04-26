@@ -12,28 +12,28 @@ class SignMessageContainer {
   ) {}
 
   @computed
-  get toSignMessage() {
-    if (this.appState.toSignMessages.length > 0) {
-      return this.appState.toSignMessages[0];
+  get deployToSign() {
+    if (this.appState.unsignedDeploys.length > 0) {
+      return this.appState.unsignedDeploys[0];
     }
     return null;
   }
 
-  async signMessage() {
-    let msg = this.toSignMessage;
-    if (msg === null) {
-      throw new Error('No message to Sign');
+  async signDeploy() {
+    let deploy = this.deployToSign;
+    if (deploy === null) {
+      throw new Error('No deploy to sign!');
     }
-    await this.backgroundManager.signMessage(msg.id);
+    await this.backgroundManager.signDeploy(deploy.id);
     this.closeWindow();
   }
 
   async cancel() {
-    const msg = this.toSignMessage;
-    if (msg === null) {
-      throw new Error('No message to Sign');
+    const deploy = this.deployToSign;
+    if (deploy === null) {
+      throw new Error('No deploy to sign!');
     }
-    await this.backgroundManager.rejectSignMessage(msg.id);
+    await this.backgroundManager.rejectSignMessage(deploy.id);
     this.closeWindow();
   }
 

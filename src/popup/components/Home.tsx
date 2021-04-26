@@ -276,7 +276,7 @@ class Home extends React.Component<Props, {}> {
           // Not connected and there is a request to connect
           return <Redirect to={Pages.ConnectSigner} />;
         } else {
-          if (this.props.authContainer.toSignMessages.length > 0) {
+          if (this.props.authContainer.unsignedDeploys.length > 0) {
             return <Redirect to={Pages.SignMessage} />;
           } else {
             return this.renderAccountLists();

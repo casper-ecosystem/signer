@@ -3,8 +3,7 @@ import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
 import { saveAs } from 'file-saver';
-import { encodeBase16, Keys } from 'casper-client-sdk';
-import { decodeBase64 } from 'tweetnacl-ts';
+import { decodeBase16, encodeBase16, Keys } from 'casper-client-sdk';
 
 function saveToFile(content: string, filename: string) {
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
@@ -70,7 +69,6 @@ class AccountManager {
     accountName: string
   ) {
     // Parse keys
-    console.log(publicKey);
     let ed25519KeyPair = Keys.Ed25519.parseKeyPair(publicKey, privateKey);
     // Save the private and public keys to disk.
     saveToFile(
@@ -81,16 +79,17 @@ class AccountManager {
       ed25519KeyPair.exportPublicKeyInPem(),
       `${accountName}_public_key.pem`
     );
-    const publicKeyBase16 = encodeBase16(publicKey);
-    saveToFile('01' + publicKeyBase16, `${accountName}_public_key_hex`);
+    let publicKeyHex = encodeBase16(publicKey);
+    // 01 Prefix denotes use of ED25519 algorithm
+    saveToFile('01' + publicKeyHex, `${accountName}_public_key_hex`);
   }
 
   async downloadActiveKey() {
     let userAccount = await this.backgroundManager.getSelectUserAccount();
-    // Save the private and public keys to disk.
+    // Save the secret and public keys to disk.
     AccountManager.downloadPemFiles(
-      decodeBase64(userAccount.signKeyPair.publicKey),
-      decodeBase64(userAccount.signKeyPair.secretKey),
+      decodeBase16(userAccount.signKeyPair.publicKey),
+      decodeBase16(userAccount.signKeyPair.secretKey),
       userAccount.name
     );
   }
@@ -98,14 +97,12 @@ class AccountManager {
   async getSelectedAccountKey(acctName: string) {
     await this.backgroundManager.switchToAccount(acctName);
     let account = await this.backgroundManager.getSelectUserAccount();
-    let key = account.signKeyPair.publicKey;
-    return key;
+    return account.signKeyPair.publicKey;
   }
 
   async getPublicKeyHex(acctName: string) {
-    let pubKey64 = await this.getSelectedAccountKey(acctName);
-    let pubKeyHex = encodeBase16(decodeBase64(pubKey64));
-    return pubKeyHex;
+    let publicKey = decodeBase16(await this.getSelectedAccountKey(acctName));
+    return Keys.Ed25519.accountHex(publicKey);
   }
 
   async lock() {
@@ -137,8 +134,8 @@ class AccountManager {
   }
 
   @computed
-  get toSignMessages() {
-    return this.appState.toSignMessages;
+  get unsignedDeploys() {
+    return this.appState.unsignedDeploys;
   }
 
   async renameUserAccount(oldName: string, newName: string) {

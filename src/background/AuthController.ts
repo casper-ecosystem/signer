@@ -2,14 +2,14 @@ import { action, computed } from 'mobx';
 import passworder from 'browser-passworder';
 import store from 'store';
 import * as nacl from 'tweetnacl';
-import { decodeBase64, encodeBase64 } from 'tweetnacl-util';
+import { encodeBase16, decodeBase16 } from 'casper-client-sdk';
 import { AppState } from '../lib/MemStore';
 
 export interface SerializedSignKeyPairWithAlias {
   name: string;
   signKeyPair: {
-    publicKey: string; // base64 encoded
-    secretKey: string; // base64 encoded
+    publicKey: string; // hex encoded
+    secretKey: string; // hex encoded
   };
 }
 
@@ -52,7 +52,7 @@ class AuthController {
 
   @action
   switchToAccount(accountName: string) {
-    let i = this.appState.userAccounts.findIndex(a => a.name === accountName);
+    let i = this.appState.userAccounts.findIndex(a => a.alias === accountName);
     if (i === -1) {
       throw new Error(
         "Couldn't switch to this account because it doesn't exist"
@@ -74,39 +74,37 @@ class AuthController {
   async resetVault() {
     await this.clearAccount();
     this.appState.selectedUserAccount = null;
-    this.appState.toSignMessages.clear();
+    this.appState.unsignedDeploys.clear();
     this.appState.hasCreatedVault = false;
     store.remove(this.encryptedVaultKey);
   }
 
   @action
-  async importUserAccount(name: string, privateKeyBase64: string) {
+  async importUserAccount(name: string, secretKeyHex: string) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock it before adding new account');
     }
 
     let account = this.appState.userAccounts.find(account => {
       return (
-        account.name === name ||
-        encodeBase64(account.signKeyPair.secretKey) === privateKeyBase64
+        account.alias === name ||
+        encodeBase16(account.KeyPair.privateKey) === secretKeyHex
       );
     });
 
     if (account) {
       throw new Error(
         `A account with same ${
-          account.name === name ? 'name' : 'private key'
+          account.alias === name ? 'name' : 'secret key'
         } already exists`
       );
     }
 
-    const keyPair = nacl.sign.keyPair.fromSecretKey(
-      decodeBase64(privateKeyBase64)
-    );
+    const keyPair = nacl.sign.keyPair.fromSecretKey(decodeBase16(secretKeyHex));
 
     this.appState.userAccounts.push({
-      name: name,
-      signKeyPair: keyPair
+      alias: name,
+      KeyPair: keyPair
     });
     this.appState.selectedUserAccount = this.appState.userAccounts[
       this.appState.userAccounts.length - 1
@@ -121,7 +119,7 @@ class AuthController {
     }
 
     let account = this.appState.userAccounts.find(account => {
-      return account.name === name;
+      return account.alias === name;
     });
 
     if (!account) {
@@ -216,8 +214,8 @@ class AuthController {
     return {
       name: signKeyPairWithAlias.name,
       signKeyPair: {
-        publicKey: encodeBase64(signKeyPairWithAlias.signKeyPair.publicKey),
-        secretKey: encodeBase64(signKeyPairWithAlias.signKeyPair.secretKey)
+        publicKey: encodeBase16(signKeyPairWithAlias.signKeyPair.publicKey),
+        secretKey: encodeBase16(signKeyPairWithAlias.signKeyPair.secretKey)
       }
     };
   }
@@ -228,10 +226,10 @@ class AuthController {
     return {
       name: serializedKeyPairWithAlias.name,
       signKeyPair: {
-        publicKey: decodeBase64(
+        publicKey: decodeBase16(
           serializedKeyPairWithAlias.signKeyPair.publicKey
         ),
-        secretKey: decodeBase64(
+        secretKey: decodeBase16(
           serializedKeyPairWithAlias.signKeyPair.secretKey
         )
       }
@@ -323,13 +321,13 @@ class AuthController {
   }
 
   /**
-   * Hash given bytes and encodes in base64
+   * Hash given bytes and encodes in base16
    * @param {Uint8Array} bytes Bytes for hashing.
-   * @returns {String} Base64 encoded hash.
+   * @returns {String} hex encoded hash.
    */
   private hash(bytes: Uint8Array) {
     let hashedBytes = nacl.hash(bytes);
-    return encodeBase64(hashedBytes);
+    return encodeBase16(hashedBytes);
   }
 
   /*

@@ -77,12 +77,12 @@ async function setupPopupAPIServer() {
     return appState;
   });
   rpc.register(
-    'sign.signMessage',
-    signMessageManager.approveMsg.bind(signMessageManager)
+    'sign.signDeploy',
+    signMessageManager.approveSignDeploy.bind(signMessageManager)
   );
   rpc.register(
-    'sign.rejectMessage',
-    signMessageManager.rejectMsg.bind(signMessageManager)
+    'sign.rejectDeploy',
+    signMessageManager.rejectSignDeploy.bind(signMessageManager)
   );
   rpc.register(
     'connection.requestConnection',

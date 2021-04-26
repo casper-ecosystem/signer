@@ -27,7 +27,7 @@ class SignMessagePage extends React.Component<Props, {}> {
   }
 
   render() {
-    if (this.props.signMessageContainer.toSignMessage) {
+    if (this.props.signMessageContainer.deployToSign) {
       return (
         <div style={{ flexGrow: 1 }}>
           <Typography align={'center'} variant={'h5'}>
@@ -38,12 +38,12 @@ class SignMessagePage extends React.Component<Props, {}> {
             {this.props.authContainer.selectedUserAccount && (
               <Typography variant={'h6'}>
                 Active key:&nbsp;
-                {this.props.authContainer.selectedUserAccount.name}
+                {this.props.authContainer.selectedUserAccount.alias}
               </Typography>
             )}
             <Typography variant={'h6'}>Deploy hash (base16):</Typography>
             <Typography style={{ wordBreak: 'break-all' }}>
-              {this.props.signMessageContainer.toSignMessage!.data}
+              {this.props.signMessageContainer.deployToSign!.deploy}
             </Typography>
           </Box>
           <Box mt={8}>
@@ -66,7 +66,7 @@ class SignMessagePage extends React.Component<Props, {}> {
               </Grid>
               <Grid item>
                 <Button
-                  onClick={() => this.props.signMessageContainer.signMessage()}
+                  onClick={() => this.props.signMessageContainer.signDeploy()}
                   variant="contained"
                   color="primary"
                 >

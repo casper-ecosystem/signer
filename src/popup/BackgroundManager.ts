@@ -32,7 +32,7 @@ export class BackgroundManager {
     this.appState.hasCreatedVault = appState.hasCreatedVault;
     this.appState.selectedUserAccount = appState.selectedUserAccount;
     this.appState.userAccounts.replace(appState.userAccounts);
-    this.appState.toSignMessages.replace(appState.toSignMessages);
+    this.appState.unsignedDeploys.replace(appState.unsignedDeploys);
   }
 
   public unlock(password: string) {
@@ -67,9 +67,9 @@ export class BackgroundManager {
     );
   }
 
-  public signMessage(msgId: number) {
+  public signDeploy(deployId: number) {
     return this.errors.withCapture(
-      this.rpc.call<void>('sign.signMessage', msgId)
+      this.rpc.call<void>('sign.signDeploy', deployId)
     );
   }
 
