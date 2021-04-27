@@ -183,13 +183,12 @@ export default class SignMessageManager extends events.EventEmitter {
       // Hex encoded public key with algorithm prefix (ed25519 in this case)
       // this will henceforth be referred to as the public key.
       let publicKeyBytes = publicKey.toBytes();
-      switch (publicKeyBytes.length) {
-        case ed25519Key.length:
-          return resolve(ed25519Key.prefix + encodeBase16(publicKeyBytes));
-        case secp256k1Key.length:
-          return resolve(secp256k1Key.prefix + encodeBase16(publicKeyBytes));
-        default:
-          return reject(new Error('Key was not of expected format!'));
+      if (publicKey.isEd25519()) {
+        return resolve(ed25519Key.prefix + encodeBase16(publicKeyBytes));
+      } else if (publicKey.isSecp256K1()) {
+        return resolve(secp256k1Key.prefix + encodeBase16(publicKeyBytes));
+      } else {
+        return reject(new Error('Key was not of expected format!'));
       }
     });
   }
@@ -202,7 +201,7 @@ export default class SignMessageManager extends events.EventEmitter {
   private getDeployById(deployId: number): deployWithID {
     let deploy = this.unsignedDeploys.find(data => data.id === deployId);
     if (deploy === undefined) {
-      throw new Error(`Could not find message with id: ${deployId}`);
+      throw new Error(`Could not find deploy with id: ${deployId}`);
     }
     return deploy;
   }

@@ -100,29 +100,19 @@ class AuthController {
     }
 
     const secretKeyBytes = decodeBase16(secretKeyHex);
-    let publicKeyBytes;
-    let keyPair;
-
-    /**
-     * TODO: How to discern algorithm from secret key?
-     * Both Ed25519 and Secp256k1 are 32 bytes.
-     */
-
-    switch (secretKeyHex.substring(0, 2)) {
-      case '01':
-        publicKeyBytes = Keys.Ed25519.privateToPublicKey(secretKeyBytes);
-        keyPair = Keys.Ed25519.parseKeyPair(publicKeyBytes, secretKeyBytes);
-        break;
-      case '02':
-        publicKeyBytes = Keys.Secp256K1.privateToPublicKey(secretKeyBytes);
-        keyPair = Keys.Secp256K1.parseKeyPair(
-          publicKeyBytes,
-          secretKeyBytes,
-          'raw' // TODO: how to know whether this is 'raw' or 'der'?
-        );
-        break;
-      default:
-        throw new Error('Secret key did not have compatible algorithm prefix.');
+    let secretKey, publicKey, keyPair;
+    try {
+      secretKey = Keys.Ed25519.parsePrivateKey(secretKeyBytes);
+      publicKey = Keys.Ed25519.privateToPublicKey(secretKeyBytes);
+      keyPair = Keys.Ed25519.parseKeyPair(secretKey, publicKey);
+    } catch {
+      secretKey = Keys.Secp256K1.parsePrivateKey(secretKeyBytes);
+      publicKey = Keys.Secp256K1.privateToPublicKey(secretKeyBytes);
+      keyPair = Keys.Secp256K1.parseKeyPair(secretKey, publicKey, 'raw');
+    } finally {
+      if (!secretKey) {
+        throw new Error('Could not parse secret key as: ed25519 or secp256k1');
+      }
     }
 
     this.appState.userAccounts.push({
