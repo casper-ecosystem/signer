@@ -68,4 +68,8 @@ export function setupInjectPageAPIServer(
     'connectToSite',
     connectionManager.connectToSite.bind(connectionManager)
   );
+  rpc.register(
+    'disconnectFromSite',
+    connectionManager.disconnectFromSite.bind(connectionManager)
+  );
 }

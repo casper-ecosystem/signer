@@ -19,6 +19,10 @@ class CasperLabsPluginHelper {
     return this.call<void>('requestConnection');
   }
 
+  async disconnectFromSite() {
+    return this.call<void>('disconnectFromSite');
+  }
+
   async sign(message: string, publicKeyBase64?: string) {
     return this.call<string>('sign', message, publicKeyBase64);
   }
