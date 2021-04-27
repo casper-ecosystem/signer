@@ -3,6 +3,7 @@ import { AppState } from '../lib/MemStore';
 import * as nacl from 'tweetnacl-ts';
 import { encodeBase64 } from 'tweetnacl-ts';
 import store from 'store';
+import { Keys } from 'casper-client-sdk';
 
 jest.mock('store', () => {
   const memoryStore = new Map();
@@ -113,10 +114,10 @@ describe('AuthController', () => {
       encodeBase64(nacl.sign_keyPair().secretKey)
     );
 
-    expect(appState.selectedUserAccount?.name).toBe(switchAccount2);
+    expect(appState.selectedUserAccount?.alias).toBe(switchAccount2);
 
     authController.switchToAccount(switchAccount1);
-    expect(appState.selectedUserAccount?.name).toBe(switchAccount1);
+    expect(appState.selectedUserAccount?.alias).toBe(switchAccount1);
 
     expect(() => {
       authController.switchToAccount('not_exist');
@@ -143,5 +144,14 @@ describe('AuthController', () => {
     expect(anotherState.selectedUserAccount).toEqual(
       appState.selectedUserAccount
     );
+  });
+
+  it('should fail attempting to parse ED25519 keys as SECP256k1', async () => {
+    // tweetnacl only supports ed25519 keys at present
+    const ed25519SecretKey = nacl.sign_keyPair().secretKey;
+    Keys.Ed25519.parsePrivateKey(ed25519SecretKey);
+    expect(() => {
+      Keys.Secp256K1.parsePrivateKey(ed25519SecretKey);
+    }).toThrowError();
   });
 });
