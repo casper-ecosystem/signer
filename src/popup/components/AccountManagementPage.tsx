@@ -34,6 +34,7 @@ import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
 import Pages from './Pages';
+import { decodeBase64, encodeBase16, Keys } from 'casper-client-sdk';
 
 // interface Item {
 //   id: string;
@@ -56,6 +57,8 @@ interface Props {
 }
 
 export const AccountManagementPage = observer((props: Props) => {
+  const history = useHistory();
+
   const [openDialog, setOpenDialog] = React.useState(false);
   const [openKeyDialog, setOpenKeyDialog] = React.useState(false);
   const [
@@ -63,12 +66,15 @@ export const AccountManagementPage = observer((props: Props) => {
     setSelectedAccount
   ] = React.useState<SignKeyPairWithAlias | null>(null);
   const [name, setName] = React.useState('');
-  const [publicKey64, setPublicKey64] = React.useState('');
-  const [publicKeyHex, setPublicKeyHex] = React.useState('');
-  /* Note: 01 prefix denotes algorithm used in key generation */
-  const address = '01' + publicKeyHex;
   const [copyStatus, setCopyStatus] = React.useState(false);
-  const history = useHistory();
+  const [publicKey64, setPublicKey64] = React.useState('');
+
+  // Whilst the prefix is currently hard-coded to 01 (ed25519) this
+  // will soon be dynamic to support secp256k1 keys.
+  const publicKey = '01' + encodeBase16(decodeBase64(publicKey64));
+  const accountHash = encodeBase16(
+    Keys.Ed25519.accountHash(decodeBase64(publicKey64))
+  );
 
   const handleClickOpen = (account: SignKeyPairWithAlias) => {
     setOpenDialog(true);
@@ -80,10 +86,8 @@ export const AccountManagementPage = observer((props: Props) => {
     let publicKey64 = await props.authContainer.getSelectedAccountKey(
       accountName
     );
-    let publicKeyHex = await props.authContainer.getPublicKeyHex(accountName);
     setName(accountName);
     setPublicKey64(publicKey64);
-    setPublicKeyHex(publicKeyHex);
     setOpenKeyDialog(true);
   };
 
@@ -266,14 +270,14 @@ export const AccountManagementPage = observer((props: Props) => {
               <IconButton
                 edge={'start'}
                 onClick={() => {
-                  copy(address);
+                  copy(publicKey);
                   setCopyStatus(true);
                 }}
               >
                 <FilterNoneIcon />
               </IconButton>
               <ListItemText
-                primary={'Address: ' + address}
+                primary={'Public Key: ' + publicKey}
                 style={{ overflowWrap: 'break-word' }}
               />
             </ListItem>
@@ -281,14 +285,14 @@ export const AccountManagementPage = observer((props: Props) => {
               <IconButton
                 edge={'start'}
                 onClick={() => {
-                  copy(publicKey64);
+                  copy(accountHash);
                   setCopyStatus(true);
                 }}
               >
                 <FilterNoneIcon />
               </IconButton>
               <ListItemText
-                primary={'Public Key: ' + publicKey64}
+                primary={'Account Hash: ' + accountHash}
                 style={{ overflowWrap: 'break-word' }}
               />
             </ListItem>
