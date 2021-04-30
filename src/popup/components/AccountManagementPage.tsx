@@ -34,7 +34,7 @@ import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
 import Pages from './Pages';
-import { decodeBase64, encodeBase16, Keys } from 'casper-client-sdk';
+import { decodeBase64, encodeBase16, Keys, PublicKey } from 'casper-client-sdk';
 
 // interface Item {
 //   id: string;
@@ -69,12 +69,12 @@ export const AccountManagementPage = observer((props: Props) => {
   const [copyStatus, setCopyStatus] = React.useState(false);
   const [publicKey64, setPublicKey64] = React.useState('');
 
-  // Whilst the prefix is currently hard-coded to 01 (ed25519) this
-  // will soon be dynamic to support secp256k1 keys.
-  const publicKey = '01' + encodeBase16(decodeBase64(publicKey64));
-  const accountHash = encodeBase16(
-    Keys.Ed25519.accountHash(decodeBase64(publicKey64))
+  // Currently only supports ED25519 keys will soon be extended to support SECP256k1 keys.
+  const publicKey = PublicKey.from(
+    decodeBase64(publicKey64),
+    Keys.SignatureAlgorithm.Ed25519
   );
+  const accountHash = encodeBase16(publicKey.toAccountHash());
 
   const handleClickOpen = (account: SignKeyPairWithAlias) => {
     setOpenDialog(true);
@@ -270,14 +270,14 @@ export const AccountManagementPage = observer((props: Props) => {
               <IconButton
                 edge={'start'}
                 onClick={() => {
-                  copy(publicKey);
+                  copy(publicKey.toAccountHex());
                   setCopyStatus(true);
                 }}
               >
                 <FilterNoneIcon />
               </IconButton>
               <ListItemText
-                primary={'Public Key: ' + publicKey}
+                primary={'Public Key: ' + publicKey.toAccountHex()}
                 style={{ overflowWrap: 'break-word' }}
               />
             </ListItem>
