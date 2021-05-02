@@ -107,6 +107,7 @@ export const AccountManagementPage = observer((props: Props) => {
   const handleUpdateName = () => {
     if (selectedAccount) {
       props.authContainer.renameUserAccount(selectedAccount.name, name);
+      props.authContainer.switchToAccount(name);
       handleClose();
     }
   };
