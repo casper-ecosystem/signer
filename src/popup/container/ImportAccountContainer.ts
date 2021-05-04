@@ -64,8 +64,6 @@ export class ImportAccountFormData implements SubmittableFormData {
               Promise.reject(new Error('File name undefined'))
             );
           } else {
-            const name = fileName.replace(/_secret_key$/, '');
-            this.name.onChange(name);
             this.secretKeyBase64.onChange(
               encodeBase64(this.keyPair?.privateKey!)
             );
