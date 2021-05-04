@@ -1,37 +1,36 @@
 import { FieldState } from 'formstate';
 import { fieldSubmittable, valueRequired } from '../../lib/FormValidator';
 import { action, computed, observable } from 'mobx';
-import * as nacl from 'tweetnacl-ts';
 import React from 'react';
 import { encodeBase64 } from 'tweetnacl-util';
 import ErrorContainer from './ErrorContainer';
 import { Keys } from 'casper-client-sdk';
-import { SignKeyPair } from 'tweetnacl-ts';
-
 export interface SubmittableFormData {
   submitDisabled: boolean;
   resetFields: () => void;
 }
 
 export class ImportAccountFormData implements SubmittableFormData {
-  privateKeyBase64: FieldState<string> = new FieldState<string>('').validators(
+  secretKeyBase64: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
   name: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
   @observable file: File | null = null;
-  private key: SignKeyPair | null = null;
+  private keyPair: Keys.AsymmetricKey | null = null;
 
   private checkFileContent(fileContent: string) {
     if (!fileContent) {
       return 'The content of imported file cannot be empty!';
     }
+    // TODO: Extend to support SECP256k1
     try {
-      const privateKey = Keys.Ed25519.parsePrivateKey(
+      const secretKey = Keys.Ed25519.parsePrivateKey(
         Keys.Ed25519.readBase64WithPEM(fileContent)
       );
-      this.key = nacl.sign_keyPair_fromSeed(privateKey);
+      const publicKey = Keys.Ed25519.privateToPublicKey(secretKey);
+      this.keyPair = Keys.Ed25519.parseKeyPair(publicKey, secretKey);
     } catch (e) {
       return e.message;
     }
@@ -56,7 +55,9 @@ export class ImportAccountFormData implements SubmittableFormData {
           } else {
             const name = fileName.replace(/_secret_key$/, '');
             this.name.onChange(name);
-            this.privateKeyBase64.onChange(encodeBase64(this.key?.secretKey!));
+            this.secretKeyBase64.onChange(
+              encodeBase64(this.keyPair?.privateKey!)
+            );
           }
         } else {
           this.errors.capture(Promise.reject(new Error(errorMsg)));
@@ -68,41 +69,41 @@ export class ImportAccountFormData implements SubmittableFormData {
   @computed
   get submitDisabled(): boolean {
     return !(
-      fieldSubmittable(this.privateKeyBase64) && fieldSubmittable(this.name)
+      fieldSubmittable(this.secretKeyBase64) && fieldSubmittable(this.name)
     );
   }
 
   @action
   resetFields() {
-    this.privateKeyBase64.reset();
+    this.secretKeyBase64.reset();
     this.name.reset();
   }
 }
 
 export class CreateAccountFormData extends ImportAccountFormData {
-  publicKeyBase64: FieldState<string> = new FieldState<string>('').validators(
+  publicKey: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
 
   constructor(errors: ErrorContainer) {
     super(errors);
-    let newKeyPair = nacl.sign_keyPair();
-    this.publicKeyBase64.onChange(nacl.encodeBase64(newKeyPair.publicKey));
-    this.privateKeyBase64.onChange(nacl.encodeBase64(newKeyPair.secretKey));
+    let newEd25519KeyPair = Keys.Ed25519.new();
+    this.publicKey.onChange(newEd25519KeyPair.publicKey.toAccountHex());
+    this.secretKeyBase64.onChange(encodeBase64(newEd25519KeyPair.privateKey));
   }
 
   @computed
   get submitDisabled(): boolean {
     return !(
-      fieldSubmittable(this.privateKeyBase64) &&
+      fieldSubmittable(this.secretKeyBase64) &&
       fieldSubmittable(this.name) &&
-      fieldSubmittable(this.publicKeyBase64)
+      fieldSubmittable(this.publicKey)
     );
   }
 
   @action
   resetFields() {
     super.resetFields();
-    this.publicKeyBase64.reset();
+    this.publicKey.reset();
   }
 }

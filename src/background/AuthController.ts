@@ -2,21 +2,28 @@ import { action, computed } from 'mobx';
 import passworder from 'browser-passworder';
 import store from 'store';
 import * as nacl from 'tweetnacl';
-import { encodeBase16, decodeBase16, Keys } from 'casper-client-sdk';
+import {
+  encodeBase16,
+  decodeBase16,
+  Keys,
+  PublicKey,
+  encodeBase64,
+  decodeBase64
+} from 'casper-client-sdk';
 import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
 
-export interface SerializedSignKeyPairWithAlias {
+export interface SerializedKeyPairWithAlias {
   name: string;
-  signKeyPair: {
+  keyPair: {
     publicKey: string; // hex encoded
     secretKey: string; // hex encoded
   };
 }
 
 interface PersistentVaultData {
-  userAccounts: SerializedSignKeyPairWithAlias[];
-  selectedUserAccount: SerializedSignKeyPairWithAlias | null;
+  userAccounts: SerializedKeyPairWithAlias[];
+  selectedUserAccount: SerializedKeyPairWithAlias | null;
 }
 
 class AuthController {
@@ -62,11 +69,27 @@ class AuthController {
     this.appState.selectedUserAccount = this.appState.userAccounts[i];
   }
 
-  getSelectUserAccount(): SerializedSignKeyPairWithAlias {
+  getSelectUserAccount(): KeyPairWithAlias {
     if (!this.appState.selectedUserAccount) {
       throw new Error('There is no active key');
     }
-    return this.serializeKeyPairWithAlias(this.appState.selectedUserAccount);
+    return this.appState.selectedUserAccount;
+  }
+
+  getActivePublicKeyHex(): string {
+    if (!this.appState.selectedUserAccount) {
+      throw new Error('There is no active key');
+    }
+    let account = this.appState.selectedUserAccount;
+    return account.KeyPair.publicKey.toAccountHex();
+  }
+
+  getActiveAccountHash(): string {
+    if (!this.appState.selectedUserAccount) {
+      throw new Error('There is no active key');
+    }
+    let account = this.appState.selectedUserAccount;
+    return encodeBase16(account.KeyPair.publicKey.toAccountHash());
   }
 
   @action
@@ -79,34 +102,34 @@ class AuthController {
   }
 
   @action
-  async importUserAccount(name: string, secretKeyHex: string) {
+  async importUserAccount(name: string, secretKeyBase64: string) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock it before adding new account');
     }
 
-    let account = this.appState.userAccounts.find(account => {
+    let duplicateAccount = this.appState.userAccounts.find(account => {
       return (
         account.alias === name ||
-        encodeBase16(account.KeyPair.privateKey) === secretKeyHex
+        encodeBase64(account.KeyPair.privateKey) === secretKeyBase64
       );
     });
 
-    if (account) {
+    if (duplicateAccount) {
       throw new Error(
         `A account with same ${
-          account.alias === name ? 'name' : 'secret key'
+          duplicateAccount.alias === name ? 'name' : 'secret key'
         } already exists`
       );
     }
 
-    const secretKeyBytes = decodeBase16(secretKeyHex);
+    const secretKeyBytes = decodeBase64(secretKeyBase64);
     let secretKey, publicKey, keyPair;
     try {
       secretKey = Keys.Ed25519.parsePrivateKey(secretKeyBytes);
       publicKey = Keys.Ed25519.privateToPublicKey(secretKeyBytes);
       keyPair = Keys.Ed25519.parseKeyPair(secretKey, publicKey);
     } catch {
-      secretKey = Keys.Secp256K1.parsePrivateKey(secretKeyBytes);
+      secretKey = Keys.Secp256K1.parsePrivateKey(secretKeyBytes, 'raw');
       publicKey = Keys.Secp256K1.privateToPublicKey(secretKeyBytes);
       keyPair = Keys.Secp256K1.parseKeyPair(secretKey, publicKey, 'raw');
     } finally {
@@ -176,7 +199,7 @@ class AuthController {
     ) {
       throw new Error('Invalid index number');
     }
-    if (startIndex == endIndex) {
+    if (startIndex === endIndex) {
       return;
     }
 
@@ -219,59 +242,77 @@ class AuthController {
   /**
    * Serialize and Deserialize is needed for ByteArray(or Uint8Array),
    * since JSON.parse(JSON.stringify(ByteArray)) !== ByteArray
+   */
+
+  /**
+   * Serialize the byte arrays into hex-encoded strings with algorithm prefix.
    * @param KeyPairWithAlias
+   * @returns KeyPairWIthAlias with hex-encoded values.
    */
   private serializeKeyPairWithAlias(
     KeyPairWithAlias: KeyPairWithAlias
-  ): SerializedSignKeyPairWithAlias {
-    const algorithm = KeyPairWithAlias.KeyPair.signatureAlgorithm;
-    let prefix;
-    switch (algorithm) {
-      case 'ed25519':
-        prefix = '01';
-        break;
-      case 'secp256k1':
-        prefix = '02';
-        break;
-      default:
-        throw new Error('Public key did not have compatible algorithm prefix');
+  ): SerializedKeyPairWithAlias {
+    let algoPrefix;
+    if (KeyPairWithAlias.KeyPair.publicKey.isEd25519()) {
+      algoPrefix = '01';
+    } else if (KeyPairWithAlias.KeyPair.publicKey.isSecp256K1()) {
+      algoPrefix = '02';
+    } else {
+      throw new Error(
+        'Unable to serialize public key as: ed25519 or secp256k1'
+      );
     }
 
     return {
       name: KeyPairWithAlias.alias,
-      signKeyPair: {
+      keyPair: {
         publicKey:
-          prefix + encodeBase16(KeyPairWithAlias.KeyPair.publicKey.toBytes()),
+          algoPrefix +
+          encodeBase16(KeyPairWithAlias.KeyPair.publicKey.toBytes()),
         secretKey: encodeBase16(KeyPairWithAlias.KeyPair.privateKey)
       }
     };
   }
 
   private deserializeKeyPairWithAlias(
-    serializedKeyPairWithAlias: SerializedSignKeyPairWithAlias
+    serializedKeyPairWithAlias: SerializedKeyPairWithAlias
   ): KeyPairWithAlias {
-    let encodedPublicKey;
-    switch (serializedKeyPairWithAlias.signKeyPair.publicKey.substring(0, 2)) {
+    const serializedPublicKey = serializedKeyPairWithAlias.keyPair.publicKey;
+    let deserializedPublicKeyBytes, deserializedPublicKey, deserializedKeyPair;
+
+    switch (serializedPublicKey.substring(0, 2)) {
       case '01':
-        encodedPublicKey = Keys.Ed25519.parsePublicKey(
-          decodeBase16(serializedKeyPairWithAlias.signKeyPair.publicKey)
+        deserializedPublicKeyBytes = Keys.Ed25519.parsePublicKey(
+          decodeBase16(serializedPublicKey.substring(2))
         );
-
+        deserializedPublicKey = PublicKey.fromEd25519(
+          deserializedPublicKeyBytes
+        );
+        deserializedKeyPair = Keys.Ed25519.parseKeyPair(
+          deserializedPublicKey.toBytes(),
+          decodeBase16(serializedKeyPairWithAlias.keyPair.secretKey)
+        );
         break;
-
+      case '02':
+        deserializedPublicKeyBytes = Keys.Secp256K1.parsePublicKey(
+          decodeBase16(serializedPublicKey.substring(2))
+        );
+        deserializedPublicKey = PublicKey.fromSecp256K1(
+          deserializedPublicKeyBytes
+        );
+        deserializedKeyPair = Keys.Secp256K1.parseKeyPair(
+          deserializedPublicKey.toBytes(),
+          decodeBase16(serializedKeyPairWithAlias.keyPair.secretKey),
+          'raw'
+        );
+        break;
       default:
-        break;
+        throw new Error('Failed to deserialize public key!');
     }
+
     return {
       alias: serializedKeyPairWithAlias.name,
-      KeyPair: {
-        publicKey: decodeBase16(
-          serializedKeyPairWithAlias.signKeyPair.publicKey
-        ),
-        secretKey: decodeBase16(
-          serializedKeyPairWithAlias.signKeyPair.secretKey
-        )
-      }
+      KeyPair: deserializedKeyPair
     };
   }
 

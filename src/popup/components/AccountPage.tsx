@@ -22,7 +22,8 @@ import {
 } from '@material-ui/core';
 import { TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
-import { decodeBase64 } from 'tweetnacl-ts';
+import { decodeBase16, decodeBase64, Keys } from 'casper-client-sdk';
+import { KeyPairWithAlias } from '../../@types/models';
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -71,7 +72,7 @@ class AccountPage extends React.Component<
     }
 
     const names = this.props.authContainer.userAccounts.map(
-      account => account.name
+      account => account.alias
     );
     if (names.includes(formData.name.$)) {
       return this.props.errors.capture(
@@ -81,12 +82,16 @@ class AccountPage extends React.Component<
       );
     }
 
+    const keyPair: KeyPairWithAlias = {
+      alias: formData.name.$,
+      KeyPair: Keys.Ed25519.parseKeyPair(
+        decodeBase16(formData.publicKey.$.substring(2)),
+        decodeBase64(formData.secretKeyBase64.value)
+      )
+    };
+
     if (this.state.keyDownloadEnabled) {
-      AccountManager.downloadPemFiles(
-        decodeBase64(formData.publicKeyBase64.$),
-        decodeBase64(formData.privateKeyBase64.$),
-        formData.name.$
-      );
+      AccountManager.downloadPemFiles(keyPair);
     }
 
     await this._onSubmit();
@@ -102,11 +107,10 @@ class AccountPage extends React.Component<
   async _onSubmit() {
     await this.props.authContainer.importUserAccount(
       this.accountForm.name.$,
-      this.accountForm.privateKeyBase64.$
+      this.accountForm.secretKeyBase64.value
     );
     this.accountForm.resetFields();
     this.props.history.goBack();
-    this.popupManager.closePopup();
   }
 
   renderImportForm() {
@@ -115,7 +119,7 @@ class AccountPage extends React.Component<
       <form className={this.props.classes.root}>
         <FormControl>
           <Typography id="continuous-slider" gutterBottom>
-            Private Key File
+            Secret Key File
           </Typography>
           <Box
             display={'flex'}
@@ -203,24 +207,24 @@ class AccountPage extends React.Component<
         <TextFieldWithFormState
           fullWidth
           InputProps={{ readOnly: true, disabled: true }}
-          label="Public Key (Base64)"
+          label="Public Key"
           id="create-public-key"
-          value={formData.publicKeyBase64.$ ? formData.publicKeyBase64.$ : ''}
+          value={formData.publicKey.$ ? formData.publicKey.$ : ''}
         />
         <TextFieldWithFormState
           fullWidth
           InputProps={{ readOnly: true, disabled: true }}
-          label="Private Key (Base64)"
+          label="Secret Key (Base64)"
           placeholder="Base64 encoded Ed25519 secret key"
           id="create-private-key"
-          defaultValue={formData.privateKeyBase64.value}
+          defaultValue={formData.secretKeyBase64.value}
         />
         <FormControlLabel
           control={
             <Checkbox
               checked={this.state.keyDownloadEnabled}
               onChange={toggleDownloadKey}
-              name="checkedA"
+              name="keyDownloadToggle"
             />
           }
           label="Download Key"
