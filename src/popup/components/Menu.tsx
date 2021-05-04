@@ -74,17 +74,17 @@ const MoreMenu = observer((props: Props) => {
                 button
                 dense={true}
                 onClick={() => {
-                  props.authContainer.switchToAccount(account.name);
+                  props.authContainer.switchToAccount(account.alias);
                   handleClose();
                 }}
               >
-                {account.name ===
-                props.authContainer.selectedUserAccount?.name ? (
+                {account.alias ===
+                props.authContainer.selectedUserAccount?.alias ? (
                   <CheckIcon fontSize={'small'} />
                 ) : (
                   <Icon className={'fa fa-fw'} fontSize={'small'} />
                 )}
-                <ListItemText primary={account.name} />
+                <ListItemText primary={account.alias} />
               </ListItem>
             );
           })}

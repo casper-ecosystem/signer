@@ -136,7 +136,7 @@ class Home extends React.Component<Props, {}> {
                 <Typography variant={'h6'} align={'center'}>
                   Active key:{' '}
                   <span style={{ wordBreak: 'break-all' }}>
-                    {this.props.authContainer.selectedUserAccount.name}
+                    {this.props.authContainer.selectedUserAccount.alias}
                   </span>
                 </Typography>
               )}
@@ -216,6 +216,7 @@ class Home extends React.Component<Props, {}> {
               <FormControl fullWidth>
                 <TextFieldWithFormState
                   aria-label="Enter password for vault"
+                  autoFocus={true}
                   fieldState={
                     this.props.homeContainer.homeForm.$.setPasswordField
                   }
