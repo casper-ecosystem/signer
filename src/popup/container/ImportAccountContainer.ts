@@ -51,6 +51,9 @@ export class ImportAccountFormData implements SubmittableFormData {
   constructor(private errors: ErrorContainer) {}
 
   handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (this.errors.lastError) {
+      this.errors.dismissLast();
+    }
     if (e.target.files) {
       this.file = e.target.files[0];
       const reader = new FileReader();
