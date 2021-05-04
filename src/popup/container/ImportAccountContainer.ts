@@ -24,6 +24,9 @@ export class ImportAccountFormData implements SubmittableFormData {
     if (!fileContent) {
       return 'The content of imported file cannot be empty!';
     }
+    if (fileContent.includes('PUBLIC KEY')) {
+      return 'Not a secret key file!';
+    }
     // TODO: Extend to support SECP256k1
     try {
       const secretKey = Keys.Ed25519.parsePrivateKey(
