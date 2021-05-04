@@ -23,6 +23,7 @@ import {
 import { TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { decodeBase64 } from 'tweetnacl-ts';
+import { encodeBase16 } from 'casper-client-sdk';
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -203,16 +204,21 @@ class AccountPage extends React.Component<
         <TextFieldWithFormState
           fullWidth
           InputProps={{ readOnly: true, disabled: true }}
-          label="Public Key (Base64)"
+          label="Public Key"
           id="create-public-key"
-          value={formData.publicKeyBase64.$ ? formData.publicKeyBase64.$ : ''}
+          value={
+            // TODO: This is hard coding the ed25519 prefix but will soon be extended to support secp256k1
+            formData.publicKeyBase64.$
+              ? '01' + encodeBase16(decodeBase64(formData.publicKeyBase64.$))
+              : ''
+          }
         />
         <TextFieldWithFormState
           fullWidth
           InputProps={{ readOnly: true, disabled: true }}
-          label="Private Key (Base64)"
+          label="Secret Key (Base64)"
           placeholder="Base64 encoded Ed25519 secret key"
-          id="create-private-key"
+          id="create-secret-key"
           defaultValue={formData.privateKeyBase64.value}
         />
         <FormControlLabel
