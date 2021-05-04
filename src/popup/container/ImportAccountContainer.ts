@@ -34,8 +34,16 @@ export class ImportAccountFormData implements SubmittableFormData {
       );
       const publicKey = Keys.Ed25519.privateToPublicKey(secretKey);
       this.keyPair = Keys.Ed25519.parseKeyPair(publicKey, secretKey);
-    } catch (e) {
-      return e.message;
+    } catch {
+      const secretKey = Keys.Secp256K1.parsePrivateKey(
+        Keys.Secp256K1.readBase64WithPEM(fileContent)
+      );
+      const publicKey = Keys.Secp256K1.privateToPublicKey(secretKey);
+      this.keyPair = Keys.Secp256K1.parseKeyPair(publicKey, secretKey, 'raw');
+    } finally {
+      if (!this.keyPair) {
+        return 'Could not parse key as Ed25519 or Secp256k1';
+      }
     }
     return null;
   }
