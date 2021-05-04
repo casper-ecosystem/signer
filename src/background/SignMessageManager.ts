@@ -180,8 +180,6 @@ export default class SignMessageManager extends events.EventEmitter {
       } else if (publicKey === undefined) {
         return reject(new Error('Please create an account first.'));
       }
-      // Hex encoded public key with algorithm prefix (ed25519 in this case)
-      // this will henceforth be referred to as the public key.
       let publicKeyBytes = publicKey.toBytes();
       if (publicKey.isEd25519()) {
         return resolve(ed25519Key.prefix + encodeBase16(publicKeyBytes));

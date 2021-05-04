@@ -23,6 +23,10 @@ class CasperLabsPluginHelper {
     return this.call<string>('sign', deploy, publicKey);
   }
 
+  async disconnectFromSite() {
+    return this.call<void>('disconnectFromSite');
+  }
+
   async getActivePublicKey() {
     return this.call<string>('getActivePublicKey');
   }
