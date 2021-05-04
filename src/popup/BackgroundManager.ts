@@ -3,7 +3,7 @@ import { Rpc } from '../lib/rpc/rpc';
 import { AppState } from '../lib/MemStore';
 import { action } from 'mobx';
 import ErrorContainer from './container/ErrorContainer';
-import { SerializedSignKeyPairWithAlias } from '../background/AuthController';
+import { KeyPairWithAlias } from '../@types/models';
 
 export class BackgroundManager {
   private rpc: Rpc;
@@ -49,9 +49,9 @@ export class BackgroundManager {
     return this.rpc.call<void>('account.lock');
   }
 
-  public importUserAccount(name: string, privateKey: string) {
+  public importUserAccount(name: string, secretKey: string) {
     return this.errors.withCapture(
-      this.rpc.call<void>('account.importUserAccount', name, privateKey)
+      this.rpc.call<void>('account.importUserAccount', name, secretKey)
     );
   }
 
@@ -87,9 +87,19 @@ export class BackgroundManager {
 
   public getSelectUserAccount() {
     return this.errors.withCapture(
-      this.rpc.call<SerializedSignKeyPairWithAlias>(
-        'account.getSelectUserAccount'
-      )
+      this.rpc.call<KeyPairWithAlias>('account.getSelectUserAccount')
+    );
+  }
+
+  public getActivePublicKeyHex() {
+    return this.errors.withCapture(
+      this.rpc.call<string>('account.getActivePublicKeyHex')
+    );
+  }
+
+  public getActiveAccountHash() {
+    return this.errors.withCapture(
+      this.rpc.call<string>('account.getActiveAccountHash')
     );
   }
 

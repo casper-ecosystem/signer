@@ -66,6 +66,14 @@ async function setupPopupAPIServer() {
     accountController.getSelectUserAccount.bind(accountController)
   );
   rpc.register(
+    'account.getActivePublicKeyHex',
+    accountController.getActivePublicKeyHex.bind(accountController)
+  );
+  rpc.register(
+    'account.getActiveAccountHash',
+    accountController.getActiveAccountHash.bind(accountController)
+  );
+  rpc.register(
     'account.resetVault',
     accountController.resetVault.bind(accountController)
   );

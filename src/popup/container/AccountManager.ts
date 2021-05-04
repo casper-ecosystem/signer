@@ -3,7 +3,7 @@ import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
 import { saveAs } from 'file-saver';
-import { decodeBase16, encodeBase16, Keys } from 'casper-client-sdk';
+import { KeyPairWithAlias } from '../../@types/models';
 
 function saveToFile(content: string, filename: string) {
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
@@ -23,8 +23,8 @@ class AccountManager {
     );
   }
 
-  async importUserAccount(name: string, privateKey: string) {
-    return this.backgroundManager.importUserAccount(name, privateKey);
+  async importUserAccount(name: string, secretKeyBase64: string) {
+    return this.backgroundManager.importUserAccount(name, secretKeyBase64);
   }
 
   async removeUserAccount(name: string) {
@@ -59,50 +59,42 @@ class AccountManager {
   }
 
   @computed
-  get userAccounts(): IObservableArray<SignKeyPairWithAlias> {
+  get userAccounts(): IObservableArray<KeyPairWithAlias> {
     return this.appState.userAccounts;
   }
 
-  static downloadPemFiles(
-    publicKey: Uint8Array,
-    privateKey: Uint8Array,
-    accountName: string
-  ) {
-    // Parse keys
-    let ed25519KeyPair = Keys.Ed25519.parseKeyPair(publicKey, privateKey);
+  static downloadPemFiles(account: KeyPairWithAlias) {
     // Save the private and public keys to disk.
     saveToFile(
-      ed25519KeyPair.exportPrivateKeyInPem(),
-      `${accountName}_secret_key.pem`
+      account.KeyPair.exportPrivateKeyInPem(),
+      `${account.alias}_secret_key.pem`
     );
     saveToFile(
-      ed25519KeyPair.exportPublicKeyInPem(),
-      `${accountName}_public_key.pem`
+      account.KeyPair.exportPublicKeyInPem(),
+      `${account.alias}_public_key.pem`
     );
-    let publicKeyHex = encodeBase16(publicKey);
-    // 01 Prefix denotes use of ED25519 algorithm
-    saveToFile('01' + publicKeyHex, `${accountName}_public_key_hex`);
   }
 
   async downloadActiveKey() {
     let userAccount = await this.backgroundManager.getSelectUserAccount();
     // Save the secret and public keys to disk.
-    AccountManager.downloadPemFiles(
-      decodeBase16(userAccount.signKeyPair.publicKey),
-      decodeBase16(userAccount.signKeyPair.secretKey),
-      userAccount.name
-    );
+    AccountManager.downloadPemFiles(userAccount);
   }
 
   async getSelectedAccountKey(acctName: string) {
     await this.backgroundManager.switchToAccount(acctName);
     let account = await this.backgroundManager.getSelectUserAccount();
-    return account.signKeyPair.publicKey;
+    return account.KeyPair.publicKey;
   }
 
-  async getPublicKeyHex(acctName: string) {
-    let publicKey = decodeBase16(await this.getSelectedAccountKey(acctName));
-    return Keys.Ed25519.accountHex(publicKey);
+  async getPublicKeyHex(accountName: string) {
+    await this.backgroundManager.switchToAccount(accountName);
+    return this.backgroundManager.getActivePublicKeyHex();
+  }
+
+  async getAccountHash(accountName: string) {
+    await this.backgroundManager.switchToAccount(accountName);
+    return this.backgroundManager.getActiveAccountHash();
   }
 
   async lock() {
