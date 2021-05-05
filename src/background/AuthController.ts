@@ -26,6 +26,11 @@ interface PersistentVaultData {
   selectedUserAccount: SerializedKeyPairWithAlias | null;
 }
 
+function saveToFile(content: string, filename: string) {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  saveAs(blob, filename);
+}
+
 class AuthController {
   // we store the salted password hash instead of original password
   private passwordHash: string | null = null;
@@ -171,6 +176,27 @@ class AuthController {
           : null;
     }
     this.persistVault();
+  }
+
+  async downloadAccountKeys(account: KeyPairWithAlias) {
+    if (!this.appState.isUnlocked) {
+      throw new Error('Unlock Signer before downloading keys.');
+    }
+    this.appState.userAccounts.find(storedAccount => {
+      return storedAccount.alias === account.alias;
+    });
+    saveToFile(
+      account.KeyPair.exportPrivateKeyInPem(),
+      `${account.alias}_secret_key.pem`
+    );
+    saveToFile(
+      account.KeyPair.exportPublicKeyInPem(),
+      `${account.alias}_public_key.pem`
+    );
+    saveToFile(
+      account.KeyPair.publicKey.toAccountHex(),
+      `${account.alias}_public_key_hex.txt`
+    );
   }
 
   /**

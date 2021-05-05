@@ -113,6 +113,12 @@ export class BackgroundManager {
     );
   }
 
+  public downloadAccountKeys(account: KeyPairWithAlias) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.downloadAccountKeys', account)
+    );
+  }
+
   public connectToSite() {
     return this.errors.withCapture(
       this.rpc.call<void>('connection.connectToSite')

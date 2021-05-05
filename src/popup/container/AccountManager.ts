@@ -2,13 +2,7 @@ import { action, computed, IObservableArray } from 'mobx';
 import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
-import { saveAs } from 'file-saver';
 import { KeyPairWithAlias } from '../../@types/models';
-
-function saveToFile(content: string, filename: string) {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  saveAs(blob, filename);
-}
 
 class AccountManager {
   constructor(
@@ -63,22 +57,15 @@ class AccountManager {
     return this.appState.userAccounts;
   }
 
-  static downloadPemFiles(account: KeyPairWithAlias) {
-    // Save the private and public keys to disk.
-    saveToFile(
-      account.KeyPair.exportPrivateKeyInPem(),
-      `${account.alias}_secret_key.pem`
-    );
-    saveToFile(
-      account.KeyPair.exportPublicKeyInPem(),
-      `${account.alias}_public_key.pem`
-    );
+  async downloadPemFiles(account: KeyPairWithAlias) {
+    // Save the secret and public keys to disk.
+    this.backgroundManager.downloadAccountKeys(account);
   }
 
   async downloadActiveKey() {
     let userAccount = await this.backgroundManager.getSelectUserAccount();
     // Save the secret and public keys to disk.
-    AccountManager.downloadPemFiles(userAccount);
+    this.downloadPemFiles(userAccount);
   }
 
   async getSelectedAccountKey(acctName: string) {
