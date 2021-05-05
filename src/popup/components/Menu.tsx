@@ -47,6 +47,7 @@ const MoreMenu = observer((props: Props) => {
         aria-controls="simple-menu"
         aria-haspopup="true"
         onClick={handleClick}
+        style={{ color: '#C4C4C4' }}
       >
         <MenuIcon />
       </IconButton>

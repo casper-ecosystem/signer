@@ -19,7 +19,8 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       flexGrow: 1,
-      backgroundColor: 'white'
+      color: '#c4c4c4',
+      backgroundColor: '#181d41'
     },
     toolbarMargin: {
       minHeight: '40px'
@@ -57,7 +58,7 @@ export const MainAppBar = observer((props: Props) => {
         >
           <Toolbar>
             <IconButton edge="start" component={Link} to={'/'}>
-              <HomeIcon />
+              <HomeIcon style={{ color: '#C4C4C4' }} />
             </IconButton>
             <Tooltip
               title={
@@ -83,6 +84,7 @@ export const MainAppBar = observer((props: Props) => {
                       });
                     }
                   }}
+                  style={{ color: '#181d41', backgroundColor: '#fff' }}
                 >
                   {connected ? 'Connected' : 'Disconnected'}
                 </Button>
