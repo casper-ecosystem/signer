@@ -4,7 +4,6 @@ import * as nacl from 'tweetnacl-ts';
 import { encodeBase64 } from 'tweetnacl-ts';
 import store from 'store';
 import { Keys } from 'casper-client-sdk';
-import { string } from 'yup';
 
 jest.mock('store', () => {
   const memoryStore = new Map();
@@ -185,6 +184,8 @@ describe('AuthController', () => {
       encodeBase64(keyPair.privateKey)
     );
     let account = authController.getSelectUserAccount();
-    console.log(account.KeyPair.publicKey.toAccountHex());
+    expect(keyPair.publicKey.toAccountHex()).toEqual(
+      account.KeyPair.publicKey.toAccountHex()
+    );
   });
 });
