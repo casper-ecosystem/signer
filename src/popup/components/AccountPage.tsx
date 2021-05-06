@@ -82,6 +82,7 @@ class AccountPage extends React.Component<
       );
     }
 
+    // TODO: extend support to Secp256k1
     const keyPair: KeyPairWithAlias = {
       alias: formData.name.$,
       KeyPair: Keys.Ed25519.parseKeyPair(
@@ -91,7 +92,7 @@ class AccountPage extends React.Component<
     };
 
     if (this.state.keyDownloadEnabled) {
-      AccountManager.downloadPemFiles(keyPair);
+      this.props.authContainer.downloadPemFiles(keyPair);
     }
 
     await this._onSubmit();
