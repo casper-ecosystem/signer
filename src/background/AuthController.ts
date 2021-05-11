@@ -1,6 +1,6 @@
 import { action, computed } from 'mobx';
 import passworder from 'browser-passworder';
-import store from 'store';
+import { storage } from '@extend-chrome/storage';
 import * as nacl from 'tweetnacl';
 import { decodeBase64, encodeBase64 } from 'tweetnacl-util';
 import { AppState } from '../lib/MemStore';
@@ -37,7 +37,8 @@ class AuthController {
 
   @action.bound
   async createNewVault(password: string): Promise<void> {
-    if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
+    const vault = await this.getStoredValueWithKey(this.encryptedVaultKey);
+    if (vault) {
       throw new Error('There is a vault already');
     }
     let [salt, saltedPassword] = this.saltPassword(password);
@@ -76,7 +77,7 @@ class AuthController {
     this.appState.selectedUserAccount = null;
     this.appState.toSignMessages.clear();
     this.appState.hasCreatedVault = false;
-    store.remove(this.encryptedVaultKey);
+    storage.local.remove(this.encryptedVaultKey);
   }
 
   @action
@@ -262,8 +263,8 @@ class AuthController {
    * @param key Key to save value under in store.
    * @param value Value to save under Key in store.
    */
-  private saveKeyValuetoStore(key: string, value: any) {
-    store.set(key, value);
+  private async saveKeyValuetoStore(key: string, value: any) {
+    storage.local.set({ [key]: JSON.stringify(value) });
   }
 
   /**
@@ -271,18 +272,24 @@ class AuthController {
    * @param key Key under which value is stored.
    * @returns Stored value by given key.
    */
-  private getStoredValueWithKey(key: string) {
-    return store.get(key, null);
+  private async getStoredValueWithKey(key: string) {
+    let value = await storage.local.get(key);
+    if (value[key]) {
+      return JSON.parse(value[key]);
+    }
+    return null;
   }
 
   private async restoreVault(
     password: string
   ): Promise<[PersistentVaultData, string]> {
-    let encryptedVault = this.getStoredValueWithKey(this.encryptedVaultKey);
+    let encryptedVault = await this.getStoredValueWithKey(
+      this.encryptedVaultKey
+    );
     if (!encryptedVault) {
       throw new Error('There is no vault');
     }
-    let storedSalt = this.getStoredValueWithKey(this.saltKey);
+    let storedSalt = await this.getStoredValueWithKey(this.saltKey);
     let [, saltedPassword] = this.saltPassword(password, storedSalt);
     let saltedPasswordHash = this.hash(saltedPassword);
 
