@@ -37,7 +37,6 @@
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.1.0",
     "react-scripts": "^4.0.3",
-    "store": "^2.0.12",
     "tweetnacl": "^1.0.3",
     "tweetnacl-ts": "latest",
     "tweetnacl-util": "^0.15.1",
