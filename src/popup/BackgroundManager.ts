@@ -4,6 +4,7 @@ import { AppState } from '../lib/MemStore';
 import { action } from 'mobx';
 import ErrorContainer from './container/ErrorContainer';
 import { KeyPairWithAlias } from '../@types/models';
+import { deployWithID, DeployData } from '../background/SignMessageManager';
 
 export class BackgroundManager {
   private rpc: Rpc;
@@ -73,9 +74,15 @@ export class BackgroundManager {
     );
   }
 
-  public rejectSignMessage(msgId: number) {
+  public rejectSignDeploy(msgId: number) {
     return this.errors.withCapture(
-      this.rpc.call<void>('sign.rejectMessage', msgId)
+      this.rpc.call<void>('sign.rejectSignDeploy', msgId)
+    );
+  }
+
+  public parseDeployData(deploy: deployWithID) {
+    return this.errors.withCapture(
+      this.rpc.call<DeployData>('sign.parseDeployData', deploy)
     );
   }
 

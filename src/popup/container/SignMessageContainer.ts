@@ -1,12 +1,11 @@
 import { BackgroundManager } from '../BackgroundManager';
-import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
 import { browser } from 'webextension-polyfill-ts';
 import { computed } from 'mobx';
+import { deployWithID } from '../../background/SignMessageManager';
 
 class SignMessageContainer {
   constructor(
-    private errors: ErrorContainer,
     private backgroundManager: BackgroundManager,
     private appState: AppState
   ) {}
@@ -17,6 +16,10 @@ class SignMessageContainer {
       return this.appState.unsignedDeploys[0];
     }
     return null;
+  }
+
+  async parseDeployData(deploy: deployWithID) {
+    return await this.backgroundManager.parseDeployData(deploy);
   }
 
   async signDeploy() {
@@ -33,7 +36,7 @@ class SignMessageContainer {
     if (deploy === null) {
       throw new Error('No deploy to sign!');
     }
-    await this.backgroundManager.rejectSignMessage(deploy.id);
+    await this.backgroundManager.rejectSignDeploy(deploy.id);
     this.closeWindow();
   }
 

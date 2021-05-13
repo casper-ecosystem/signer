@@ -1,26 +1,28 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
-import { encodeBase16, DeployUtil } from 'casper-client-sdk';
+import { DeployUtil } from 'casper-client-sdk';
 
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 export interface deployWithID {
   id: number;
   status: deployStatus;
-  deploy: DeployUtil.Deploy | null;
+  deploy: DeployUtil.Deploy | undefined;
   signingKey: string;
   error?: Error;
 }
 
-const ed25519Key = {
-  prefix: '01',
-  length: 32
-};
+export interface DeployData {
+  deployHash: string;
+  signingKey: string;
+  account: string;
+  timestamp: string;
+  chainName: string;
+  deployType: string;
+  gasPrice: number;
+  payment: number;
+}
 
-const secp256k1Key = {
-  prefix: '02',
-  length: 33
-};
 /**
  * Sign Message Manager
  *                      TODO: Update these docs
@@ -94,22 +96,20 @@ export default class SignMessageManager extends events.EventEmitter {
    * @returns {number} id for added deploy
    */
   public addUnsignedDeployToQueue(deployJson: JSON, publicKey: string): number {
-    let deploy: DeployUtil.Deploy;
     const id: number = this.createId();
 
     try {
-      deploy = this.deployFromJson(deployJson);
       this.unsignedDeploys.push({
         id: id,
         status: 'unsigned',
-        deploy: deploy,
+        deploy: DeployUtil.deployFromJson(deployJson),
         signingKey: publicKey
       });
     } catch (err) {
       this.unsignedDeploys.push({
         id: id,
         status: 'failed',
-        deploy: null,
+        deploy: undefined,
         signingKey: publicKey,
         error: err
       });
@@ -161,6 +161,10 @@ export default class SignMessageManager extends events.EventEmitter {
     const deploy = this.getDeployById(deployId);
     deploy.status = 'failed';
     deploy.error = new Error('User Cancelled Signing');
+    let deployIndex = this.appState.unsignedDeploys.indexOf(deploy);
+    if (deployIndex > -1) {
+      this.appState.unsignedDeploys.splice(deployIndex, 1);
+    }
     this.saveAndEmitEventIfNeeded(deploy);
     this.popupManager.closePopup();
   }
@@ -180,11 +184,10 @@ export default class SignMessageManager extends events.EventEmitter {
       } else if (publicKey === undefined) {
         return reject(new Error('Please create an account first.'));
       }
-      let publicKeyBytes = publicKey.toBytes();
       if (publicKey.isEd25519()) {
-        return resolve(ed25519Key.prefix + encodeBase16(publicKeyBytes));
+        return resolve(publicKey.toAccountHex());
       } else if (publicKey.isSecp256K1()) {
-        return resolve(secp256k1Key.prefix + encodeBase16(publicKeyBytes));
+        return resolve(publicKey.toAccountHex());
       } else {
         return reject(new Error('Key was not of expected format!'));
       }
@@ -232,6 +235,30 @@ export default class SignMessageManager extends events.EventEmitter {
 
     deployData.status = 'signed';
     this.saveAndEmitEventIfNeeded(deployData);
+  }
+
+  public parseDeployData(deploy: deployWithID): DeployData {
+    if (deploy.deploy) {
+      // let deployJSON = DeployUtil.deployToJson(deploy.deploy);
+      let header = deploy.deploy.header;
+      // let type = deploy.deploy.isTransfer()
+      //   ? 'Transfer'
+      //   : deploy.deploy.session.isModuleBytes()
+      //   ? 'Contract Call'
+      //   : 'Contract Deployment';
+      return {
+        deployHash: 'Hash',
+        signingKey: deploy.signingKey,
+        account: typeof header.account,
+        chainName: header.chainName,
+        timestamp: new Date(header.timestamp).toLocaleString(),
+        gasPrice: header.gasPrice,
+        payment: 12345678910,
+        deployType: 'TYPE'
+      };
+    } else {
+      throw new Error('Deploy undefined!');
+    }
   }
 
   private saveAndEmitEventIfNeeded(deploy: deployWithID) {

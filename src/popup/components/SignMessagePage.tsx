@@ -5,7 +5,14 @@ import SignMessageContainer from '../container/SignMessageContainer';
 import Pages from './Pages';
 import { browser } from 'webextension-polyfill-ts';
 import AccountManager from '../container/AccountManager';
-import { Button } from '@material-ui/core';
+import {
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow
+} from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -16,7 +23,18 @@ interface Props extends RouteComponentProps {
 }
 
 @observer
-class SignMessagePage extends React.Component<Props, {}> {
+class SignMessagePage extends React.Component<Props, { rows: any }> {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      rows: []
+    };
+  }
+
+  createRow(key: string, value: any) {
+    return { key, value };
+  }
+
   async componentDidMount() {
     let w = await browser.windows.getCurrent();
     if (w.type === 'popup') {
@@ -28,24 +46,48 @@ class SignMessagePage extends React.Component<Props, {}> {
 
   render() {
     if (this.props.signMessageContainer.deployToSign) {
+      const deployWithID = this.props.signMessageContainer.deployToSign;
+      if (deployWithID) {
+        this.props.signMessageContainer
+          .parseDeployData(deployWithID)
+          .then(deploy => {
+            let key = deploy.signingKey;
+            console.log('Hello');
+            this.setState({
+              rows: [
+                this.createRow(
+                  'Signing Key',
+                  key.substring(0, 6) + '...' + key.substring(key.length - 4)
+                ),
+                // this.createRow('Account', deploy.account),
+                // this.createRow('Hash', deploy.deployHash),
+                this.createRow('Timestamp', deploy.timestamp),
+                this.createRow('Chain Name', deploy.chainName),
+                this.createRow('Gas Price', deploy.gasPrice)
+                // this.createRow('Deploy Type', deploy.deployType)
+              ]
+            });
+          });
+      }
       return (
-        <div style={{ flexGrow: 1 }}>
-          <Typography align={'center'} variant={'h5'}>
-            Your signature is being requested
+        <div style={{ flexGrow: 1, marginTop: '-30px' }}>
+          <Typography align={'center'} variant={'h6'}>
+            Signature Request
           </Typography>
-
-          <Box mt={4} mb={3}>
-            {this.props.authContainer.selectedUserAccount && (
-              <Typography variant={'h6'}>
-                Active key:&nbsp;
-                {this.props.authContainer.selectedUserAccount.alias}
-              </Typography>
-            )}
-            <Typography variant={'h6'}>Deploy hash (base16):</Typography>
-            <Typography style={{ wordBreak: 'break-all' }}>
-              {this.props.signMessageContainer.deployToSign!.deploy}
-            </Typography>
-          </Box>
+          <TableContainer>
+            <Table style={{ maxWidth: '100%' }}>
+              <TableBody>
+                {this.state.rows.map((row: any) => (
+                  <TableRow key={row.key}>
+                    <TableCell component="th" scope="row">
+                      {row.key}
+                    </TableCell>
+                    <TableCell align="right">{row.value}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
           <Box mt={8}>
             <Grid
               container
@@ -69,6 +111,9 @@ class SignMessagePage extends React.Component<Props, {}> {
                   onClick={() => this.props.signMessageContainer.signDeploy()}
                   variant="contained"
                   color="primary"
+                  style={{
+                    backgroundColor: '#181d41'
+                  }}
                 >
                   Sign
                 </Button>

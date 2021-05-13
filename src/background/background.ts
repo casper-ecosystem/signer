@@ -74,6 +74,10 @@ async function setupPopupAPIServer() {
     accountController.getActiveAccountHash.bind(accountController)
   );
   rpc.register(
+    'account.downloadAccountKeys',
+    accountController.downloadAccountKeys.bind(accountController)
+  );
+  rpc.register(
     'account.resetVault',
     accountController.resetVault.bind(accountController)
   );
@@ -89,8 +93,12 @@ async function setupPopupAPIServer() {
     signMessageManager.approveSignDeploy.bind(signMessageManager)
   );
   rpc.register(
-    'sign.rejectDeploy',
+    'sign.rejectSignDeploy',
     signMessageManager.rejectSignDeploy.bind(signMessageManager)
+  );
+  rpc.register(
+    'sign.parseDeployData',
+    signMessageManager.parseDeployData.bind(signMessageManager)
   );
   rpc.register(
     'connection.requestConnection',
