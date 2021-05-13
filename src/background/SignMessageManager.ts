@@ -1,7 +1,7 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
-import { DeployUtil } from 'casper-client-sdk';
+import { DeployUtil, encodeBase16 } from 'casper-client-sdk';
 
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 export interface deployWithID {
@@ -20,7 +20,7 @@ export interface DeployData {
   chainName: string;
   deployType: string;
   gasPrice: number;
-  payment: number;
+  payment: string;
 }
 
 /**
@@ -78,19 +78,6 @@ export default class SignMessageManager extends events.EventEmitter {
   }
 
   /**
-   * Helper function to create Deploy object from JSON.
-   * @param {JSON} deployJson
-   * @returns {DeployUtil.Deploy} Deploy object
-   */
-  private deployFromJson(deployJson: JSON): DeployUtil.Deploy {
-    let deploy = DeployUtil.deployFromJson(deployJson);
-    if (!deploy) {
-      throw new Error(`deployFromJson failed to parse JSON into Deploy object`);
-    }
-    return deploy;
-  }
-
-  /**
    * Adds the unsigned deploy to the app's queue.
    * @param {JSON} deployJson
    * @returns {number} id for added deploy
@@ -137,7 +124,7 @@ export default class SignMessageManager extends events.EventEmitter {
       this.once(`${deployId}:finished`, processedDeploy => {
         switch (processedDeploy.status) {
           case 'signed':
-            return resolve(processedDeploy); // TODO: Return signed deploy JSON
+            return resolve(processedDeploy.deploy); // TODO: Return signed deploy JSON
           case 'failed':
             return reject(
               new Error(processedDeploy.errMsg! ?? 'User Cancelled Signing')
@@ -161,11 +148,13 @@ export default class SignMessageManager extends events.EventEmitter {
     const deploy = this.getDeployById(deployId);
     deploy.status = 'failed';
     deploy.error = new Error('User Cancelled Signing');
-    let deployIndex = this.appState.unsignedDeploys.indexOf(deploy);
+    let deployIndex = this.unsignedDeploys.indexOf(deploy);
     if (deployIndex > -1) {
-      this.appState.unsignedDeploys.splice(deployIndex, 1);
+      this.unsignedDeploys.splice(deployIndex, 1);
     }
+    console.log(deploy.deploy);
     this.saveAndEmitEventIfNeeded(deploy);
+    console.log(`After: ${this.appState.unsignedDeploys}`);
     this.popupManager.closePopup();
   }
 
@@ -237,9 +226,11 @@ export default class SignMessageManager extends events.EventEmitter {
     this.saveAndEmitEventIfNeeded(deployData);
   }
 
-  public parseDeployData(deploy: deployWithID): DeployData {
-    if (deploy.deploy) {
-      // let deployJSON = DeployUtil.deployToJson(deploy.deploy);
+  public parseDeployData(deployId: number): DeployData {
+    let deploy = this.unsignedDeploys.find(
+      deployWithId => deployWithId.id === deployId
+    );
+    if (deploy !== undefined && deploy.deploy !== undefined) {
       let header = deploy.deploy.header;
       // let type = deploy.deploy.isTransfer()
       //   ? 'Transfer'
@@ -247,14 +238,14 @@ export default class SignMessageManager extends events.EventEmitter {
       //   ? 'Contract Call'
       //   : 'Contract Deployment';
       return {
-        deployHash: 'Hash',
+        deployHash: encodeBase16(deploy.deploy.hash),
         signingKey: deploy.signingKey,
-        account: typeof header.account,
+        account: header.account.toAccountHex(),
         chainName: header.chainName,
         timestamp: new Date(header.timestamp).toLocaleString(),
         gasPrice: header.gasPrice,
-        payment: 12345678910,
-        deployType: 'TYPE'
+        payment: encodeBase16(deploy.deploy.payment.toBytes()),
+        deployType: deploy.deploy.isTransfer() ? 'Transfer' : 'Contract'
       };
     } else {
       throw new Error('Deploy undefined!');

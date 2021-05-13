@@ -2,7 +2,6 @@ import { BackgroundManager } from '../BackgroundManager';
 import { AppState } from '../../lib/MemStore';
 import { browser } from 'webextension-polyfill-ts';
 import { computed } from 'mobx';
-import { deployWithID } from '../../background/SignMessageManager';
 
 class SignMessageContainer {
   constructor(
@@ -18,8 +17,8 @@ class SignMessageContainer {
     return null;
   }
 
-  async parseDeployData(deploy: deployWithID) {
-    return await this.backgroundManager.parseDeployData(deploy);
+  async parseDeployData(deployId: number) {
+    return await this.backgroundManager.parseDeployData(deployId);
   }
 
   async signDeploy() {
@@ -33,6 +32,7 @@ class SignMessageContainer {
 
   async cancel() {
     const deploy = this.deployToSign;
+    console.log(deploy);
     if (deploy === null) {
       throw new Error('No deploy to sign!');
     }

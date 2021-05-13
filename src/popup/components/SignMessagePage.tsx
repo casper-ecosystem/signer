@@ -31,10 +31,6 @@ class SignMessagePage extends React.Component<Props, { rows: any }> {
     };
   }
 
-  createRow(key: string, value: any) {
-    return { key, value };
-  }
-
   async componentDidMount() {
     let w = await browser.windows.getCurrent();
     if (w.type === 'popup') {
@@ -44,27 +40,47 @@ class SignMessagePage extends React.Component<Props, { rows: any }> {
     }
   }
 
+  createRow(key: string, value: any) {
+    return { key, value };
+  }
+
+  truncateString(
+    longString: string,
+    startChunk: number,
+    endChunk: number
+  ): string {
+    return (
+      longString.substring(0, startChunk) +
+      '...' +
+      longString.substring(longString.length - endChunk)
+    );
+  }
+
   render() {
     if (this.props.signMessageContainer.deployToSign) {
-      const deployWithID = this.props.signMessageContainer.deployToSign;
-      if (deployWithID) {
+      const deployId = this.props.signMessageContainer.deployToSign.id;
+      if (deployId) {
         this.props.signMessageContainer
-          .parseDeployData(deployWithID)
-          .then(deploy => {
-            let key = deploy.signingKey;
-            console.log('Hello');
+          .parseDeployData(deployId)
+          .then(deployData => {
             this.setState({
               rows: [
                 this.createRow(
                   'Signing Key',
-                  key.substring(0, 6) + '...' + key.substring(key.length - 4)
+                  this.truncateString(deployData.signingKey, 6, 6)
                 ),
-                // this.createRow('Account', deploy.account),
-                // this.createRow('Hash', deploy.deployHash),
-                this.createRow('Timestamp', deploy.timestamp),
-                this.createRow('Chain Name', deploy.chainName),
-                this.createRow('Gas Price', deploy.gasPrice)
-                // this.createRow('Deploy Type', deploy.deployType)
+                this.createRow(
+                  'Account',
+                  this.truncateString(deployData.account, 6, 6)
+                ),
+                this.createRow(
+                  'Hash',
+                  this.truncateString(deployData.deployHash, 6, 6)
+                ),
+                this.createRow('Timestamp', deployData.timestamp),
+                this.createRow('Chain Name', deployData.chainName),
+                this.createRow('Gas Price', deployData.gasPrice),
+                this.createRow('Deploy Type', deployData.deployType)
               ]
             });
           });
