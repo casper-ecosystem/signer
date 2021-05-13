@@ -132,11 +132,14 @@ class AuthController {
     try {
       secretKey = Keys.Ed25519.parsePrivateKey(secretKeyBytes);
       publicKey = Keys.Ed25519.privateToPublicKey(secretKeyBytes);
-      keyPair = Keys.Ed25519.parseKeyPair(secretKey, publicKey);
+      keyPair = new Keys.Ed25519({
+        publicKey: publicKey,
+        secretKey: secretKey
+      });
     } catch {
       secretKey = Keys.Secp256K1.parsePrivateKey(secretKeyBytes, 'raw');
       publicKey = Keys.Secp256K1.privateToPublicKey(secretKeyBytes);
-      keyPair = Keys.Secp256K1.parseKeyPair(secretKey, publicKey, 'raw');
+      keyPair = new Keys.Secp256K1(publicKey, secretKey);
     } finally {
       if (!secretKey) {
         throw new Error('Could not parse secret key as: ed25519 or secp256k1');
