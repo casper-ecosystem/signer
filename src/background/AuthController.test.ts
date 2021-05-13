@@ -13,7 +13,7 @@ jest.mock('@extend-chrome/storage', () => {
         get: (key: string): any => {
           return { [key]: memoryStore.get(key) };
         },
-        set: (v): any => {
+        set: (v: any): any => {
           const key = Object.keys(v)[0];
           const val = v[key];
           memoryStore.set(key, val);
