@@ -1,7 +1,12 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
-import { DeployUtil, encodeBase16, PublicKey } from 'casper-client-sdk';
+import {
+  DeployUtil,
+  encodeBase16,
+  encodeBase64,
+  PublicKey
+} from 'casper-client-sdk';
 
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 export interface deployWithID {
@@ -80,6 +85,30 @@ export default class SignMessageManager extends events.EventEmitter {
     this.appState.unsignedDeploys.replace(this.unsignedDeploys);
   }
 
+  /**
+   * Retrieve the active public key from vault.
+   * Will reject if:
+   *  - The Signer is not connected.
+   *  - There is no account in the vault.
+   * @returns Active public key - hex-encoded with algorithm prefix
+   */
+  public getActivePublicKey() {
+    return new Promise<string>((resolve, reject) => {
+      let publicKey = this.appState.selectedUserAccount?.KeyPair.publicKey;
+      if (!this.appState.connectionStatus) {
+        return reject(new Error('Please connect to the Signer first.'));
+      } else if (publicKey === undefined) {
+        return reject(new Error('Please create an account first.'));
+      }
+      if (publicKey.isEd25519()) {
+        return resolve(publicKey.toAccountHex());
+      } else if (publicKey.isSecp256K1()) {
+        return resolve(publicKey.toAccountHex());
+      } else {
+        return reject(new Error('Key was not of expected format!'));
+      }
+    });
+  }
   /**
    * Adds the unsigned deploy to the app's queue.
    * @param {JSON} deployJson
@@ -166,46 +195,6 @@ export default class SignMessageManager extends events.EventEmitter {
     this.popupManager.closePopup();
   }
 
-  /**
-   * Retrieve the active public key from vault.
-   * Will reject if:
-   *  - The Signer is not connected.
-   *  - There is no account in the vault.
-   * @returns Active public key - hex-encoded with algorithm prefix
-   */
-  public getActivePublicKey() {
-    return new Promise<string>((resolve, reject) => {
-      let publicKey = this.appState.selectedUserAccount?.KeyPair.publicKey;
-      if (!this.appState.connectionStatus) {
-        return reject(new Error('Please connect to the Signer first.'));
-      } else if (publicKey === undefined) {
-        return reject(new Error('Please create an account first.'));
-      }
-      if (publicKey.isEd25519()) {
-        return resolve(publicKey.toAccountHex());
-      } else if (publicKey.isSecp256K1()) {
-        return resolve(publicKey.toAccountHex());
-      } else {
-        return reject(new Error('Key was not of expected format!'));
-      }
-    });
-  }
-
-  /**
-   * Get deploy from queue by ID
-   * @param deployId
-   * @throws Error if there is no deploy with the given ID.
-   */
-  private getDeployById(deployId: number): deployWithID {
-    let deployWithId = this.appState.unsignedDeploys.find(
-      data => data.id === deployId
-    );
-    if (deployWithId === undefined) {
-      throw new Error(`Could not find deploy with id: ${deployId}`);
-    }
-    return deployWithId;
-  }
-
   // Approve signature request
   public async approveSignDeploy(deployId: number) {
     const deployData = this.getDeployById(deployId);
@@ -234,6 +223,21 @@ export default class SignMessageManager extends events.EventEmitter {
 
     deployData.status = 'signed';
     this.saveAndEmitEventIfNeeded(deployData);
+  }
+
+  /**
+   * Get deploy from queue by ID
+   * @param deployId
+   * @throws Error if there is no deploy with the given ID.
+   */
+  private getDeployById(deployId: number): deployWithID {
+    let deployWithId = this.appState.unsignedDeploys.find(
+      data => data.id === deployId
+    );
+    if (deployWithId === undefined) {
+      throw new Error(`Could not find deploy with id: ${deployId}`);
+    }
+    return deployWithId;
   }
 
   public parseDeployData(deployId: number): DeployData {
