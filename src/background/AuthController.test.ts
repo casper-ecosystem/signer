@@ -2,20 +2,26 @@ import AuthController from './AuthController';
 import { AppState } from '../lib/MemStore';
 import * as nacl from 'tweetnacl-ts';
 import { encodeBase64 } from 'tweetnacl-ts';
-import store from 'store';
+import { storage } from '@extend-chrome/storage';
 
-jest.mock('store', () => {
+jest.mock('@extend-chrome/storage', () => {
   const memoryStore = new Map();
 
   return {
-    get: (key: string, optionalDefaultValue?: any): any => {
-      return memoryStore.get(key) || optionalDefaultValue;
-    },
-    set: (key: string, value: any): any => {
-      memoryStore.set(key, value);
-    },
-    remove: (key: string): void => {
-      memoryStore.delete(key);
+    storage: {
+      local: {
+        get: (key: string): any => {
+          return { [key]: memoryStore.get(key) };
+        },
+        set: (v: any): any => {
+          const key = Object.keys(v)[0];
+          const val = v[key];
+          memoryStore.set(key, val);
+        },
+        remove: (key: string): void => {
+          memoryStore.delete(key);
+        }
+      }
     }
   };
 });
@@ -45,10 +51,11 @@ describe('AuthController', () => {
   let authController: AuthController;
   const password = 'correct_password';
   const wrongPassword = 'wrong_password';
+
   beforeEach(async () => {
     appState = new AppState();
     authController = new AuthController(appState);
-    store.remove('encryptedVault');
+    storage.local.remove('encryptedVault');
     await expect(
       authController.createNewVault(password)
     ).resolves.toBeUndefined();

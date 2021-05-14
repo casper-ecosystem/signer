@@ -1,6 +1,6 @@
 import { action, computed } from 'mobx';
 import passworder from 'browser-passworder';
-import store from 'store';
+import { storage } from '@extend-chrome/storage';
 import * as nacl from 'tweetnacl';
 import { decodeBase64, encodeBase64 } from 'tweetnacl-util';
 import { AppState } from '../lib/MemStore';
@@ -30,6 +30,26 @@ class AuthController {
   private saltKey = 'passwordSalt';
 
   constructor(private appState: AppState) {
+    // NOTE: this code is doing migration from localStorage to chrome.storage,
+    // we need to keep this for now but after few releases remember to get rid of this code.
+    if (localStorage.getItem(this.encryptedVaultKey)) {
+      console.log(
+        'there is old encrypedVault in localStorage, moving it to secure store...'
+      );
+      const v = localStorage.getItem(this.encryptedVaultKey);
+      this.saveKeyValuetoStore(this.encryptedVaultKey, JSON.parse(v as string));
+      localStorage.removeItem(this.encryptedVaultKey);
+    }
+
+    if (localStorage.getItem(this.saltKey)) {
+      console.log(
+        'there is old saltKey in localStorage, moving it to secure store...'
+      );
+      const v = localStorage.getItem(this.saltKey);
+      this.saveKeyValuetoStore(this.saltKey, JSON.parse(v as string));
+      localStorage.removeItem(this.saltKey);
+    }
+
     if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
       this.appState.hasCreatedVault = true;
     }
@@ -37,7 +57,8 @@ class AuthController {
 
   @action.bound
   async createNewVault(password: string): Promise<void> {
-    if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
+    const vault = await this.getStoredValueWithKey(this.encryptedVaultKey);
+    if (vault) {
       throw new Error('There is a vault already');
     }
     let [salt, saltedPassword] = this.saltPassword(password);
@@ -76,7 +97,7 @@ class AuthController {
     this.appState.selectedUserAccount = null;
     this.appState.toSignMessages.clear();
     this.appState.hasCreatedVault = false;
-    store.remove(this.encryptedVaultKey);
+    storage.local.remove(this.encryptedVaultKey);
   }
 
   @action
@@ -262,8 +283,8 @@ class AuthController {
    * @param key Key to save value under in store.
    * @param value Value to save under Key in store.
    */
-  private saveKeyValuetoStore(key: string, value: any) {
-    store.set(key, value);
+  private async saveKeyValuetoStore(key: string, value: any) {
+    storage.local.set({ [key]: JSON.stringify(value) });
   }
 
   /**
@@ -271,18 +292,24 @@ class AuthController {
    * @param key Key under which value is stored.
    * @returns Stored value by given key.
    */
-  private getStoredValueWithKey(key: string) {
-    return store.get(key, null);
+  private async getStoredValueWithKey(key: string) {
+    let value = await storage.local.get(key);
+    if (value[key]) {
+      return JSON.parse(value[key]);
+    }
+    return null;
   }
 
   private async restoreVault(
     password: string
   ): Promise<[PersistentVaultData, string]> {
-    let encryptedVault = this.getStoredValueWithKey(this.encryptedVaultKey);
+    let encryptedVault = await this.getStoredValueWithKey(
+      this.encryptedVaultKey
+    );
     if (!encryptedVault) {
       throw new Error('There is no vault');
     }
-    let storedSalt = this.getStoredValueWithKey(this.saltKey);
+    let storedSalt = await this.getStoredValueWithKey(this.saltKey);
     let [, saltedPassword] = this.saltPassword(password, storedSalt);
     let saltedPasswordHash = this.hash(saltedPassword);
 
