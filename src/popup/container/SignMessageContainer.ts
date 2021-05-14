@@ -21,22 +21,13 @@ class SignMessageContainer {
     return await this.backgroundManager.parseDeployData(deployId);
   }
 
-  async signDeploy() {
-    let deploy = this.deployToSign;
-    if (deploy === null) {
-      throw new Error('No deploy to sign!');
-    }
-    await this.backgroundManager.signDeploy(deploy.id);
+  async signDeploy(deployId: number) {
+    await this.backgroundManager.signDeploy(deployId);
     this.closeWindow();
   }
 
-  async cancel() {
-    const deploy = this.deployToSign;
-    console.log(deploy);
-    if (deploy === null) {
-      throw new Error('No deploy to sign!');
-    }
-    await this.backgroundManager.rejectSignDeploy(deploy.id);
+  async cancel(deployId: number) {
+    await this.backgroundManager.rejectSignDeploy(deployId);
     this.closeWindow();
   }
 

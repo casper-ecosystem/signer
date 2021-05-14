@@ -74,9 +74,9 @@ export class BackgroundManager {
     );
   }
 
-  public rejectSignDeploy(msgId: number) {
+  public rejectSignDeploy(deployId: number) {
     return this.errors.withCapture(
-      this.rpc.call<void>('sign.rejectSignDeploy', msgId)
+      this.rpc.call<void>('sign.rejectSignDeploy', deployId)
     );
   }
 

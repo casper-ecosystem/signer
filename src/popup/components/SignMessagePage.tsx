@@ -16,6 +16,7 @@ import {
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
+import { deployWithID } from 'background/SignMessageManager';
 
 interface Props extends RouteComponentProps {
   signMessageContainer: SignMessageContainer;
@@ -23,11 +24,15 @@ interface Props extends RouteComponentProps {
 }
 
 @observer
-class SignMessagePage extends React.Component<Props, { rows: any }> {
+class SignMessagePage extends React.Component<
+  Props,
+  { rows: any; deployToSign: deployWithID | null }
+> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      rows: []
+      rows: [],
+      deployToSign: this.props.signMessageContainer.deployToSign
     };
   }
 
@@ -35,7 +40,7 @@ class SignMessagePage extends React.Component<Props, { rows: any }> {
     let w = await browser.windows.getCurrent();
     if (w.type === 'popup') {
       window.addEventListener('beforeunload', e => {
-        this.props.signMessageContainer.cancel();
+        this.props.signMessageContainer.cancel(this.state.deployToSign?.id!);
       });
     }
   }
@@ -57,32 +62,45 @@ class SignMessagePage extends React.Component<Props, { rows: any }> {
   }
 
   render() {
-    if (this.props.signMessageContainer.deployToSign) {
-      const deployId = this.props.signMessageContainer.deployToSign.id;
+    if (this.state.deployToSign) {
+      const deployId = this.state.deployToSign.id;
       if (deployId) {
         this.props.signMessageContainer
           .parseDeployData(deployId)
           .then(deployData => {
-            this.setState({
-              rows: [
-                this.createRow(
-                  'Signing Key',
-                  this.truncateString(deployData.signingKey, 6, 6)
-                ),
-                this.createRow(
-                  'Account',
-                  this.truncateString(deployData.account, 6, 6)
-                ),
-                this.createRow(
-                  'Hash',
-                  this.truncateString(deployData.deployHash, 6, 6)
-                ),
-                this.createRow('Timestamp', deployData.timestamp),
-                this.createRow('Chain Name', deployData.chainName),
-                this.createRow('Gas Price', deployData.gasPrice),
-                this.createRow('Deploy Type', deployData.deployType)
-              ]
-            });
+            let baseRows = [
+              this.createRow(
+                'Signing Key',
+                this.truncateString(deployData.signingKey, 6, 6)
+              ),
+              this.createRow(
+                'Account',
+                this.truncateString(deployData.account, 6, 6)
+              ),
+              this.createRow(
+                'Hash',
+                this.truncateString(deployData.deployHash, 6, 6)
+              ),
+              this.createRow('Timestamp', deployData.timestamp),
+              this.createRow('Chain Name', deployData.chainName),
+              this.createRow('Gas Price', deployData.gasPrice),
+              this.createRow('Deploy Type', deployData.deployType)
+            ];
+            if (deployData.deployType === 'Transfer') {
+              this.setState({
+                rows: [
+                  ...baseRows,
+                  this.createRow(
+                    'To',
+                    this.truncateString(deployData.target!, 6, 6)
+                  ),
+                  this.createRow('Amount', deployData.amount)
+                  // this.createRow('Transfer ID', deployData.id)
+                ]
+              });
+            } else {
+              this.setState({ rows: baseRows });
+            }
           });
       }
       return (
@@ -116,7 +134,7 @@ class SignMessagePage extends React.Component<Props, { rows: any }> {
                   variant="contained"
                   color="secondary"
                   onClick={() => {
-                    this.props.signMessageContainer.cancel();
+                    this.props.signMessageContainer.cancel(deployId);
                   }}
                 >
                   Cancel
@@ -124,7 +142,9 @@ class SignMessagePage extends React.Component<Props, { rows: any }> {
               </Grid>
               <Grid item>
                 <Button
-                  onClick={() => this.props.signMessageContainer.signDeploy()}
+                  onClick={() =>
+                    this.props.signMessageContainer.signDeploy(deployId)
+                  }
                   variant="contained"
                   color="primary"
                   style={{

@@ -1,7 +1,7 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
-import { DeployUtil, encodeBase16 } from 'casper-client-sdk';
+import { DeployUtil, encodeBase16, PublicKey } from 'casper-client-sdk';
 
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 export interface deployWithID {
@@ -21,6 +21,9 @@ export interface DeployData {
   deployType: string;
   gasPrice: number;
   payment: string;
+  id?: any;
+  amount?: any;
+  target?: string;
 }
 
 /**
@@ -115,19 +118,26 @@ export default class SignMessageManager extends events.EventEmitter {
   public signDeploy(
     deploy: JSON,
     publicKey: string // hex-encoded PublicKey bytes with algo prefix
-  ): Promise<JSON> {
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       // Adding the deploy to the queue will update the extension state and UI
       const deployId = this.addUnsignedDeployToQueue(deploy, publicKey);
       this.popupManager.openPopup('sign');
       // Await outcome of user interaction with popup.
-      this.once(`${deployId}:finished`, processedDeploy => {
+      this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
         switch (processedDeploy.status) {
           case 'signed':
-            return resolve(processedDeploy.deploy); // TODO: Return signed deploy JSON
+            if (processedDeploy.deploy) {
+              this.appState.unsignedDeploys.clear();
+              return resolve(DeployUtil.deployToJson(processedDeploy.deploy)); // TODO: Return signed deploy JSON
+            }
+            this.appState.unsignedDeploys.remove(processedDeploy);
+            return reject(new Error(processedDeploy.error?.message));
           case 'failed':
             return reject(
-              new Error(processedDeploy.errMsg! ?? 'User Cancelled Signing')
+              new Error(
+                processedDeploy.error?.message! ?? 'User Cancelled Signing'
+              )
             );
           default:
             return reject(
@@ -145,16 +155,14 @@ export default class SignMessageManager extends events.EventEmitter {
    * @param deployId ID to identify deploy from queue
    */
   public rejectSignDeploy(deployId: number) {
-    const deploy = this.getDeployById(deployId);
-    deploy.status = 'failed';
-    deploy.error = new Error('User Cancelled Signing');
-    let deployIndex = this.unsignedDeploys.indexOf(deploy);
+    const deployWithId = this.getDeployById(deployId);
+    deployWithId.status = 'failed';
+    deployWithId.error = new Error('User Cancelled Signing');
+    let deployIndex = this.unsignedDeploys.indexOf(deployWithId);
     if (deployIndex > -1) {
       this.unsignedDeploys.splice(deployIndex, 1);
     }
-    console.log(deploy.deploy);
-    this.saveAndEmitEventIfNeeded(deploy);
-    console.log(`After: ${this.appState.unsignedDeploys}`);
+    this.saveAndEmitEventIfNeeded(deployWithId);
     this.popupManager.closePopup();
   }
 
@@ -189,11 +197,13 @@ export default class SignMessageManager extends events.EventEmitter {
    * @throws Error if there is no deploy with the given ID.
    */
   private getDeployById(deployId: number): deployWithID {
-    let deploy = this.unsignedDeploys.find(data => data.id === deployId);
-    if (deploy === undefined) {
+    let deployWithId = this.appState.unsignedDeploys.find(
+      data => data.id === deployId
+    );
+    if (deployWithId === undefined) {
       throw new Error(`Could not find deploy with id: ${deployId}`);
     }
-    return deploy;
+    return deployWithId;
   }
 
   // Approve signature request
@@ -227,16 +237,18 @@ export default class SignMessageManager extends events.EventEmitter {
   }
 
   public parseDeployData(deployId: number): DeployData {
-    let deploy = this.unsignedDeploys.find(
-      deployWithId => deployWithId.id === deployId
-    );
+    let deploy = this.getDeployById(deployId);
     if (deploy !== undefined && deploy.deploy !== undefined) {
       let header = deploy.deploy.header;
-      // let type = deploy.deploy.isTransfer()
-      //   ? 'Transfer'
-      //   : deploy.deploy.session.isModuleBytes()
-      //   ? 'Contract Call'
-      //   : 'Contract Deployment';
+      // TODO: Double-check that this is correct way to determine deploy type.
+      let type = deploy.deploy.isTransfer()
+        ? 'Transfer'
+        : deploy.deploy.session.isModuleBytes()
+        ? 'Contract Call'
+        : 'Contract Deployment';
+      let target = PublicKey.fromEd25519(
+        deploy.deploy.session.getArgByName('target')?.clValueBytes()!
+      );
       return {
         deployHash: encodeBase16(deploy.deploy.hash),
         signingKey: deploy.signingKey,
@@ -245,30 +257,43 @@ export default class SignMessageManager extends events.EventEmitter {
         timestamp: new Date(header.timestamp).toLocaleString(),
         gasPrice: header.gasPrice,
         payment: encodeBase16(deploy.deploy.payment.toBytes()),
-        deployType: deploy.deploy.isTransfer() ? 'Transfer' : 'Contract'
+        deployType: type,
+        // id:
+        //   type === 'Transfer'
+        //     ? deploy.deploy.session.transfer
+        //         ?.getArgByName('id')
+        //         ?.asOption()
+        //         .getSome()
+        //     : undefined,
+        amount:
+          type === 'Transfer'
+            ? deploy.deploy.session.transfer?.getArgByName('amount')
+                ?.isBigNumber
+            : undefined,
+        target: type === 'Transfer' ? target.toAccountHex() : undefined
       };
     } else {
       throw new Error('Deploy undefined!');
     }
   }
 
-  private saveAndEmitEventIfNeeded(deploy: deployWithID) {
-    let status = deploy.status;
-    this.updateDeployWithId(deploy);
+  private saveAndEmitEventIfNeeded(deployWithId: deployWithID) {
+    let status = deployWithId.status;
+    this.updateDeployWithId(deployWithId);
     if (status === 'failed' || status === 'signed') {
       // fire finished event, so that the Promise can resolve and return result to RPC caller
-      this.emit(`${deploy.id}:finished`, deploy);
+      this.emit(`${deployWithId.id}:finished`, deployWithId);
     }
   }
 
-  private updateDeployWithId(deploy: deployWithID) {
+  private updateDeployWithId(deployWithId: deployWithID) {
     const index = this.unsignedDeploys.findIndex(
-      deployData => deployData.id === deploy.id
+      deployData => deployData.id === deployWithId.id
     );
     if (index === -1) {
-      throw new Error(`Could not find message with id: ${deploy.id}`);
+      throw new Error(`Could not find message with id: ${deployWithId.id}`);
     }
-    this.unsignedDeploys[index] = deploy;
+    this.unsignedDeploys[index] = deployWithId;
     this.updateAppState();
   }
 }
