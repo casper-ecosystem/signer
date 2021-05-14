@@ -23,7 +23,7 @@ class SignMessageContainer {
 
   async signDeploy(deployId: number) {
     await this.backgroundManager.signDeploy(deployId);
-    this.closeWindow();
+    // this.closeWindow();
   }
 
   async cancel(deployId: number) {

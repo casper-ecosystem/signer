@@ -114,7 +114,7 @@ export default class SignMessageManager extends events.EventEmitter {
    * @param {JSON} deployJson
    * @returns {number} id for added deploy
    */
-  public addUnsignedDeployToQueue(deployJson: JSON, publicKey: string): number {
+  public addUnsignedDeployToQueue(deployJson: any, publicKey: string): number {
     const id: number = this.createId();
 
     try {
@@ -145,7 +145,7 @@ export default class SignMessageManager extends events.EventEmitter {
    * @returns {JSON} Signed deploy in JSON format
    */
   public signDeploy(
-    deploy: JSON,
+    deploy: any,
     publicKey: string // hex-encoded PublicKey bytes with algo prefix
   ): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -161,6 +161,7 @@ export default class SignMessageManager extends events.EventEmitter {
               return resolve(DeployUtil.deployToJson(processedDeploy.deploy)); // TODO: Return signed deploy JSON
             }
             this.appState.unsignedDeploys.remove(processedDeploy);
+            console.log(this.appState.unsignedDeploys);
             return reject(new Error(processedDeploy.error?.message));
           case 'failed':
             return reject(
@@ -187,10 +188,7 @@ export default class SignMessageManager extends events.EventEmitter {
     const deployWithId = this.getDeployById(deployId);
     deployWithId.status = 'failed';
     deployWithId.error = new Error('User Cancelled Signing');
-    let deployIndex = this.unsignedDeploys.indexOf(deployWithId);
-    if (deployIndex > -1) {
-      this.unsignedDeploys.splice(deployIndex, 1);
-    }
+    this.appState.unsignedDeploys.clear();
     this.saveAndEmitEventIfNeeded(deployWithId);
     this.popupManager.closePopup();
   }
@@ -244,12 +242,14 @@ export default class SignMessageManager extends events.EventEmitter {
     let deploy = this.getDeployById(deployId);
     if (deploy !== undefined && deploy.deploy !== undefined) {
       let header = deploy.deploy.header;
+
       // TODO: Double-check that this is correct way to determine deploy type.
       let type = deploy.deploy.isTransfer()
         ? 'Transfer'
         : deploy.deploy.session.isModuleBytes()
         ? 'Contract Call'
         : 'Contract Deployment';
+
       let target = PublicKey.fromEd25519(
         deploy.deploy.session.getArgByName('target')?.clValueBytes()!
       );

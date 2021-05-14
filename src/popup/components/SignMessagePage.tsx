@@ -16,7 +16,7 @@ import {
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
-import { deployWithID } from 'background/SignMessageManager';
+import { deployWithID } from '../../background/SignMessageManager';
 
 interface Props extends RouteComponentProps {
   signMessageContainer: SignMessageContainer;

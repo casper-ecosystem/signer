@@ -27,6 +27,7 @@ export class BackgroundManager {
 
   @action.bound
   private onStateUpdate(appState: AppState) {
+    console.log(appState);
     this.appState.isUnlocked = appState.isUnlocked;
     this.appState.connectionStatus = appState.connectionStatus;
     this.appState.connectionRequested = appState.connectionRequested;
