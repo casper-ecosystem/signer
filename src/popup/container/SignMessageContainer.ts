@@ -11,6 +11,7 @@ class SignMessageContainer {
 
   @computed
   get deployToSign() {
+    console.log('Checking for Deploy to Sign...');
     if (this.appState.unsignedDeploys.length > 0) {
       return this.appState.unsignedDeploys[0];
     }
@@ -22,13 +23,14 @@ class SignMessageContainer {
   }
 
   async signDeploy(deployId: number) {
+    console.log('Signing...');
     await this.backgroundManager.signDeploy(deployId);
     // this.closeWindow();
   }
 
   async cancel(deployId: number) {
     await this.backgroundManager.rejectSignDeploy(deployId);
-    this.closeWindow();
+    // this.closeWindow();
   }
 
   private async closeWindow() {

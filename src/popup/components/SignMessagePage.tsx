@@ -43,6 +43,9 @@ class SignMessagePage extends React.Component<
         this.props.signMessageContainer.cancel(this.state.deployToSign?.id!);
       });
     }
+    if (this.state.deployToSign) {
+      this.generateDeployInfo(this.state.deployToSign);
+    }
   }
 
   createRow(key: string, value: any) {
@@ -61,48 +64,40 @@ class SignMessagePage extends React.Component<
     );
   }
 
+  async generateDeployInfo(deployToSign: deployWithID) {
+    let deployData = await this.props.signMessageContainer.parseDeployData(
+      deployToSign.id
+    );
+    let baseRows = [
+      this.createRow(
+        'Signing Key',
+        this.truncateString(deployData.signingKey, 6, 6)
+      ),
+      this.createRow('Account', this.truncateString(deployData.account, 6, 6)),
+      this.createRow('Hash', this.truncateString(deployData.deployHash, 6, 6)),
+      this.createRow('Timestamp', deployData.timestamp),
+      this.createRow('Chain Name', deployData.chainName),
+      this.createRow('Gas Price', deployData.gasPrice),
+      this.createRow('Deploy Type', deployData.deployType)
+    ];
+    if (deployData.deployType === 'Transfer') {
+      this.setState({
+        rows: [
+          ...baseRows,
+          this.createRow('To', this.truncateString(deployData.target!, 6, 6)),
+          this.createRow('Amount', deployData.amount)
+          // this.createRow('Transfer ID', deployData.id)
+        ]
+      });
+    } else {
+      this.setState({ rows: baseRows });
+    }
+  }
+
   render() {
+    console.log('Page is re-rendering...');
     if (this.state.deployToSign) {
-      const deployId = this.state.deployToSign.id;
-      if (deployId) {
-        this.props.signMessageContainer
-          .parseDeployData(deployId)
-          .then(deployData => {
-            let baseRows = [
-              this.createRow(
-                'Signing Key',
-                this.truncateString(deployData.signingKey, 6, 6)
-              ),
-              this.createRow(
-                'Account',
-                this.truncateString(deployData.account, 6, 6)
-              ),
-              this.createRow(
-                'Hash',
-                this.truncateString(deployData.deployHash, 6, 6)
-              ),
-              this.createRow('Timestamp', deployData.timestamp),
-              this.createRow('Chain Name', deployData.chainName),
-              this.createRow('Gas Price', deployData.gasPrice),
-              this.createRow('Deploy Type', deployData.deployType)
-            ];
-            if (deployData.deployType === 'Transfer') {
-              this.setState({
-                rows: [
-                  ...baseRows,
-                  this.createRow(
-                    'To',
-                    this.truncateString(deployData.target!, 6, 6)
-                  ),
-                  this.createRow('Amount', deployData.amount)
-                  // this.createRow('Transfer ID', deployData.id)
-                ]
-              });
-            } else {
-              this.setState({ rows: baseRows });
-            }
-          });
-      }
+      const deployId = this.props.signMessageContainer.deployToSign?.id;
       return (
         <div style={{ flexGrow: 1, marginTop: '-30px' }}>
           <Typography align={'center'} variant={'h6'}>
@@ -134,7 +129,7 @@ class SignMessagePage extends React.Component<
                   variant="contained"
                   color="secondary"
                   onClick={() => {
-                    this.props.signMessageContainer.cancel(deployId);
+                    this.props.signMessageContainer.cancel(deployId!);
                   }}
                 >
                   Cancel
@@ -143,7 +138,7 @@ class SignMessagePage extends React.Component<
               <Grid item>
                 <Button
                   onClick={() =>
-                    this.props.signMessageContainer.signDeploy(deployId)
+                    this.props.signMessageContainer.signDeploy(deployId!)
                   }
                   variant="contained"
                   color="primary"

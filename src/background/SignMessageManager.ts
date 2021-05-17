@@ -1,12 +1,7 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
-import {
-  DeployUtil,
-  encodeBase16,
-  encodeBase64,
-  PublicKey
-} from 'casper-client-sdk';
+import { DeployUtil, encodeBase16, PublicKey } from 'casper-client-sdk';
 
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 export interface deployWithID {
@@ -82,6 +77,10 @@ export default class SignMessageManager extends events.EventEmitter {
    * Pushes new state to popup.
    */
   private updateAppState() {
+    console.log('AppState::');
+    console.log(this.appState.unsignedDeploys[0]);
+    console.log(`Current::`);
+    console.log(this.unsignedDeploys[0]);
     this.appState.unsignedDeploys.replace(this.unsignedDeploys);
   }
 
@@ -195,6 +194,7 @@ export default class SignMessageManager extends events.EventEmitter {
 
   // Approve signature request
   public async approveSignDeploy(deployId: number) {
+    console.log('Beginning approval...');
     const deployData = this.getDeployById(deployId);
     if (!this.appState.selectedUserAccount) {
       throw new Error(`No Active Account!`);
@@ -239,6 +239,7 @@ export default class SignMessageManager extends events.EventEmitter {
   }
 
   public parseDeployData(deployId: number): DeployData {
+    console.log('Parse called');
     let deploy = this.getDeployById(deployId);
     if (deploy !== undefined && deploy.deploy !== undefined) {
       let header = deploy.deploy.header;

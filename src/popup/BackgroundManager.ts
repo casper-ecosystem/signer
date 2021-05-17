@@ -70,6 +70,7 @@ export class BackgroundManager {
   }
 
   public signDeploy(deployId: number) {
+    console.log('BM :: Calling sign.signDeploy...');
     return this.errors.withCapture(
       this.rpc.call<void>('sign.signDeploy', deployId)
     );
