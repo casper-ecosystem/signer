@@ -31,10 +31,6 @@ export interface AppProps {
 }
 
 const App = (props: AppProps) => {
-  // React.useEffect(() => {
-  //   console.log("popup open", window.location.href, window.location.hostname);
-  // }, []);
-
   return (
     <div>
       <AnalyticsProvider />

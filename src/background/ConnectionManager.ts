@@ -3,12 +3,10 @@ import PopupManager from '../background/PopupManager';
 
 export default class ConnectionManager {
   private popupManager: PopupManager;
-  public connectedSites: string[];
   public activeTab: number | null;
 
   constructor(private appState: AppState) {
     this.popupManager = new PopupManager();
-    this.connectedSites = [];
     this.activeTab = null;
 
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
@@ -30,7 +28,7 @@ export default class ConnectionManager {
   private async checkConnected() {
     const url = await this.getActiveTab();
     if (url) {
-      const isConnected = this.connectedSites.includes(url);
+      const isConnected = this.appState.connectedSites.includes(url);
       this.appState.connectionStatus = isConnected;
     }
   }
@@ -56,7 +54,7 @@ export default class ConnectionManager {
   public async connectToSite() {
     const url = await this.getActiveTab();
     if (url) {
-      this.connectedSites.push(url);
+      this.appState.connectedSites.push(url);
       this.appState.connectionStatus = true;
       this.popupManager.closePopup();
     }
@@ -65,7 +63,7 @@ export default class ConnectionManager {
   public async disconnectFromSite() {
     const url = await this.getActiveTab();
     if (url) {
-      this.connectedSites = this.connectedSites.filter(d => d !== url);
+      this.appState.connectedSites.filter(d => d !== url);
       this.appState.connectionStatus = false;
     }
   }
