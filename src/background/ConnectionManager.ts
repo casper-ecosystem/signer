@@ -1,3 +1,4 @@
+import { getBucket, Bucket } from '@extend-chrome/storage';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
 
@@ -11,6 +12,10 @@ export interface Site {
   isConnected: boolean;
 }
 
+interface ConnectionManagerStore {
+  connectedSites: Site[];
+}
+
 const parseTabURL = (url: string | undefined): string | undefined => {
   if (url) {
     const parsed = new URL(url);
@@ -21,11 +26,21 @@ const parseTabURL = (url: string | undefined): string | undefined => {
 
 export default class ConnectionManager {
   private popupManager: PopupManager;
+  private store: Bucket<ConnectionManagerStore>;
 
   constructor(private appState: AppState) {
     this.popupManager = new PopupManager();
     this.appState = appState;
 
+    this.store = getBucket<ConnectionManagerStore>('store');
+
+    this.store.get('connectedSites').then(({ connectedSites }) => {
+      if (!connectedSites) return;
+      console.log(connectedSites);
+      this.appState.connectedSites.replace(Object.values(connectedSites));
+    });
+
+    // TODO: Might add this for chaning windows focus https://stackoverflow.com/questions/53397465/can-you-detect-moving-between-open-tabs-in-different-windows
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       if (changeInfo.status === 'complete') {
         const url = parseTabURL(tab.url);
@@ -75,10 +90,12 @@ export default class ConnectionManager {
         this.appState.connectedSites.map(d => {
           if (d.url === url) d.isConnected = true;
         });
-        return;
+      } else {
+        this.appState.connectedSites.push({ url: url, isConnected: true });
       }
 
-      this.appState.connectedSites.push({ url: url, isConnected: true });
+      this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
+
       this.popupManager.closePopup();
     }
   }
@@ -90,13 +107,14 @@ export default class ConnectionManager {
       this.appState.connectedSites.map(d => {
         if (d.url === url) d.isConnected = false;
       });
-      return;
+      this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
     }
   }
 
   public async removeSite(url: string) {
     const filtered = this.appState.connectedSites.filter(d => d.url !== url);
     this.appState.connectedSites.replace(filtered);
+    this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
   }
 
   private getActiveTab(): Promise<string | null> {
