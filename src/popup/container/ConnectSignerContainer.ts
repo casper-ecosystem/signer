@@ -1,6 +1,6 @@
 import { AppState } from '../../lib/MemStore';
 import { BackgroundManager } from '../BackgroundManager';
-import { computed, toJS } from 'mobx';
+import { computed } from 'mobx';
 import { browser } from 'webextension-polyfill-ts';
 
 class ConnectSignerContainer {
@@ -19,13 +19,18 @@ class ConnectSignerContainer {
     return this.appState.connectionRequested;
   }
 
-  async connectToSite() {
-    await this.backgroundManager.connectToSite();
+  async connectToSite(url?: string) {
+    await this.backgroundManager.connectToSite(url);
     await this.resetConnectionRequest();
   }
 
   async disconnectFromSite(site?: string) {
     await this.backgroundManager.disconnectFromSite(site);
+    await this.resetConnectionRequest();
+  }
+
+  async removeSite(url: string) {
+    await this.backgroundManager.removeSite(url);
     await this.resetConnectionRequest();
   }
 
@@ -55,7 +60,7 @@ class ConnectSignerContainer {
   }
 
   @computed
-  get connectedSites(): IObservableArray<string> {
+  get connectedSites() {
     return this.appState.connectedSites;
   }
 

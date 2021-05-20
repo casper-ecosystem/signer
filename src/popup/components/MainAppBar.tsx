@@ -48,7 +48,11 @@ interface Props {
 export const MainAppBar = observer((props: Props) => {
   const classes = useStyles();
   const { currentTab, connectedSites } = props.connectionContainer;
-  const connected = currentTab && connectedSites.includes(currentTab.url);
+  const connected =
+    currentTab &&
+    connectedSites.some(
+      site => site.url === currentTab.url && site.isConnected
+    );
   // console.log(props.connectionContainer.currentTab);
   //
   console.log(toJS(currentTab), toJS(connectedSites));

@@ -105,15 +105,21 @@ export class BackgroundManager {
     );
   }
 
-  public connectToSite() {
+  public connectToSite(url?: string) {
     return this.errors.withCapture(
-      this.rpc.call<void>('connection.connectToSite')
+      this.rpc.call<void>('connection.connectToSite', url)
     );
   }
 
   public disconnectFromSite(site?: string) {
     return this.errors.withCapture(
       this.rpc.call<void>('connection.disconnectFromSite', site)
+    );
+  }
+
+  public removeSite(url: string) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('connection.removeSite', url)
     );
   }
 

@@ -1,5 +1,4 @@
 import { AppState } from '../lib/MemStore';
-import { toJS } from 'mobx';
 import PopupManager from '../background/PopupManager';
 
 export interface Tab {
@@ -7,12 +6,17 @@ export interface Tab {
   url: string;
 }
 
-const parseTabURL = (url: string | undefined): string | null => {
+export interface Site {
+  url: string;
+  isConnected: boolean;
+}
+
+const parseTabURL = (url: string | undefined): string | undefined => {
   if (url) {
     const parsed = new URL(url);
     return parsed.hostname;
   }
-  return null;
+  return undefined;
 };
 
 export default class ConnectionManager {
@@ -23,11 +27,7 @@ export default class ConnectionManager {
     this.appState = appState;
 
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-      if (
-        this.appState.currentTab &&
-        this.appState.currentTab.tabId === tabId &&
-        changeInfo.status === 'complete'
-      ) {
+      if (changeInfo.status === 'complete') {
         const url = parseTabURL(tab.url);
         this.appState.currentTab = url ? { tabId, url } : null;
       }
@@ -44,7 +44,9 @@ export default class ConnectionManager {
   public isConnected() {
     const url = this.appState.currentTab && this.appState.currentTab.url;
     if (url) {
-      return this.appState.connectedSites.includes(url);
+      return this.appState.connectedSites.some(
+        site => site.url === url && site.isConnected
+      );
     }
     return false;
   }
@@ -63,21 +65,38 @@ export default class ConnectionManager {
     this.popupManager.closePopup();
   }
 
-  public async connectToSite() {
+  public async connectToSite(site?: string) {
     const tab = this.appState.currentTab;
-    if (tab && tab.url) {
-      this.appState.connectedSites.push(tab.url);
+    const url = site || (tab && tab.url);
+    if (url) {
+      const isPresent = this.appState.connectedSites.some(d => d.url === url);
+
+      if (isPresent) {
+        this.appState.connectedSites.map(d => {
+          if (d.url === url) d.isConnected = true;
+        });
+        return;
+      }
+
+      this.appState.connectedSites.push({ url: url, isConnected: true });
       this.popupManager.closePopup();
     }
   }
 
   public async disconnectFromSite(site?: string) {
-    const url =
-      site || (this.appState.currentTab && this.appState.currentTab.url);
+    const tab = this.appState.currentTab;
+    const url = site || (tab && tab.url);
     if (url) {
-      this.appState.connectedSites.remove(url);
+      this.appState.connectedSites.map(d => {
+        if (d.url === url) d.isConnected = false;
+      });
       return;
     }
+  }
+
+  public async removeSite(url: string) {
+    const filtered = this.appState.connectedSites.filter(d => d.url !== url);
+    this.appState.connectedSites.replace(filtered);
   }
 
   private getActiveTab(): Promise<string | null> {

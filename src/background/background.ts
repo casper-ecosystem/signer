@@ -100,4 +100,8 @@ async function setupPopupAPIServer() {
     'connection.disconnectFromSite',
     connectionManager.disconnectFromSite.bind(connectionManager)
   );
+  rpc.register(
+    'connection.removeSite',
+    connectionManager.removeSite.bind(connectionManager)
+  );
 }
