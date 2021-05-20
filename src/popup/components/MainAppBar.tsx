@@ -15,8 +15,6 @@ import {
 } from '@material-ui/core';
 import confirmConnect from './ConfirmConnect';
 
-import { toJS } from 'mobx';
-
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
@@ -53,9 +51,6 @@ export const MainAppBar = observer((props: Props) => {
     connectedSites.some(
       site => site.url === currentTab.url && site.isConnected
     );
-  // console.log(props.connectionContainer.currentTab);
-  //
-  console.log(toJS(currentTab), toJS(connectedSites));
 
   if (props.authContainer.hasCreatedVault && props.authContainer.isUnLocked) {
     return (

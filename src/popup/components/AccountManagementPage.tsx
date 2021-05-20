@@ -30,7 +30,6 @@ import FilterNoneIcon from '@material-ui/icons/FilterNone'; // Used for Copy
 import AccountManager from '../container/AccountManager';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer, Observer } from 'mobx-react';
-import { toJS } from 'mobx';
 import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
@@ -141,8 +140,6 @@ export const AccountManagementPage = observer((props: Props) => {
         }
       });
   };
-
-  console.log('!', toJS(props.connectionContainer));
 
   return (
     <React.Fragment>
