@@ -56,8 +56,12 @@ class ConnectSignerContainer {
 
   @computed
   get connectedSites(): IObservableArray<string> {
-    console.log(toJS(this.appState));
     return this.appState.connectedSites;
+  }
+
+  @computed
+  get currentTab() {
+    return this.appState.currentTab;
   }
 }
 

@@ -1,8 +1,10 @@
 import { IObservableArray, observable } from 'mobx';
 import { SignMessage } from '../background/SignMessageManager';
+import { Tab } from '../background/ConnectionManager';
 
 export class AppState {
   @observable isUnlocked: boolean = false;
+  @observable currentTab: Tab | null = null;
   @observable connectionStatus: boolean = false;
   @observable connectionRequested: boolean = false;
   @observable connectedSites: IObservableArray<string> = observable.array<

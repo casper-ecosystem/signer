@@ -2,41 +2,51 @@ import { AppState } from '../lib/MemStore';
 import { toJS } from 'mobx';
 import PopupManager from '../background/PopupManager';
 
+export interface Tab {
+  tabId: number;
+  url: string;
+}
+
+const parseTabURL = (url: string | undefined): string | null => {
+  if (url) {
+    const parsed = new URL(url);
+    return parsed.hostname;
+  }
+  return null;
+};
+
 export default class ConnectionManager {
   private popupManager: PopupManager;
-  public activeTab: number | null;
 
   constructor(private appState: AppState) {
     this.popupManager = new PopupManager();
-    this.activeTab = null;
     this.appState = appState;
 
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       if (
-        this.activeTab &&
-        tabId === this.activeTab &&
+        this.appState.currentTab &&
+        this.appState.currentTab.tabId === tabId &&
         changeInfo.status === 'complete'
       ) {
-        await this.checkConnected();
+        const url = parseTabURL(tab.url);
+        this.appState.currentTab = url ? { tabId, url } : null;
       }
     });
 
     chrome.tabs.onActivated.addListener(async activeInfo => {
-      this.activeTab = activeInfo.tabId;
-      await this.checkConnected();
+      const currentUrl = await this.getActiveTab();
+      if (currentUrl) {
+        this.appState.currentTab = { tabId: activeInfo.tabId, url: currentUrl };
+      }
     });
   }
 
-  private async checkConnected() {
-    const url = await this.getActiveTab();
-    if (url) {
-      const isConnected = this.appState.connectedSites.includes(url);
-      this.appState.connectionStatus = isConnected;
-    }
-  }
-
   public isConnected() {
-    return this.appState.connectionStatus;
+    const url = this.appState.currentTab && this.appState.currentTab.url;
+    if (url) {
+      return this.appState.connectedSites.includes(url);
+    }
+    return false;
   }
 
   public requestConnection() {
@@ -54,26 +64,19 @@ export default class ConnectionManager {
   }
 
   public async connectToSite() {
-    const url = await this.getActiveTab();
-    if (url) {
-      this.appState.connectedSites.push(url);
-      console.log(toJS(this.appState));
-      this.appState.connectionStatus = true;
+    const tab = this.appState.currentTab;
+    if (tab && tab.url) {
+      this.appState.connectedSites.push(tab.url);
       this.popupManager.closePopup();
     }
   }
 
   public async disconnectFromSite(site?: string) {
-    if (site) {
-      this.appState.connectedSites.remove(site);
-      return;
-    }
-
-    const url = await this.getActiveTab();
+    const url =
+      site || (this.appState.currentTab && this.appState.currentTab.url);
     if (url) {
       this.appState.connectedSites.remove(url);
-      console.log(toJS(this.appState.connectedSites));
-      this.appState.connectionStatus = false;
+      return;
     }
   }
 
@@ -81,8 +84,7 @@ export default class ConnectionManager {
     return new Promise((resolve, reject) => {
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, tabs => {
         if (tabs.length && tabs[0].url) {
-          const url = new URL(tabs[0].url);
-          resolve(url.hostname);
+          resolve(parseTabURL(tabs[0].url));
         }
         resolve(null);
       });

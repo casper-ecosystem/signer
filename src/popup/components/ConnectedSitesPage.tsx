@@ -43,15 +43,6 @@ import { decodeBase64, encodeBase16, Keys, PublicKey } from 'casper-client-sdk';
 //   secondary?: string;
 // }
 
-const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
-  // styles we need to apply on draggables
-  ...draggableStyle,
-
-  ...(isDragging && {
-    background: 'rgb(235,235,235)'
-  })
-});
-
 interface Props {
   authContainer: AccountManager;
   connectionContainer: ConnectSignerContainer;
