@@ -7,6 +7,7 @@ import Icon from '@material-ui/core/Icon';
 import Menu from '@material-ui/core/Menu';
 import LockIcon from '@material-ui/icons/Lock';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import WebIcon from '@material-ui/icons/Web';
 import Pages from './Pages';
 import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';
@@ -101,6 +102,16 @@ const MoreMenu = observer((props: Props) => {
               <ListItemText primary="Key Management" />
             </ListItem>
           )}
+          <ListItem
+            dense={true}
+            component={Link}
+            to={Pages.ConnectedSites}
+            button
+            onClick={handleClose}
+          >
+            <WebIcon className={classes.menuIcon} />
+            <ListItemText primary="Connected Sites" />
+          </ListItem>
           {props.authContainer.selectedUserAccount && (
             <ListItem
               dense={true}

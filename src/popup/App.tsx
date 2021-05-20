@@ -20,6 +20,7 @@ import { Container } from '@material-ui/core';
 import { MainAppBar } from './components/MainAppBar';
 import AnalyticsProvider from './components/AnalyticsProvider';
 import { AccountManagementPage } from './components/AccountManagementPage';
+import { ConnectedSitesPage } from './components/ConnectedSitesPage';
 
 export interface AppProps {
   errors: ErrorContainer;
@@ -60,6 +61,15 @@ const App = (props: AppProps) => {
             render={_ => (
               <AccountManagementPage
                 authContainer={props.authContainer}
+                connectionContainer={props.connectSignerContainer}
+              />
+            )}
+          />
+          <Route
+            exact
+            path={Pages.ConnectedSites}
+            render={_ => (
+              <ConnectedSitesPage
                 connectionContainer={props.connectSignerContainer}
               />
             )}

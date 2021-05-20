@@ -1,6 +1,6 @@
 import { AppState } from '../../lib/MemStore';
 import { BackgroundManager } from '../BackgroundManager';
-import { computed } from 'mobx';
+import { computed, toJS } from 'mobx';
 import { browser } from 'webextension-polyfill-ts';
 
 class ConnectSignerContainer {
@@ -52,6 +52,12 @@ class ConnectSignerContainer {
     let views = await browser.extension.getViews();
     let popup = views[1].window;
     popup.open();
+  }
+
+  @computed
+  get connectedSites(): IObservableArray<string> {
+    console.log(toJS(this.appState));
+    return this.appState.connectedSites;
   }
 }
 

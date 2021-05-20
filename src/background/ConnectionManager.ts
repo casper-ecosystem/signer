@@ -1,4 +1,5 @@
 import { AppState } from '../lib/MemStore';
+import { toJS } from 'mobx';
 import PopupManager from '../background/PopupManager';
 
 export default class ConnectionManager {
@@ -8,6 +9,7 @@ export default class ConnectionManager {
   constructor(private appState: AppState) {
     this.popupManager = new PopupManager();
     this.activeTab = null;
+    this.appState = appState;
 
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       if (
@@ -55,6 +57,7 @@ export default class ConnectionManager {
     const url = await this.getActiveTab();
     if (url) {
       this.appState.connectedSites.push(url);
+      console.log(toJS(this.appState));
       this.appState.connectionStatus = true;
       this.popupManager.closePopup();
     }
