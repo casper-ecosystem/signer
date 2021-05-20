@@ -43,34 +43,49 @@ import { decodeBase64, encodeBase16, Keys, PublicKey } from 'casper-client-sdk';
 //   secondary?: string;
 // }
 
+const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
+  // styles we need to apply on draggables
+  ...draggableStyle,
+
+  ...(isDragging && {
+    background: 'rgb(235,235,235)'
+  })
+});
+
 interface Props {
+  authContainer: AccountManager;
   connectionContainer: ConnectSignerContainer;
 }
 
 export const ConnectedSitesPage = observer((props: Props) => {
-  console.log(
-    toJS(props.connectionContainer),
-    toJS(props.connectionContainer.connectedSites)
-  );
+  const handleClickRemove = (name: string) => {
+    confirm(
+      <div className="text-danger">Remove Site</div>,
+      'Are you sure you want to remove this Site?'
+    ).then(() => props.connectionContainer.disconnectFromSite(name));
+  };
+
   return (
-    <div>
-      {props.connectionContainer.connectedSites.map(site => (
-        <ListItem>
-          <ListItemText primary={site} />
-          <ListItemSecondaryAction>
-            <Tooltip title="Delete">
-              <IconButton
-                edge={'end'}
-                onClick={() => {
-                  handleClickRemove(item.name);
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          </ListItemSecondaryAction>
-        </ListItem>
-      ))}
-    </div>
+    <List>
+      {props.connectionContainer.connectedSites.map(
+        (item: string, index: number) => (
+          <ListItem>
+            <ListItemText primary={item} />
+            <ListItemSecondaryAction>
+              <Tooltip title="Delete">
+                <IconButton
+                  edge={'end'}
+                  onClick={() => {
+                    handleClickRemove(item);
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </ListItemSecondaryAction>
+          </ListItem>
+        )
+      )}
+    </List>
   );
 });

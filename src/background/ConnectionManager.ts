@@ -63,10 +63,16 @@ export default class ConnectionManager {
     }
   }
 
-  public async disconnectFromSite() {
+  public async disconnectFromSite(site?: string) {
+    if (site) {
+      this.appState.connectedSites.remove(site);
+      return;
+    }
+
     const url = await this.getActiveTab();
     if (url) {
-      this.appState.connectedSites.filter(d => d !== url);
+      this.appState.connectedSites.remove(url);
+      console.log(toJS(this.appState.connectedSites));
       this.appState.connectionStatus = false;
     }
   }
@@ -74,7 +80,7 @@ export default class ConnectionManager {
   private getActiveTab(): Promise<string | null> {
     return new Promise((resolve, reject) => {
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, tabs => {
-        if (tabs[0].url) {
+        if (tabs.length && tabs[0].url) {
           const url = new URL(tabs[0].url);
           resolve(url.hostname);
         }

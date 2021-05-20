@@ -24,8 +24,8 @@ class ConnectSignerContainer {
     await this.resetConnectionRequest();
   }
 
-  async disconnectFromSite() {
-    await this.backgroundManager.disconnectFromSite();
+  async disconnectFromSite(site?: string) {
+    await this.backgroundManager.disconnectFromSite(site);
     await this.resetConnectionRequest();
   }
 
