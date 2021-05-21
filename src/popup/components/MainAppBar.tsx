@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme: Theme) =>
     root: {
       flexGrow: 1,
       color: '#c4c4c4',
-      backgroundColor: '#181d41'
+      backgroundColor: 'var(--cspr-dark-blue)'
     },
     toolbarMargin: {
       minHeight: '40px'
@@ -84,7 +84,10 @@ export const MainAppBar = observer((props: Props) => {
                       });
                     }
                   }}
-                  style={{ color: '#181d41', backgroundColor: '#fff' }}
+                  style={{
+                    color: 'var(--cspr-dark-blue)',
+                    backgroundColor: '#fff'
+                  }}
                 >
                   {connected ? 'Connected' : 'Disconnected'}
                 </Button>

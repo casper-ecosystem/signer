@@ -143,7 +143,7 @@ class SignMessagePage extends React.Component<
                   variant="contained"
                   color="primary"
                   style={{
-                    backgroundColor: '#181d41'
+                    backgroundColor: 'var(--cspr-dark-blue)'
                   }}
                 >
                   Sign

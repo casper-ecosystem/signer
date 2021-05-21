@@ -161,7 +161,10 @@ class Home extends React.Component<Props, {}> {
                   this.props.popupManager.openPopup('importAccount')
                 }
                 to={Pages.ImportAccount}
-                style={{ backgroundColor: '#fff', color: '#181d41' }}
+                style={{
+                  backgroundColor: '#fff',
+                  color: 'var(--cspr-dark-blue)'
+                }}
               >
                 Import Account
               </Button>
@@ -174,7 +177,10 @@ class Home extends React.Component<Props, {}> {
                 variant="contained"
                 color="primary"
                 to={Pages.CreateAccount}
-                style={{ backgroundColor: '#fff', color: '#181d41' }}
+                style={{
+                  backgroundColor: '#fff',
+                  color: 'var(--cspr-dark-blue)'
+                }}
               >
                 Create Account
               </Button>
