@@ -16,10 +16,12 @@ interface ConnectionManagerStore {
   connectedSites: Site[];
 }
 
-const parseTabURL = (url: string | undefined): string | undefined => {
+const BLACKLIST_PROTOCOLS = ['chrome-extension:', 'chrome:'];
+
+const parseTabURL = (url: string | undefined): URL | undefined => {
   if (url) {
     const parsed = new URL(url);
-    return parsed.hostname;
+    return parsed;
   }
   return undefined;
 };
@@ -36,7 +38,6 @@ export default class ConnectionManager {
 
     this.store.get('connectedSites').then(({ connectedSites }) => {
       if (!connectedSites) return;
-      console.log(connectedSites);
       this.appState.connectedSites.replace(Object.values(connectedSites));
     });
 
@@ -44,7 +45,9 @@ export default class ConnectionManager {
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       if (changeInfo.status === 'complete') {
         const url = parseTabURL(tab.url);
-        this.appState.currentTab = url ? { tabId, url } : null;
+        if (url && !BLACKLIST_PROTOCOLS.includes(url.protocol)) {
+          this.appState.currentTab = url ? { tabId, url: url.hostname } : null;
+        }
       }
     });
 
@@ -121,7 +124,10 @@ export default class ConnectionManager {
     return new Promise((resolve, reject) => {
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, tabs => {
         if (tabs.length && tabs[0].url) {
-          resolve(parseTabURL(tabs[0].url));
+          const url = parseTabURL(tabs[0].url);
+          const properActiveTab =
+            url && !BLACKLIST_PROTOCOLS.includes(url.protocol);
+          resolve(properActiveTab ? url!.hostname : null);
         }
         resolve(null);
       });
