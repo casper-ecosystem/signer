@@ -107,7 +107,11 @@ class AuthController {
   }
 
   @action
-  async importUserAccount(name: string, secretKeyBase64: string) {
+  async importUserAccount(
+    name: string,
+    secretKeyBase64: string,
+    algorithm: string
+  ) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock it before adding new account');
     }
@@ -126,22 +130,25 @@ class AuthController {
         } already exists`
       );
     }
-
     const secretKeyBytes = decodeBase64(secretKeyBase64);
     let secretKey, publicKey, keyPair;
-    try {
-      secretKey = Keys.Ed25519.parsePrivateKey(secretKeyBytes);
-      publicKey = Keys.Ed25519.privateToPublicKey(secretKeyBytes);
-      keyPair = new Keys.Ed25519({
-        publicKey: publicKey,
-        secretKey: secretKey
-      });
-    } catch {
-      secretKey = Keys.Secp256K1.parsePrivateKey(secretKeyBytes, 'raw');
-      publicKey = Keys.Secp256K1.privateToPublicKey(secretKeyBytes);
-      keyPair = new Keys.Secp256K1(publicKey, secretKey);
-    } finally {
-      if (!secretKey) {
+    switch (algorithm) {
+      case 'ed25519': {
+        secretKey = Keys.Ed25519.parsePrivateKey(secretKeyBytes);
+        publicKey = Keys.Ed25519.privateToPublicKey(secretKeyBytes);
+        keyPair = new Keys.Ed25519({
+          publicKey: publicKey,
+          secretKey: secretKey
+        });
+        break;
+      }
+      case 'secp256k1': {
+        secretKey = Keys.Secp256K1.parsePrivateKey(secretKeyBytes);
+        publicKey = Keys.Secp256K1.privateToPublicKey(secretKeyBytes);
+        keyPair = new Keys.Secp256K1(publicKey, secretKey);
+        break;
+      }
+      default: {
         throw new Error('Could not parse secret key as: ed25519 or secp256k1');
       }
     }

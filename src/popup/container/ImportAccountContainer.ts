@@ -1,5 +1,9 @@
 import { FieldState } from 'formstate';
-import { fieldSubmittable, valueRequired } from '../../lib/FormValidator';
+import {
+  fieldSubmittable,
+  valueRequired,
+  isAlgorithm
+} from '../../lib/FormValidator';
 import { action, computed, observable } from 'mobx';
 import React from 'react';
 import { encodeBase64 } from 'tweetnacl-util';
@@ -14,6 +18,10 @@ export class ImportAccountFormData implements SubmittableFormData {
   secretKeyBase64: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
+  algorithm: FieldState<string> = new FieldState<string>('').validators(
+    valueRequired,
+    isAlgorithm
+  );
   name: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
@@ -26,24 +34,6 @@ export class ImportAccountFormData implements SubmittableFormData {
     }
     if (fileContent.includes('PUBLIC KEY')) {
       return 'Not a secret key file!';
-    }
-    // TODO: Extend to support SECP256k1
-    try {
-      const secretKey = Keys.Ed25519.parsePrivateKey(
-        Keys.Ed25519.readBase64WithPEM(fileContent)
-      );
-      const publicKey = Keys.Ed25519.privateToPublicKey(secretKey);
-      this.keyPair = Keys.Ed25519.parseKeyPair(publicKey, secretKey);
-    } catch {
-      const secretKey = Keys.Secp256K1.parsePrivateKey(
-        Keys.Secp256K1.readBase64WithPEM(fileContent)
-      );
-      const publicKey = Keys.Secp256K1.privateToPublicKey(secretKey);
-      this.keyPair = Keys.Secp256K1.parseKeyPair(publicKey, secretKey, 'raw');
-    } finally {
-      if (!this.keyPair) {
-        return 'Could not parse key as Ed25519 or Secp256k1';
-      }
     }
     return null;
   }
@@ -59,17 +49,28 @@ export class ImportAccountFormData implements SubmittableFormData {
       const reader = new FileReader();
       reader.readAsText(this.file);
       reader.onload = e => {
-        const errorMsg = this.checkFileContent(reader.result as string);
+        const fileContents = reader.result as string;
+        const errorMsg = this.checkFileContent(fileContents);
         if (errorMsg === null) {
-          const fileName = this.file?.name!.split('.')[0];
-          if (fileName === undefined) {
-            this.errors.capture(
-              Promise.reject(new Error('File name undefined'))
-            );
+          const file = this.file?.name!.split('.');
+          if (file === undefined) {
+            this.errors.capture(Promise.reject(new Error('File undefined')));
           } else {
-            this.secretKeyBase64.onChange(
-              encodeBase64(this.keyPair?.privateKey!)
-            );
+            // File is not undefined now check format by extension
+            const fileExt = file[1];
+            if (fileExt !== 'pem') {
+              this.errors.capture(
+                Promise.reject(
+                  new Error(
+                    `Invalid file format: .${fileExt}. Please upload a .pem file.`
+                  )
+                )
+              );
+            } else {
+              this.secretKeyBase64.onChange(
+                encodeBase64(Keys.readBase64WithPEM(fileContents))
+              );
+            }
           }
         } else {
           this.errors.capture(Promise.reject(new Error(errorMsg)));
@@ -81,13 +82,16 @@ export class ImportAccountFormData implements SubmittableFormData {
   @computed
   get submitDisabled(): boolean {
     return !(
-      fieldSubmittable(this.secretKeyBase64) && fieldSubmittable(this.name)
+      fieldSubmittable(this.secretKeyBase64) &&
+      fieldSubmittable(this.name) &&
+      fieldSubmittable(this.algorithm)
     );
   }
 
   @action
   resetFields() {
     this.secretKeyBase64.reset();
+    this.algorithm.reset();
     this.name.reset();
   }
 }

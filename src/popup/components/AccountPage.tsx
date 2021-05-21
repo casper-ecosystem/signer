@@ -18,9 +18,13 @@ import {
   WithStyles,
   FormControlLabel,
   FormControl,
-  Box
+  Box,
+  InputLabel,
+  Popover,
+  IconButton
 } from '@material-ui/core';
-import { TextFieldWithFormState } from './Forms';
+import HelpIcon from '@material-ui/icons/Help';
+import { SelectFieldWithFormState, TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { decodeBase16, decodeBase64, Keys } from 'casper-client-sdk';
 import { KeyPairWithAlias } from '../../@types/models';
@@ -46,7 +50,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
 @observer
 class AccountPage extends React.Component<
   Props,
-  { keyDownloadEnabled: boolean }
+  { keyDownloadEnabled: boolean; algoAnchorEl: HTMLButtonElement | null }
 > {
   @observable accountForm: ImportAccountFormData | CreateAccountFormData;
 
@@ -60,7 +64,8 @@ class AccountPage extends React.Component<
       this.accountForm = new CreateAccountFormData(props.errors);
     }
     this.state = {
-      keyDownloadEnabled: false
+      keyDownloadEnabled: false,
+      algoAnchorEl: null
     };
     this.popupManager = new PopupManager();
   }
@@ -108,19 +113,29 @@ class AccountPage extends React.Component<
   async _onSubmit() {
     await this.props.authContainer.importUserAccount(
       this.accountForm.name.$,
-      this.accountForm.secretKeyBase64.value
+      this.accountForm.secretKeyBase64.value,
+      this.accountForm.algorithm.$
     );
     this.accountForm.resetFields();
     this.props.history.goBack();
   }
 
   renderImportForm() {
+    const showAlgoHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
+      this.setState({ algoAnchorEl: event.currentTarget });
+    };
+    const helpOpen = Boolean(showAlgoHelp);
+    const helpId = helpOpen ? 'algo-helper' : undefined;
+    const helpClose = () => {
+      this.setState({ algoAnchorEl: null });
+    };
+
     const form = this.accountForm as ImportAccountFormData;
     return (
       <form className={this.props.classes.root}>
         <FormControl>
-          <Typography id="continuous-slider" gutterBottom>
-            Secret Key File
+          <Typography id="continuous-slider" variant="h6" gutterBottom>
+            Import from Secret Key File
           </Typography>
           <Box
             display={'flex'}
@@ -131,7 +146,10 @@ class AccountPage extends React.Component<
             <Button
               id={'private-key-uploader'}
               variant="contained"
-              color="primary"
+              style={{
+                backgroundColor: 'var(--cspr-dark-blue)',
+                color: 'white'
+              }}
               component="label"
             >
               Upload
@@ -144,7 +162,7 @@ class AccountPage extends React.Component<
               />
             </Button>
             <Box ml={1}>
-              <Typography>
+              <Typography component={'span'}>
                 <Box fontSize={12}>
                   {form.file ? form.file.name : 'No file selected'}
                 </Box>
@@ -152,6 +170,59 @@ class AccountPage extends React.Component<
             </Box>
           </Box>
         </FormControl>
+        <Box>
+          <FormControl style={{ width: '80%' }}>
+            <InputLabel id="algo-select-lbl">Algorithm</InputLabel>
+            <SelectFieldWithFormState
+              fullWidth
+              labelId="algo-select-lbl"
+              fieldState={this.accountForm.algorithm}
+              selectItems={[
+                { value: 'ed25519', text: 'ED25519' },
+                { value: 'secp256k1', text: 'SECP256k1' }
+              ]}
+            />
+          </FormControl>
+          <IconButton onClick={showAlgoHelp} style={{ float: 'right' }}>
+            <HelpIcon />
+          </IconButton>
+          {this.state.algoAnchorEl && (
+            <Popover
+              id={helpId}
+              open={helpOpen}
+              anchorEl={this.state.algoAnchorEl}
+              onClose={helpClose}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right'
+              }}
+              transformOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right'
+              }}
+            >
+              <Typography
+                component={'summary'}
+                style={{
+                  padding: '1.4em',
+                  backgroundColor: 'var(--cspr-dark-blue)',
+                  color: 'white'
+                }}
+              >
+                <b>Which algorithm?</b>
+                <br />
+                Open your <code>public_key_hex</code> file which should be in
+                the same location as the secret key file.
+                <br />
+                If the key starts with:
+                <ul>
+                  <li>01: ED25519</li>
+                  <li>02: SECP256k1</li>
+                </ul>
+              </Typography>
+            </Popover>
+          )}
+        </Box>
         <TextFieldWithFormState
           fullWidth
           label="Name"

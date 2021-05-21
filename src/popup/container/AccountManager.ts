@@ -17,8 +17,16 @@ class AccountManager {
     );
   }
 
-  async importUserAccount(name: string, secretKeyBase64: string) {
-    return this.backgroundManager.importUserAccount(name, secretKeyBase64);
+  async importUserAccount(
+    name: string,
+    secretKeyBase64: string,
+    algorithm: string
+  ) {
+    return this.backgroundManager.importUserAccount(
+      name,
+      secretKeyBase64,
+      algorithm
+    );
   }
 
   async removeUserAccount(name: string) {
