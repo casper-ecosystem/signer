@@ -20,8 +20,7 @@ const BLACKLIST_PROTOCOLS = ['chrome-extension:', 'chrome:'];
 
 const parseTabURL = (url: string | undefined): URL | undefined => {
   if (url) {
-    const parsed = new URL(url);
-    return parsed;
+    return new URL(url);
   }
   return undefined;
 };
