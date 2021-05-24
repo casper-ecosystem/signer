@@ -70,7 +70,6 @@ class AccountManager {
     accountName: string
   ) {
     // Parse keys
-    console.log(publicKey);
     let ed25519KeyPair = Keys.Ed25519.parseKeyPair(publicKey, privateKey);
     // Save the private and public keys to disk.
     saveToFile(

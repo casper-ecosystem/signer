@@ -19,13 +19,18 @@ class ConnectSignerContainer {
     return this.appState.connectionRequested;
   }
 
-  async connectToSite() {
-    await this.backgroundManager.connectToSite();
+  async connectToSite(url?: string) {
+    await this.backgroundManager.connectToSite(url);
     await this.resetConnectionRequest();
   }
 
-  async disconnectFromSite() {
-    await this.backgroundManager.disconnectFromSite();
+  async disconnectFromSite(site?: string) {
+    await this.backgroundManager.disconnectFromSite(site);
+    await this.resetConnectionRequest();
+  }
+
+  async removeSite(url: string) {
+    await this.backgroundManager.removeSite(url);
     await this.resetConnectionRequest();
   }
 
@@ -52,6 +57,16 @@ class ConnectSignerContainer {
     let views = await browser.extension.getViews();
     let popup = views[1].window;
     popup.open();
+  }
+
+  @computed
+  get connectedSites() {
+    return this.appState.connectedSites;
+  }
+
+  @computed
+  get currentTab() {
+    return this.appState.currentTab;
   }
 }
 
