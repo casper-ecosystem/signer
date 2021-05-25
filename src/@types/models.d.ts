@@ -3,7 +3,7 @@ import { Keys } from 'casper-client-sdk';
 interface KeyPairWithAlias {
   // Human readable alias.
   alias: string;
-  KeyPair: Keys.AsymmetricKey;
+  KeyPair: Keys.Ed25519 | Keys.Secp256K1;
 }
 
 type ByteArray = Uint8Array;
