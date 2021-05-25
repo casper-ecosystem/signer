@@ -9,6 +9,7 @@ import React from 'react';
 import { encodeBase64 } from 'tweetnacl-util';
 import ErrorContainer from './ErrorContainer';
 import { Keys } from 'casper-client-sdk';
+import KeyEncoder from 'key-encoder';
 export interface SubmittableFormData {
   submitDisabled: boolean;
   resetFields: () => void;
@@ -26,7 +27,6 @@ export class ImportAccountFormData implements SubmittableFormData {
     valueRequired
   );
   @observable file: File | null = null;
-  private keyPair: Keys.AsymmetricKey | null = null;
 
   private checkFileContent(fileContent: string) {
     if (!fileContent) {
@@ -67,9 +67,9 @@ export class ImportAccountFormData implements SubmittableFormData {
                 )
               );
             } else {
-              this.secretKeyBase64.onChange(
-                encodeBase64(Keys.readBase64WithPEM(fileContents))
-              );
+              const encoder = new KeyEncoder('secp256k1');
+              let decoded = encoder.encodePrivate(fileContents, 'pem', 'raw');
+              this.secretKeyBase64.onChange(decoded);
             }
           }
         } else {
@@ -103,9 +103,24 @@ export class CreateAccountFormData extends ImportAccountFormData {
 
   constructor(errors: ErrorContainer) {
     super(errors);
-    let newEd25519KeyPair = Keys.Ed25519.new();
-    this.publicKey.onChange(newEd25519KeyPair.publicKey.toAccountHex());
-    this.secretKeyBase64.onChange(encodeBase64(newEd25519KeyPair.privateKey));
+    this.algorithm.onUpdate(fieldState => {
+      switch (fieldState.value) {
+        case 'ed25519': {
+          let ed25519KP = Keys.Ed25519.new();
+          this.publicKey.onChange(ed25519KP.publicKey.toAccountHex());
+          this.secretKeyBase64.onChange(encodeBase64(ed25519KP.privateKey));
+          break;
+        }
+        case 'secp256k1': {
+          let secp256k1KP = Keys.Secp256K1.new();
+          this.publicKey.onChange(secp256k1KP.publicKey.toAccountHex());
+          this.secretKeyBase64.onChange(encodeBase64(secp256k1KP.privateKey));
+          break;
+        }
+        default:
+          throw new Error('Invalid algorithm');
+      }
+    });
   }
 
   @computed

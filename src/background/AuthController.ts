@@ -131,21 +131,18 @@ class AuthController {
       );
     }
     const secretKeyBytes = decodeBase64(secretKeyBase64);
-    let secretKey, publicKey, keyPair;
+    let secretKey, publicKey, keyPair: Keys.Ed25519 | Keys.Secp256K1;
     switch (algorithm) {
       case 'ed25519': {
         secretKey = Keys.Ed25519.parsePrivateKey(secretKeyBytes);
         publicKey = Keys.Ed25519.privateToPublicKey(secretKeyBytes);
-        keyPair = new Keys.Ed25519({
-          publicKey: publicKey,
-          secretKey: secretKey
-        });
+        keyPair = Keys.Ed25519.parseKeyPair(publicKey, secretKey);
         break;
       }
       case 'secp256k1': {
-        secretKey = Keys.Secp256K1.parsePrivateKey(secretKeyBytes);
+        secretKey = Keys.Secp256K1.parsePrivateKey(secretKeyBytes, 'raw');
         publicKey = Keys.Secp256K1.privateToPublicKey(secretKeyBytes);
-        keyPair = new Keys.Secp256K1(publicKey, secretKey);
+        keyPair = Keys.Secp256K1.parseKeyPair(publicKey, secretKey, 'raw');
         break;
       }
       default: {
@@ -157,9 +154,8 @@ class AuthController {
       alias: name,
       KeyPair: keyPair
     });
-    this.appState.selectedUserAccount = this.appState.userAccounts[
-      this.appState.userAccounts.length - 1
-    ];
+    this.appState.selectedUserAccount =
+      this.appState.userAccounts[this.appState.userAccounts.length - 1];
     this.persistVault();
   }
 

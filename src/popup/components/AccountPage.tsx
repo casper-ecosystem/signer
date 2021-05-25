@@ -28,6 +28,7 @@ import { SelectFieldWithFormState, TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { decodeBase16, decodeBase64, Keys } from 'casper-client-sdk';
 import { KeyPairWithAlias } from '../../@types/models';
+import Pages from './Pages';
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -87,14 +88,34 @@ class AccountPage extends React.Component<
       );
     }
 
+    let keyPair: KeyPairWithAlias;
     // TODO: extend support to Secp256k1
-    const keyPair: KeyPairWithAlias = {
-      alias: formData.name.$,
-      KeyPair: Keys.Ed25519.parseKeyPair(
-        decodeBase16(formData.publicKey.$.substring(2)),
-        decodeBase64(formData.secretKeyBase64.value)
-      )
-    };
+    switch (formData.algorithm.$) {
+      case 'ed25519': {
+        keyPair = {
+          alias: formData.name.$,
+          KeyPair: Keys.Ed25519.parseKeyPair(
+            decodeBase16(formData.publicKey.$.substring(2)),
+            decodeBase64(formData.secretKeyBase64.value)
+          )
+        };
+        break;
+      }
+      case 'secp256k1': {
+        keyPair = {
+          alias: formData.name.$,
+          KeyPair: Keys.Secp256K1.parseKeyPair(
+            decodeBase16(formData.publicKey.$.substring(2)),
+            decodeBase64(formData.secretKeyBase64.value),
+            'raw'
+          )
+        };
+        break;
+      }
+      default: {
+        throw new Error('Invalid algorithm selected');
+      }
+    }
 
     if (this.state.keyDownloadEnabled) {
       this.props.authContainer.downloadPemFiles(keyPair);
@@ -116,8 +137,8 @@ class AccountPage extends React.Component<
       this.accountForm.secretKeyBase64.value,
       this.accountForm.algorithm.$
     );
-    this.accountForm.resetFields();
-    this.props.history.goBack();
+    this.props.history.push(Pages.Home);
+    this.props.history.replace(Pages.Home);
   }
 
   renderImportForm() {
@@ -257,6 +278,9 @@ class AccountPage extends React.Component<
     };
     return (
       <form className={this.props.classes.root}>
+        <Typography variant="h6" style={{ marginTop: '-1em' }}>
+          Create Account
+        </Typography>
         <TextFieldWithFormState
           aria-label="Input for setting name of key"
           autoFocus
@@ -266,16 +290,28 @@ class AccountPage extends React.Component<
           id="import-name"
           fieldState={this.accountForm.name}
         />
-        <TextFieldWithFormState
+        {/* 
+          TODO: Uncomment the below FormControl and delete the subsequent
+          TextFieldWithFormState when SECP256k1 generation is fixed
+        */}
+        <FormControl fullWidth>
+          <InputLabel id="algo-select-lbl">Algorithm</InputLabel>
+          <SelectFieldWithFormState
+            fullWidth
+            labelId="algo-select-lbl"
+            fieldState={this.accountForm.algorithm}
+            selectItems={[
+              { value: 'ed25519', text: 'ED25519' },
+              { value: 'secp256k1', text: 'SECP256k1' }
+            ]}
+          />
+        </FormControl>
+        {/* <TextFieldWithFormState
           fullWidth
-          id="id-signature-algorithm"
-          label="Signature Algorithm"
-          InputProps={{
-            readOnly: true,
-            disabled: true
-          }}
-          defaultValue={'Ed25519'}
-        />
+          InputProps={{ readOnly: true, disabled: true }}
+          label="Algorithm"
+          value={formData.algorithm.$ ? formData.algorithm.$ : ''}
+        /> */}
         <TextFieldWithFormState
           fullWidth
           InputProps={{ readOnly: true, disabled: true }}
@@ -289,7 +325,7 @@ class AccountPage extends React.Component<
           label="Secret Key (Base64)"
           placeholder="Base64 encoded Ed25519 secret key"
           id="create-private-key"
-          defaultValue={formData.secretKeyBase64.value}
+          value={formData.secretKeyBase64.$ ? formData.secretKeyBase64.$ : ''}
         />
         <FormControlLabel
           control={
