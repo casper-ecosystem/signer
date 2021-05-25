@@ -85,8 +85,8 @@ class SignMessagePage extends React.Component<
         rows: [
           ...baseRows,
           this.createRow('To', this.truncateString(deployData.target!, 6, 6)),
-          this.createRow('Amount', deployData.amount)
-          // this.createRow('Transfer ID', deployData.id)
+          this.createRow('Amount', deployData.amount),
+          this.createRow('Transfer ID', deployData.id)
         ]
       });
     } else {
@@ -108,7 +108,11 @@ class SignMessagePage extends React.Component<
               <TableBody>
                 {this.state.rows.map((row: any) => (
                   <TableRow key={row.key}>
-                    <TableCell component="th" scope="row">
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ fontWeight: 'bold' }}
+                    >
                       {row.key}
                     </TableCell>
                     <TableCell align="right">{row.value}</TableCell>
@@ -120,6 +124,7 @@ class SignMessagePage extends React.Component<
           <Box mt={8}>
             <Grid
               container
+              style={{ marginTop: '-50px' }}
               spacing={4}
               justify={'center'}
               alignItems={'center'}
@@ -138,7 +143,11 @@ class SignMessagePage extends React.Component<
               <Grid item>
                 <Button
                   onClick={() =>
-                    this.props.signMessageContainer.signDeploy(deployId!)
+                    this.props.signMessageContainer
+                      .signDeploy(deployId!)
+                      .then(() => {
+                        window.close();
+                      })
                   }
                   variant="contained"
                   color="primary"

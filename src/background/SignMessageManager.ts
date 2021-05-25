@@ -1,7 +1,7 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
-import { DeployUtil, encodeBase16, PublicKey } from 'casper-client-sdk';
+import { DeployUtil, encodeBase16 } from 'casper-client-sdk';
 
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 export interface deployWithID {
@@ -251,9 +251,29 @@ export default class SignMessageManager extends events.EventEmitter {
         ? 'Contract Call'
         : 'Contract Deployment';
 
-      let target = PublicKey.fromEd25519(
-        deploy.deploy.session.getArgByName('target')?.clValueBytes()!
-      );
+      const amount = deploy.deploy.session.transfer
+        ?.getArgByName('amount')!
+        .asBigNumber()
+        .toString();
+
+      console.log(deploy.deploy.session.transfer?.getArgByName('id')!);
+
+      const transferId = deploy.deploy.session.transfer
+        ?.getArgByName('id')!
+        .asOption()
+        .getSome()
+        .asBigNumber()
+        .toString();
+
+      console.log(deploy.deploy.session.transfer?.getArgByName('target'));
+      let target =
+        '01' +
+        encodeBase16(
+          deploy.deploy.session.transfer
+            ?.getArgByName('target')!
+            .asBytesArray()!
+        );
+
       return {
         deployHash: encodeBase16(deploy.deploy.hash),
         signingKey: deploy.signingKey,
@@ -263,19 +283,9 @@ export default class SignMessageManager extends events.EventEmitter {
         gasPrice: header.gasPrice,
         payment: encodeBase16(deploy.deploy.payment.toBytes()),
         deployType: type,
-        // id:
-        //   type === 'Transfer'
-        //     ? deploy.deploy.session.transfer
-        //         ?.getArgByName('id')
-        //         ?.asOption()
-        //         .getSome()
-        //     : undefined,
-        amount:
-          type === 'Transfer'
-            ? deploy.deploy.session.transfer?.getArgByName('amount')
-                ?.isBigNumber
-            : undefined,
-        target: type === 'Transfer' ? target.toAccountHex() : undefined
+        id: type === 'Transfer' ? transferId : undefined,
+        amount: type === 'Transfer' ? amount : undefined,
+        target: type === 'Transfer' ? target : undefined
       };
     } else {
       throw new Error('Deploy undefined!');
