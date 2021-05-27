@@ -5,7 +5,8 @@ import {
   ListItemText,
   IconButton,
   ListItemSecondaryAction,
-  Tooltip
+  Tooltip,
+  Typography
 } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
@@ -26,7 +27,7 @@ export const ConnectedSitesPage = observer((props: Props) => {
     ).then(() => props.connectionContainer.removeSite(name));
   };
 
-  return (
+  return props.connectionContainer.connectedSites[0] ? (
     <List>
       {props.connectionContainer.connectedSites.map((item, index) => {
         return (
@@ -71,5 +72,7 @@ export const ConnectedSitesPage = observer((props: Props) => {
         );
       })}
     </List>
+  ) : (
+    <Typography variant="h5">No Saved Sites</Typography>
   );
 });
