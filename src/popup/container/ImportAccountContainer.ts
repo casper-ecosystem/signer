@@ -5,11 +5,11 @@ import {
   isAlgorithm
 } from '../../lib/FormValidator';
 import { action, computed, observable } from 'mobx';
-import React from 'react';
 import { encodeBase64 } from 'tweetnacl-util';
 import ErrorContainer from './ErrorContainer';
 import { Keys } from 'casper-client-sdk';
-import KeyEncoder from 'key-encoder';
+// import KeyEncoder from 'key-encoder';
+// import ec from 'elliptic';
 export interface SubmittableFormData {
   submitDisabled: boolean;
   resetFields: () => void;
@@ -28,56 +28,63 @@ export class ImportAccountFormData implements SubmittableFormData {
   );
   @observable file: File | null = null;
 
-  private checkFileContent(fileContent: string) {
-    if (!fileContent) {
-      return 'The content of imported file cannot be empty!';
-    }
-    if (fileContent.includes('PUBLIC KEY')) {
-      return 'Not a secret key file!';
-    }
-    return null;
-  }
+  // private checkFileContent(fileContent: string) {
+  //   if (!fileContent) {
+  //     return 'The content of imported file cannot be empty!';
+  //   }
+  //   if (fileContent.includes('PUBLIC KEY')) {
+  //     return 'Not a secret key file!';
+  //   }
+  //   return null;
+  // }
 
   constructor(private errors: ErrorContainer) {}
 
-  handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (this.errors.lastError) {
-      this.errors.dismissLast();
-    }
-    if (e.target.files) {
-      this.file = e.target.files[0];
-      const reader = new FileReader();
-      reader.readAsText(this.file);
-      reader.onload = e => {
-        const fileContents = reader.result as string;
-        const errorMsg = this.checkFileContent(fileContents);
-        if (errorMsg === null) {
-          const file = this.file?.name!.split('.');
-          if (file === undefined) {
-            this.errors.capture(Promise.reject(new Error('File undefined')));
-          } else {
-            // File is not undefined now check format by extension
-            const fileExt = file[1];
-            if (fileExt !== 'pem') {
-              this.errors.capture(
-                Promise.reject(
-                  new Error(
-                    `Invalid file format: .${fileExt}. Please upload a .pem file.`
-                  )
-                )
-              );
-            } else {
-              const encoder = new KeyEncoder('secp256k1');
-              let decoded = encoder.encodePrivate(fileContents, 'pem', 'raw');
-              this.secretKeyBase64.onChange(decoded);
-            }
-          }
-        } else {
-          this.errors.capture(Promise.reject(new Error(errorMsg)));
-        }
-      };
-    }
-  };
+  //   handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     if (this.errors.lastError) {
+  //       this.errors.dismissLast();
+  //     }
+  //     if (e.target.files) {
+  //       this.file = e.target.files[0];
+  //       const reader = new FileReader();
+  //       reader.readAsText(this.file);
+  //       reader.onload = e => {
+  //         const fileContents = reader.result as string;
+  //         const errorMsg = this.checkFileContent(fileContents);
+  //         if (errorMsg === null) {
+  //           const file = this.file?.name!.split('.');
+  //           if (file === undefined) {
+  //             this.errors.capture(Promise.reject(new Error('File undefined')));
+  //           } else {
+  //             // File is not undefined now check format by extension
+  //             const fileExt = file[1];
+  //             if (fileExt !== 'pem') {
+  //               this.errors.capture(
+  //                 Promise.reject(
+  //                   new Error(
+  //                     `Invalid file format: .${fileExt}. Please upload a .pem file.`
+  //                   )
+  //                 )
+  //               );
+  //             } else {
+  //               // Move decodeFromPEM to background by passing fileContents
+  //               const encoder = new KeyEncoder({
+  //                 curve: new ec('secp256k1'),
+  //                 privatePEMOptions: { label: 'PRIVATE KEY' },
+  //                 publicPEMOptions: { label: 'PUBLIC KEY' },
+  //                 curveParameters: undefined
+  //               });
+  //               console.log(fileContents);
+  //               let decoded = encoder.encodePrivate(fileContents, 'pem', 'raw');
+  //               this.secretKeyBase64.onChange(decoded);
+  //             }
+  //           }
+  //         } else {
+  //           this.errors.capture(Promise.reject(new Error(errorMsg)));
+  //         }
+  //       };
+  //     }
+  //   };
 
   @computed
   get submitDisabled(): boolean {

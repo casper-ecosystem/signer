@@ -89,7 +89,6 @@ class AccountPage extends React.Component<
     }
 
     let keyPair: KeyPairWithAlias;
-    // TODO: extend support to Secp256k1
     switch (formData.algorithm.$) {
       case 'ed25519': {
         keyPair = {
@@ -118,7 +117,7 @@ class AccountPage extends React.Component<
     }
 
     if (this.state.keyDownloadEnabled) {
-      this.props.authContainer.downloadPemFiles(keyPair);
+      await this.props.authContainer.downloadPemFiles(keyPair.alias);
     }
 
     await this._onSubmit();
@@ -178,7 +177,10 @@ class AccountPage extends React.Component<
                 type="file"
                 style={{ display: 'none' }}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  form.handleFileSelect(e)
+                  // form.handleFileSelect(e)
+                  {
+                    return;
+                  }
                 }
               />
             </Button>
@@ -270,12 +272,12 @@ class AccountPage extends React.Component<
 
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
-    const toggleDownloadKey = (event: React.ChangeEvent<HTMLInputElement>) => {
-      this.setState({
-        ...this.state,
-        keyDownloadEnabled: event.target.checked
-      });
-    };
+    // const toggleDownloadKey = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //   this.setState({
+    //     ...this.state,
+    //     keyDownloadEnabled: event.target.checked
+    //   });
+    // };
     return (
       <form className={this.props.classes.root}>
         <Typography variant="h6" style={{ marginTop: '-1em' }}>
@@ -306,12 +308,6 @@ class AccountPage extends React.Component<
             ]}
           />
         </FormControl>
-        {/* <TextFieldWithFormState
-          fullWidth
-          InputProps={{ readOnly: true, disabled: true }}
-          label="Algorithm"
-          value={formData.algorithm.$ ? formData.algorithm.$ : ''}
-        /> */}
         <TextFieldWithFormState
           fullWidth
           InputProps={{ readOnly: true, disabled: true }}
@@ -327,7 +323,11 @@ class AccountPage extends React.Component<
           id="create-private-key"
           value={formData.secretKeyBase64.$ ? formData.secretKeyBase64.$ : ''}
         />
-        <FormControlLabel
+        {/* 
+          Because the account is not yet saved it cannot be downloaded. 
+          This may be modified to allow this in future.
+        */}
+        {/* <FormControlLabel
           control={
             <Checkbox
               checked={this.state.keyDownloadEnabled}
@@ -336,7 +336,7 @@ class AccountPage extends React.Component<
             />
           }
           label="Download Key"
-        />
+        /> */}
         <FormControl fullWidth margin={'normal'}>
           <Button
             type="submit"
