@@ -31,7 +31,16 @@ const styles = (theme: Theme) =>
     },
     alignCenter: {
       textAlign: 'center'
-    }
+    },
+    unlockButton: {
+      backgroundColor: 'var(--cspr-dark-blue)',
+      color: 'white',
+      '&$disabled': {
+        backgroundColor: 'white',
+        color: 'grey'
+      }
+    },
+    disabled: {}
   });
 
 interface Props extends RouteComponentProps, WithStyles<typeof styles> {
@@ -246,6 +255,10 @@ class Home extends React.Component<Props, {}> {
                   type="submit"
                   variant="contained"
                   color="primary"
+                  classes={{
+                    root: this.props.classes.unlockButton,
+                    disabled: this.props.classes.disabled
+                  }}
                   disabled={this.props.homeContainer.submitDisabled}
                   onClick={async () => {
                     let password =
