@@ -209,9 +209,10 @@ class AuthController {
 
   getAccountFromAlias(alias: string) {
     if (!alias) throw new Error('Cannot find account for invalid alias');
-    return this.appState.userAccounts.find(storedAccount => {
+    let account = this.appState.userAccounts.find(storedAccount => {
       return storedAccount.alias === alias;
-    })?.KeyPair;
+    });
+    return account?.KeyPair;
   }
 
   async downloadAccountKeys(accountAlias: string) {
@@ -219,7 +220,6 @@ class AuthController {
       throw new Error('Unlock Signer before downloading keys.');
     }
     let accountKeys = this.getAccountFromAlias(accountAlias);
-
     if (accountKeys) {
       saveToFile(
         accountKeys.exportPrivateKeyInPem(),
