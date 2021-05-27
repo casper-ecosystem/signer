@@ -1,5 +1,6 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
+import { toJS } from "mobx";
 import PopupManager from '../background/PopupManager';
 import { DeployUtil, encodeBase16 } from 'casper-client-sdk';
 
@@ -10,6 +11,7 @@ export interface deployWithID {
   deploy: DeployUtil.Deploy | undefined;
   signingKey: string;
   error?: Error;
+  pushed?: boolean;
 }
 
 export interface DeployData {
@@ -78,10 +80,11 @@ export default class SignMessageManager extends events.EventEmitter {
    */
   private updateAppState() {
     console.log('AppState::');
-    console.log(this.appState.unsignedDeploys[0]);
+    console.log(toJS(this.appState.unsignedDeploys));
     console.log(`Current::`);
-    console.log(this.unsignedDeploys[0]);
-    this.appState.unsignedDeploys.replace(this.unsignedDeploys);
+    console.log(toJS(this.unsignedDeploys));
+    this.appState.unsignedDeploys.replace(this.unsignedDeploys.filter(d => !d.pushed));
+    this.unsignedDeploys = this.unsignedDeploys.map(d => ({...d, pushed: true }));
   }
 
   /**
@@ -153,6 +156,7 @@ export default class SignMessageManager extends events.EventEmitter {
       this.popupManager.openPopup('sign');
       // Await outcome of user interaction with popup.
       this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
+        console.log('processedDeploy', processedDeploy);
         switch (processedDeploy.status) {
           case 'signed':
             if (processedDeploy.deploy) {
@@ -163,6 +167,7 @@ export default class SignMessageManager extends events.EventEmitter {
             console.log(this.appState.unsignedDeploys);
             return reject(new Error(processedDeploy.error?.message));
           case 'failed':
+            this.unsignedDeploys = this.unsignedDeploys.filter(d => d.id !== processedDeploy.id);
             return reject(
               new Error(
                 processedDeploy.error?.message! ?? 'User Cancelled Signing'
@@ -256,8 +261,6 @@ export default class SignMessageManager extends events.EventEmitter {
         .asBigNumber()
         .toString();
 
-      console.log(deploy.deploy.session.transfer?.getArgByName('id')!);
-
       const transferId = deploy.deploy.session.transfer
         ?.getArgByName('id')!
         .asOption()
@@ -265,7 +268,6 @@ export default class SignMessageManager extends events.EventEmitter {
         .asBigNumber()
         .toString();
 
-      console.log(deploy.deploy.session.transfer?.getArgByName('target'));
       let target =
         '01' +
         encodeBase16(
