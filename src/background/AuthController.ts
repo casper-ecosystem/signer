@@ -339,19 +339,20 @@ class AuthController {
           deserializedPublicKeyBytes
         );
         deserializedKeyPair = Keys.Ed25519.parseKeyPair(
-          deserializedPublicKey.toBytes(),
+          deserializedPublicKey.rawPublicKey,
           decodeBase64(serializedKeyPairWithAlias.keyPair.secretKey)
         );
         break;
       case '02':
         deserializedPublicKeyBytes = Keys.Secp256K1.parsePublicKey(
-          decodeBase16(serializedPublicKey.substring(2))
+          decodeBase16(serializedPublicKey.substring(2)),
+          'raw'
         );
         deserializedPublicKey = PublicKey.fromSecp256K1(
           deserializedPublicKeyBytes
         );
         deserializedKeyPair = Keys.Secp256K1.parseKeyPair(
-          deserializedPublicKey.toBytes(),
+          deserializedPublicKey.rawPublicKey,
           decodeBase64(serializedKeyPairWithAlias.keyPair.secretKey),
           'raw'
         );
