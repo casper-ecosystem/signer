@@ -11,19 +11,24 @@ import {
 import ErrorContainer from '../container/ErrorContainer';
 import {
   Button,
-  Checkbox,
+  // Checkbox,
   createStyles,
   Theme,
   Typography,
   WithStyles,
-  FormControlLabel,
+  // FormControlLabel,
   FormControl,
-  Box
+  Box,
+  InputLabel,
+  Popover,
+  IconButton
 } from '@material-ui/core';
-import { TextFieldWithFormState } from './Forms';
+import HelpIcon from '@material-ui/icons/Help';
+import { SelectFieldWithFormState, TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
-import { decodeBase64 } from 'tweetnacl-ts';
-import { encodeBase16 } from 'casper-client-sdk';
+import { decodeBase16, decodeBase64, Keys } from 'casper-client-sdk';
+import { KeyPairWithAlias } from '../../@types/models';
+import Pages from './Pages';
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -46,7 +51,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
 @observer
 class AccountPage extends React.Component<
   Props,
-  { keyDownloadEnabled: boolean }
+  { keyDownloadEnabled: boolean; algoAnchorEl: HTMLButtonElement | null }
 > {
   @observable accountForm: ImportAccountFormData | CreateAccountFormData;
 
@@ -60,7 +65,8 @@ class AccountPage extends React.Component<
       this.accountForm = new CreateAccountFormData(props.errors);
     }
     this.state = {
-      keyDownloadEnabled: false
+      keyDownloadEnabled: false,
+      algoAnchorEl: null
     };
     this.popupManager = new PopupManager();
   }
@@ -72,7 +78,7 @@ class AccountPage extends React.Component<
     }
 
     const names = this.props.authContainer.userAccounts.map(
-      account => account.name
+      account => account.alias
     );
     if (names.includes(formData.name.$)) {
       return this.props.errors.capture(
@@ -82,12 +88,36 @@ class AccountPage extends React.Component<
       );
     }
 
+    let keyPair: KeyPairWithAlias;
+    switch (formData.algorithm.$) {
+      case 'ed25519': {
+        keyPair = {
+          alias: formData.name.$,
+          KeyPair: Keys.Ed25519.parseKeyPair(
+            decodeBase16(formData.publicKey.$.substring(2)),
+            decodeBase64(formData.secretKeyBase64.value)
+          )
+        };
+        break;
+      }
+      case 'secp256k1': {
+        keyPair = {
+          alias: formData.name.$,
+          KeyPair: Keys.Secp256K1.parseKeyPair(
+            decodeBase16(formData.publicKey.$.substring(2)),
+            decodeBase64(formData.secretKeyBase64.value),
+            'raw'
+          )
+        };
+        break;
+      }
+      default: {
+        throw new Error('Invalid algorithm selected');
+      }
+    }
+
     if (this.state.keyDownloadEnabled) {
-      AccountManager.downloadPemFiles(
-        decodeBase64(formData.publicKeyBase64.$),
-        decodeBase64(formData.privateKeyBase64.$),
-        formData.name.$
-      );
+      await this.props.authContainer.downloadPemFiles(keyPair.alias);
     }
 
     await this._onSubmit();
@@ -103,20 +133,29 @@ class AccountPage extends React.Component<
   async _onSubmit() {
     await this.props.authContainer.importUserAccount(
       this.accountForm.name.$,
-      this.accountForm.privateKeyBase64.$
+      this.accountForm.secretKeyBase64.value,
+      this.accountForm.algorithm.$
     );
-    this.accountForm.resetFields();
-    this.props.history.goBack();
-    this.popupManager.closePopup();
+    this.props.history.push(Pages.Home);
+    this.props.history.replace(Pages.Home);
   }
 
   renderImportForm() {
+    const showAlgoHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
+      this.setState({ algoAnchorEl: event.currentTarget });
+    };
+    const helpOpen = Boolean(showAlgoHelp);
+    const helpId = helpOpen ? 'algo-helper' : undefined;
+    const helpClose = () => {
+      this.setState({ algoAnchorEl: null });
+    };
+
     const form = this.accountForm as ImportAccountFormData;
     return (
       <form className={this.props.classes.root}>
         <FormControl>
-          <Typography id="continuous-slider" gutterBottom>
-            Private Key File
+          <Typography id="continuous-slider" variant="h6" gutterBottom>
+            Import from Secret Key File
           </Typography>
           <Box
             display={'flex'}
@@ -127,7 +166,10 @@ class AccountPage extends React.Component<
             <Button
               id={'private-key-uploader'}
               variant="contained"
-              color="primary"
+              style={{
+                backgroundColor: 'var(--cspr-dark-blue)',
+                color: 'white'
+              }}
               component="label"
             >
               Upload
@@ -135,12 +177,15 @@ class AccountPage extends React.Component<
                 type="file"
                 style={{ display: 'none' }}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  form.handleFileSelect(e)
+                  // form.handleFileSelect(e)
+                  {
+                    return;
+                  }
                 }
               />
             </Button>
             <Box ml={1}>
-              <Typography>
+              <Typography component={'span'}>
                 <Box fontSize={12}>
                   {form.file ? form.file.name : 'No file selected'}
                 </Box>
@@ -148,6 +193,59 @@ class AccountPage extends React.Component<
             </Box>
           </Box>
         </FormControl>
+        <Box>
+          <FormControl style={{ width: '80%' }}>
+            <InputLabel id="algo-select-lbl">Algorithm</InputLabel>
+            <SelectFieldWithFormState
+              fullWidth
+              labelId="algo-select-lbl"
+              fieldState={this.accountForm.algorithm}
+              selectItems={[
+                { value: 'ed25519', text: 'ED25519' },
+                { value: 'secp256k1', text: 'SECP256k1' }
+              ]}
+            />
+          </FormControl>
+          <IconButton onClick={showAlgoHelp} style={{ float: 'right' }}>
+            <HelpIcon />
+          </IconButton>
+          {this.state.algoAnchorEl && (
+            <Popover
+              id={helpId}
+              open={helpOpen}
+              anchorEl={this.state.algoAnchorEl}
+              onClose={helpClose}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right'
+              }}
+              transformOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right'
+              }}
+            >
+              <Typography
+                component={'summary'}
+                style={{
+                  padding: '1.4em',
+                  backgroundColor: 'var(--cspr-dark-blue)',
+                  color: 'white'
+                }}
+              >
+                <b>Which algorithm?</b>
+                <br />
+                Open your <code>public_key_hex</code> file which should be in
+                the same location as the secret key file.
+                <br />
+                If the key starts with:
+                <ul>
+                  <li>01: ED25519</li>
+                  <li>02: SECP256k1</li>
+                </ul>
+              </Typography>
+            </Popover>
+          )}
+        </Box>
         <TextFieldWithFormState
           fullWidth
           label="Name"
@@ -174,14 +272,17 @@ class AccountPage extends React.Component<
 
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
-    const toggleDownloadKey = (event: React.ChangeEvent<HTMLInputElement>) => {
-      this.setState({
-        ...this.state,
-        keyDownloadEnabled: event.target.checked
-      });
-    };
+    // const toggleDownloadKey = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //   this.setState({
+    //     ...this.state,
+    //     keyDownloadEnabled: event.target.checked
+    //   });
+    // };
     return (
       <form className={this.props.classes.root}>
+        <Typography variant="h6" style={{ marginTop: '-1em' }}>
+          Create Account
+        </Typography>
         <TextFieldWithFormState
           aria-label="Input for setting name of key"
           autoFocus
@@ -191,27 +292,28 @@ class AccountPage extends React.Component<
           id="import-name"
           fieldState={this.accountForm.name}
         />
-        <TextFieldWithFormState
-          fullWidth
-          id="id-signature-algorithm"
-          label="Signature Algorithm"
-          InputProps={{
-            readOnly: true,
-            disabled: true
-          }}
-          defaultValue={'Ed25519'}
-        />
+        {/* 
+          TODO: Uncomment the below FormControl and delete the subsequent
+          TextFieldWithFormState when SECP256k1 generation is fixed
+        */}
+        <FormControl fullWidth>
+          <InputLabel id="algo-select-lbl">Algorithm</InputLabel>
+          <SelectFieldWithFormState
+            fullWidth
+            labelId="algo-select-lbl"
+            fieldState={this.accountForm.algorithm}
+            selectItems={[
+              { value: 'ed25519', text: 'ED25519' },
+              { value: 'secp256k1', text: 'SECP256k1' }
+            ]}
+          />
+        </FormControl>
         <TextFieldWithFormState
           fullWidth
           InputProps={{ readOnly: true, disabled: true }}
           label="Public Key"
           id="create-public-key"
-          value={
-            // TODO: This is hard coding the ed25519 prefix but will soon be extended to support secp256k1
-            formData.publicKeyBase64.$
-              ? '01' + encodeBase16(decodeBase64(formData.publicKeyBase64.$))
-              : ''
-          }
+          value={formData.publicKey.$ ? formData.publicKey.$ : ''}
         />
         <TextFieldWithFormState
           fullWidth
@@ -219,18 +321,22 @@ class AccountPage extends React.Component<
           label="Secret Key (Base64)"
           placeholder="Base64 encoded Ed25519 secret key"
           id="create-secret-key"
-          defaultValue={formData.privateKeyBase64.value}
+          value={formData.secretKeyBase64.$ ? formData.secretKeyBase64.$ : ''}
         />
-        <FormControlLabel
+        {/* 
+          Because the account is not yet saved it cannot be downloaded. 
+          This may be modified to allow this in future.
+        */}
+        {/* <FormControlLabel
           control={
             <Checkbox
               checked={this.state.keyDownloadEnabled}
               onChange={toggleDownloadKey}
-              name="checkedA"
+              name="keyDownloadToggle"
             />
           }
           label="Download Key"
-        />
+        /> */}
         <FormControl fullWidth margin={'normal'}>
           <Button
             type="submit"

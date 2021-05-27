@@ -19,7 +19,7 @@ import { Alert, AlertTitle } from '@material-ui/lab';
 import { Container } from '@material-ui/core';
 import { MainAppBar } from './components/MainAppBar';
 import AnalyticsProvider from './components/AnalyticsProvider';
-import { AccountManagementPage } from './components/AccountManagementPage';
+import AccountManagementPage from './components/AccountManagementPage';
 import { ConnectedSitesPage } from './components/ConnectedSitesPage';
 
 export interface AppProps {

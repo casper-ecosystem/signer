@@ -2,20 +2,35 @@ import { action, computed } from 'mobx';
 import passworder from 'browser-passworder';
 import { storage } from '@extend-chrome/storage';
 import * as nacl from 'tweetnacl';
-import { decodeBase64, encodeBase64 } from 'tweetnacl-util';
+import {
+  encodeBase16,
+  decodeBase16,
+  Keys,
+  PublicKey,
+  encodeBase64,
+  decodeBase64
+} from 'casper-client-sdk';
 import { AppState } from '../lib/MemStore';
+import { KeyPairWithAlias } from '../@types/models';
+import { saveAs } from 'file-saver';
+// import KeyEncoder from 'key-encoder';
 
-export interface SerializedSignKeyPairWithAlias {
+export interface SerializedKeyPairWithAlias {
   name: string;
-  signKeyPair: {
-    publicKey: string; // base64 encoded
-    secretKey: string; // base64 encoded
+  keyPair: {
+    publicKey: string; // hex encoded
+    secretKey: string; // hex encoded
   };
 }
 
 interface PersistentVaultData {
-  userAccounts: SerializedSignKeyPairWithAlias[];
-  selectedUserAccount: SerializedSignKeyPairWithAlias | null;
+  userAccounts: SerializedKeyPairWithAlias[];
+  selectedUserAccount: SerializedKeyPairWithAlias | null;
+}
+
+function saveToFile(content: string, filename: string) {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  saveAs(blob, filename);
 }
 
 class AuthController {
@@ -73,7 +88,7 @@ class AuthController {
 
   @action
   switchToAccount(accountName: string) {
-    let i = this.appState.userAccounts.findIndex(a => a.name === accountName);
+    let i = this.appState.userAccounts.findIndex(a => a.alias === accountName);
     if (i === -1) {
       throw new Error(
         "Couldn't switch to this account because it doesn't exist"
@@ -82,56 +97,88 @@ class AuthController {
     this.appState.selectedUserAccount = this.appState.userAccounts[i];
   }
 
-  getSelectUserAccount(): SerializedSignKeyPairWithAlias {
+  getSelectUserAccount(): KeyPairWithAlias {
     if (!this.appState.selectedUserAccount) {
       throw new Error('There is no active key');
     }
-    return this.serializeSignKeyPairWithAlias(
-      this.appState.selectedUserAccount
-    );
+    return this.appState.selectedUserAccount;
+  }
+
+  getActivePublicKeyHex(): string {
+    if (!this.appState.selectedUserAccount) {
+      throw new Error('There is no active key');
+    }
+    let account = this.appState.selectedUserAccount;
+    return account.KeyPair.publicKey.toAccountHex();
+  }
+
+  getActiveAccountHash(): string {
+    if (!this.appState.selectedUserAccount) {
+      throw new Error('There is no active key');
+    }
+    let account = this.appState.selectedUserAccount;
+    return encodeBase16(account.KeyPair.publicKey.toAccountHash());
   }
 
   @action
   async resetVault() {
     await this.clearAccount();
     this.appState.selectedUserAccount = null;
-    this.appState.toSignMessages.clear();
+    this.appState.unsignedDeploys.clear();
     this.appState.hasCreatedVault = false;
     storage.local.remove(this.encryptedVaultKey);
   }
 
   @action
-  async importUserAccount(name: string, privateKeyBase64: string) {
+  async importUserAccount(
+    name: string,
+    secretKeyBase64: string,
+    algorithm: string
+  ) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock it before adding new account');
     }
 
-    let account = this.appState.userAccounts.find(account => {
+    let duplicateAccount = this.appState.userAccounts.find(account => {
       return (
-        account.name === name ||
-        encodeBase64(account.signKeyPair.secretKey) === privateKeyBase64
+        account.alias === name ||
+        encodeBase64(account.KeyPair.privateKey) === secretKeyBase64
       );
     });
 
-    if (account) {
+    if (duplicateAccount) {
       throw new Error(
         `A account with same ${
-          account.name === name ? 'name' : 'private key'
+          duplicateAccount.alias === name ? 'name' : 'secret key'
         } already exists`
       );
     }
-
-    const keyPair = nacl.sign.keyPair.fromSecretKey(
-      decodeBase64(privateKeyBase64)
-    );
+    const secretKeyBytes = decodeBase64(secretKeyBase64);
+    let secretKey, publicKey, keyPair: Keys.Ed25519 | Keys.Secp256K1;
+    switch (algorithm) {
+      case 'ed25519': {
+        secretKey = Keys.Ed25519.parsePrivateKey(secretKeyBytes);
+        publicKey = Keys.Ed25519.privateToPublicKey(secretKeyBytes);
+        keyPair = Keys.Ed25519.parseKeyPair(publicKey, secretKey);
+        break;
+      }
+      case 'secp256k1': {
+        secretKey = Keys.Secp256K1.parsePrivateKey(secretKeyBytes, 'raw');
+        publicKey = Keys.Secp256K1.privateToPublicKey(secretKeyBytes);
+        keyPair = Keys.Secp256K1.parseKeyPair(publicKey, secretKey, 'raw');
+        break;
+      }
+      default: {
+        throw new Error('Could not parse secret key as: ed25519 or secp256k1');
+      }
+    }
 
     this.appState.userAccounts.push({
-      name: name,
-      signKeyPair: keyPair
+      alias: name,
+      KeyPair: keyPair
     });
-    this.appState.selectedUserAccount = this.appState.userAccounts[
-      this.appState.userAccounts.length - 1
-    ];
+    this.appState.selectedUserAccount =
+      this.appState.userAccounts[this.appState.userAccounts.length - 1];
     this.persistVault();
   }
 
@@ -142,7 +189,7 @@ class AuthController {
     }
 
     let account = this.appState.userAccounts.find(account => {
-      return account.name === name;
+      return account.alias === name;
     });
 
     if (!account) {
@@ -151,13 +198,42 @@ class AuthController {
 
     this.appState.userAccounts.remove(account);
 
-    if (this.appState.selectedUserAccount?.name === account.name) {
+    if (this.appState.selectedUserAccount?.alias === account.alias) {
       this.appState.selectedUserAccount =
         this.appState.userAccounts.length > 0
           ? this.appState.userAccounts[0]
           : null;
     }
     this.persistVault();
+  }
+
+  getAccountFromAlias(alias: string) {
+    if (!alias) throw new Error('Cannot find account for invalid alias');
+    let account = this.appState.userAccounts.find(storedAccount => {
+      return storedAccount.alias === alias;
+    });
+    return account?.KeyPair;
+  }
+
+  async downloadAccountKeys(accountAlias: string) {
+    if (!this.appState.isUnlocked) {
+      throw new Error('Unlock Signer before downloading keys.');
+    }
+    let accountKeys = this.getAccountFromAlias(accountAlias);
+    if (accountKeys) {
+      saveToFile(
+        accountKeys.exportPrivateKeyInPem(),
+        `${accountAlias}_secret_key.pem`
+      );
+      saveToFile(
+        accountKeys.exportPublicKeyInPem(),
+        `${accountAlias}_public_key.pem`
+      );
+      saveToFile(
+        accountKeys.publicKey.toAccountHex(),
+        `${accountAlias}_public_key_hex.txt`
+      );
+    }
   }
 
   /**
@@ -186,7 +262,7 @@ class AuthController {
     ) {
       throw new Error('Invalid index number');
     }
-    if (startIndex == endIndex) {
+    if (startIndex === endIndex) {
       return;
     }
 
@@ -207,21 +283,21 @@ class AuthController {
     }
 
     const account = this.appState.userAccounts.find(
-      account => account.name === oldName
+      account => account.alias === oldName
     );
     if (!account) {
       throw new Error('Invalid old name');
     }
 
     const accountWithNewName = this.appState.userAccounts.find(
-      account => account.name === newName
+      account => account.alias === newName
     );
 
     if (accountWithNewName) {
       throw new Error('There is another account with the same name');
     }
 
-    account.name = newName;
+    account.alias = newName;
 
     this.persistVault();
   }
@@ -229,33 +305,64 @@ class AuthController {
   /**
    * Serialize and Deserialize is needed for ByteArray(or Uint8Array),
    * since JSON.parse(JSON.stringify(ByteArray)) !== ByteArray
-   * @param signKeyPairWithAlias
    */
-  private serializeSignKeyPairWithAlias(
-    signKeyPairWithAlias: SignKeyPairWithAlias
-  ): SerializedSignKeyPairWithAlias {
+
+  /**
+   * Serialize the byte arrays into encoded strings.
+   * @param KeyPairWithAlias
+   * @returns KeyPairWithAlias with encoded values.
+   */
+  private serializeKeyPairWithAlias(
+    KeyPairWithAlias: KeyPairWithAlias
+  ): SerializedKeyPairWithAlias {
     return {
-      name: signKeyPairWithAlias.name,
-      signKeyPair: {
-        publicKey: encodeBase64(signKeyPairWithAlias.signKeyPair.publicKey),
-        secretKey: encodeBase64(signKeyPairWithAlias.signKeyPair.secretKey)
+      name: KeyPairWithAlias.alias,
+      keyPair: {
+        publicKey: KeyPairWithAlias.KeyPair.publicKey.toAccountHex(),
+        secretKey: encodeBase64(KeyPairWithAlias.KeyPair.privateKey)
       }
     };
   }
 
-  private deserializeSignKeyPairWithAlias(
-    serializedKeyPairWithAlias: SerializedSignKeyPairWithAlias
-  ): SignKeyPairWithAlias {
+  private deserializeKeyPairWithAlias(
+    serializedKeyPairWithAlias: SerializedKeyPairWithAlias
+  ): KeyPairWithAlias {
+    const serializedPublicKey = serializedKeyPairWithAlias.keyPair.publicKey;
+    let deserializedPublicKeyBytes, deserializedPublicKey, deserializedKeyPair;
+
+    switch (serializedPublicKey.substring(0, 2)) {
+      case '01':
+        deserializedPublicKeyBytes = Keys.Ed25519.parsePublicKey(
+          decodeBase16(serializedPublicKey.substring(2))
+        );
+        deserializedPublicKey = PublicKey.fromEd25519(
+          deserializedPublicKeyBytes
+        );
+        deserializedKeyPair = Keys.Ed25519.parseKeyPair(
+          deserializedPublicKey.toBytes(),
+          decodeBase64(serializedKeyPairWithAlias.keyPair.secretKey)
+        );
+        break;
+      case '02':
+        deserializedPublicKeyBytes = Keys.Secp256K1.parsePublicKey(
+          decodeBase16(serializedPublicKey.substring(2))
+        );
+        deserializedPublicKey = PublicKey.fromSecp256K1(
+          deserializedPublicKeyBytes
+        );
+        deserializedKeyPair = Keys.Secp256K1.parseKeyPair(
+          deserializedPublicKey.toBytes(),
+          decodeBase64(serializedKeyPairWithAlias.keyPair.secretKey),
+          'raw'
+        );
+        break;
+      default:
+        throw new Error('Failed to deserialize public key!');
+    }
+
     return {
-      name: serializedKeyPairWithAlias.name,
-      signKeyPair: {
-        publicKey: decodeBase64(
-          serializedKeyPairWithAlias.signKeyPair.publicKey
-        ),
-        secretKey: decodeBase64(
-          serializedKeyPairWithAlias.signKeyPair.secretKey
-        )
-      }
+      alias: serializedKeyPairWithAlias.name,
+      KeyPair: deserializedKeyPair
     };
   }
 
@@ -267,10 +374,10 @@ class AuthController {
   private async persistVault() {
     const encryptedVault = await passworder.encrypt(this.passwordHash!, {
       userAccounts: this.appState.userAccounts.map(
-        this.serializeSignKeyPairWithAlias
+        this.serializeKeyPairWithAlias
       ),
       selectedUserAccount: this.appState.selectedUserAccount
-        ? this.serializeSignKeyPairWithAlias(this.appState.selectedUserAccount)
+        ? this.serializeKeyPairWithAlias(this.appState.selectedUserAccount)
         : null
     });
 
@@ -350,13 +457,13 @@ class AuthController {
   }
 
   /**
-   * Hash given bytes and encodes in base64
+   * Hash given bytes and encodes in base16
    * @param {Uint8Array} bytes Bytes for hashing.
-   * @returns {String} Base64 encoded hash.
+   * @returns {String} hex encoded hash.
    */
   private hash(bytes: Uint8Array) {
     let hashedBytes = nacl.hash(bytes);
-    return encodeBase64(hashedBytes);
+    return encodeBase16(hashedBytes);
   }
 
   /*
@@ -381,10 +488,10 @@ class AuthController {
     this.passwordHash = vaultResponse[1];
     this.appState.isUnlocked = true;
     this.appState.userAccounts.replace(
-      vault.userAccounts.map(this.deserializeSignKeyPairWithAlias)
+      vault.userAccounts.map(this.deserializeKeyPairWithAlias)
     );
     this.appState.selectedUserAccount = vault.selectedUserAccount
-      ? this.deserializeSignKeyPairWithAlias(vault.selectedUserAccount)
+      ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
       : null;
   }
 

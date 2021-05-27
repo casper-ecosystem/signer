@@ -16,7 +16,7 @@
     "@typescript-eslint/no-unused-vars": ["error"],
     "jsx-a11y/no-autofocus": "off",
     "prettier/prettier": [
-      "error", {
+      "warn", {
         "semi": true
       }
     ]
