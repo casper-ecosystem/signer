@@ -266,13 +266,9 @@ export default class SignMessageManager extends events.EventEmitter {
         .asBigNumber()
         .toString();
 
-      let target =
-        '01' +
-        encodeBase16(
-          deploy.deploy.session.transfer
-            ?.getArgByName('target')!
-            .asBytesArray()!
-        );
+      let target = encodeBase16(
+        deploy.deploy.session.transfer?.getArgByName('target')!.asBytesArray()!
+      );
 
       return {
         deployHash: encodeBase16(deploy.deploy.hash),
