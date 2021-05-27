@@ -11,12 +11,12 @@ import {
 import ErrorContainer from '../container/ErrorContainer';
 import {
   Button,
-  Checkbox,
+  // Checkbox,
   createStyles,
   Theme,
   Typography,
   WithStyles,
-  FormControlLabel,
+  // FormControlLabel,
   FormControl,
   Box,
   InputLabel,
