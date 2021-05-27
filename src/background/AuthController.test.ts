@@ -212,7 +212,23 @@ describe('AuthController', () => {
       }).toThrow(/doesn't exist/g);
     });
 
-    it('Check SDK Keys tooling...', () => {
+    it('Key should serialise/deserialise correctly', async () => {
+      let keyPair = Keys.Ed25519.new();
+      await authController.importUserAccount(
+        'newAccount',
+        encodeBase64(keyPair.privateKey),
+        keyPair.signatureAlgorithm
+      );
+      await authController.lock();
+      expect(authController.isUnlocked).toBeFalsy();
+      await authController.unlock(password);
+      expect(authController.isUnlocked).toBeTruthy();
+      expect(authController.getSelectUserAccount().KeyPair).toStrictEqual(
+        keyPair
+      );
+    });
+
+    it('Check SDK Keys tooling', () => {
       let keyPair = Keys.Ed25519.new();
       authController.importUserAccount(
         'account',
@@ -227,6 +243,17 @@ describe('AuthController', () => {
         account.KeyPair.publicKey.toAccountHash()
       );
     });
+
+    // This test will need to mock the downloadAccountKeys method as it
+    // requires user input - fileSaver.js
+    // it('Should save key and read it back correctly', async () => {
+    //   let keyPair = Keys.Ed25519.new();
+    //   await authController.importUserAccount(
+    //     'account',
+    //     encodeBase64(keyPair.privateKey),
+    //     keyPair.signatureAlgorithm
+    //   );
+    // });
   });
 
   describe('Handling SECP256k1 keys...', () => {
@@ -288,7 +315,23 @@ describe('AuthController', () => {
       }).toThrow(/doesn't exist/g);
     });
 
-    it('Check SDK Keys tooling...', () => {
+    it('Key should serialise/deserialise correctly', async () => {
+      let keyPair = Keys.Secp256K1.new();
+      await authController.importUserAccount(
+        'newAccount',
+        encodeBase64(keyPair.privateKey),
+        keyPair.signatureAlgorithm
+      );
+      await authController.lock();
+      expect(authController.isUnlocked).toBeFalsy();
+      await authController.unlock(password);
+      expect(authController.isUnlocked).toBeTruthy();
+      expect(
+        authController.getSelectUserAccount().KeyPair.privateKey
+      ).toStrictEqual(keyPair.privateKey);
+    });
+
+    it('Check SDK Keys tooling', () => {
       let keyPair = Keys.Secp256K1.new();
       authController.importUserAccount(
         'account',
@@ -303,5 +346,16 @@ describe('AuthController', () => {
         account.KeyPair.publicKey.toAccountHash()
       );
     });
+
+    // This test will need to mock the downloadAccountKeys method as it
+    // requires user input - fileSaver.js
+    // it('Should save key and read it back correctly', async () => {
+    //   let keyPair = Keys.Secp256k1.new();
+    //   await authController.importUserAccount(
+    //     'account',
+    //     encodeBase64(keyPair.privateKey),
+    //     keyPair.signatureAlgorithm
+    //   );
+    // });
   });
 });
