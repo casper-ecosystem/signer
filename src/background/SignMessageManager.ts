@@ -79,10 +79,6 @@ export default class SignMessageManager extends events.EventEmitter {
    * Pushes new state to popup.
    */
   private updateAppState() {
-    console.log('AppState::');
-    console.log(toJS(this.appState.unsignedDeploys));
-    console.log(`Current::`);
-    console.log(toJS(this.unsignedDeploys));
     this.appState.unsignedDeploys.replace(this.unsignedDeploys.filter(d => !d.pushed));
     this.unsignedDeploys = this.unsignedDeploys.map(d => ({...d, pushed: true }));
   }

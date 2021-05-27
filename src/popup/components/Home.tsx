@@ -98,8 +98,8 @@ class Home extends React.Component<Props, {}> {
                   color="primary"
                   disabled={this.props.homeContainer.createVaultDisabled}
                   onClick={async () => {
-                    const password = this.props.homeContainer.homeForm.$
-                      .setPasswordField.$;
+                    const password =
+                      this.props.homeContainer.homeForm.$.setPasswordField.$;
                     await this.props.authContainer.createNewVault(password);
                     this.props.homeContainer.homeForm.$.setPasswordField.reset();
                     this.props.homeContainer.homeForm.$.confirmPasswordField.reset();
@@ -151,7 +151,7 @@ class Home extends React.Component<Props, {}> {
           )}
 
           <Grid item>
-            <FormControl fullWidth className={this.props.classes.margin}>
+            {/* <FormControl fullWidth className={this.props.classes.margin}>
               <Button
                 aria-label="This will open a new window to import a key to your vault"
                 component={Link}
@@ -168,7 +168,7 @@ class Home extends React.Component<Props, {}> {
               >
                 Import Account
               </Button>
-            </FormControl>
+            </FormControl> */}
 
             <FormControl fullWidth className={this.props.classes.margin}>
               <Button
@@ -241,8 +241,8 @@ class Home extends React.Component<Props, {}> {
                   color="primary"
                   disabled={this.props.homeContainer.submitDisabled}
                   onClick={async () => {
-                    let password = this.props.homeContainer.homeForm.$
-                      .setPasswordField.$;
+                    let password =
+                      this.props.homeContainer.homeForm.$.setPasswordField.$;
                     try {
                       await this.props.authContainer.unlock(password);
                       this.props.homeContainer.homeForm.$.setPasswordField.reset();

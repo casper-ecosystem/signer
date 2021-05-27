@@ -131,9 +131,9 @@ export class BackgroundManager {
     );
   }
 
-  public downloadAccountKeys(account: KeyPairWithAlias) {
+  public downloadAccountKeys(accountAlias: string) {
     return this.errors.withCapture(
-      this.rpc.call<void>('account.downloadAccountKeys', account)
+      this.rpc.call<void>('account.downloadAccountKeys', accountAlias)
     );
   }
 
