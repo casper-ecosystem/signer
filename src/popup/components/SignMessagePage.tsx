@@ -95,7 +95,6 @@ class SignMessagePage extends React.Component<
   }
 
   render() {
-    console.log('Page is re-rendering...');
     if (this.state.deployToSign) {
       const deployId = this.props.signMessageContainer.deployToSign?.id;
       return (

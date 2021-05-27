@@ -46,7 +46,12 @@ interface Props {
 
 export const MainAppBar = observer((props: Props) => {
   const classes = useStyles();
-  const connected = props.connectionContainer.connectionStatus;
+  const { currentTab, connectedSites } = props.connectionContainer;
+  const connected =
+    currentTab &&
+    connectedSites.some(
+      site => site.url === currentTab.url && site.isConnected
+    );
 
   if (props.authContainer.hasCreatedVault && props.authContainer.isUnLocked) {
     return (

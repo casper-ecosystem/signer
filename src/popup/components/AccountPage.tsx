@@ -320,7 +320,7 @@ class AccountPage extends React.Component<
           InputProps={{ readOnly: true, disabled: true }}
           label="Secret Key (Base64)"
           placeholder="Base64 encoded Ed25519 secret key"
-          id="create-private-key"
+          id="create-secret-key"
           value={formData.secretKeyBase64.$ ? formData.secretKeyBase64.$ : ''}
         />
         {/* 

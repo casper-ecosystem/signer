@@ -1,6 +1,5 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
-import { toJS } from "mobx";
 import PopupManager from '../background/PopupManager';
 import { DeployUtil, encodeBase16 } from 'casper-client-sdk';
 
@@ -79,8 +78,13 @@ export default class SignMessageManager extends events.EventEmitter {
    * Pushes new state to popup.
    */
   private updateAppState() {
-    this.appState.unsignedDeploys.replace(this.unsignedDeploys.filter(d => !d.pushed));
-    this.unsignedDeploys = this.unsignedDeploys.map(d => ({...d, pushed: true }));
+    this.appState.unsignedDeploys.replace(
+      this.unsignedDeploys.filter(d => !d.pushed)
+    );
+    this.unsignedDeploys = this.unsignedDeploys.map(d => ({
+      ...d,
+      pushed: true
+    }));
   }
 
   /**
@@ -152,7 +156,6 @@ export default class SignMessageManager extends events.EventEmitter {
       this.popupManager.openPopup('sign');
       // Await outcome of user interaction with popup.
       this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
-        console.log('processedDeploy', processedDeploy);
         switch (processedDeploy.status) {
           case 'signed':
             if (processedDeploy.deploy) {
@@ -160,10 +163,11 @@ export default class SignMessageManager extends events.EventEmitter {
               return resolve(DeployUtil.deployToJson(processedDeploy.deploy)); // TODO: Return signed deploy JSON
             }
             this.appState.unsignedDeploys.remove(processedDeploy);
-            console.log(this.appState.unsignedDeploys);
             return reject(new Error(processedDeploy.error?.message));
           case 'failed':
-            this.unsignedDeploys = this.unsignedDeploys.filter(d => d.id !== processedDeploy.id);
+            this.unsignedDeploys = this.unsignedDeploys.filter(
+              d => d.id !== processedDeploy.id
+            );
             return reject(
               new Error(
                 processedDeploy.error?.message! ?? 'User Cancelled Signing'
@@ -195,7 +199,6 @@ export default class SignMessageManager extends events.EventEmitter {
 
   // Approve signature request
   public async approveSignDeploy(deployId: number) {
-    console.log('Beginning approval...');
     const deployData = this.getDeployById(deployId);
     if (!this.appState.selectedUserAccount) {
       throw new Error(`No Active Account!`);
@@ -240,7 +243,6 @@ export default class SignMessageManager extends events.EventEmitter {
   }
 
   public parseDeployData(deployId: number): DeployData {
-    console.log('Parse called');
     let deploy = this.getDeployById(deployId);
     if (deploy !== undefined && deploy.deploy !== undefined) {
       let header = deploy.deploy.header;

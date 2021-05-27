@@ -19,12 +19,16 @@ class CasperLabsPluginHelper {
     return this.call<void>('requestConnection');
   }
 
-  async sign(deploy: JSON, publicKey: string) {
-    return this.call<string>('sign', deploy, publicKey);
-  }
-
   async disconnectFromSite() {
     return this.call<void>('disconnectFromSite');
+  }
+
+  async removeSite() {
+    return this.call<void>('removeSite');
+  }
+
+  async sign(deploy: JSON, publicKey: string) {
+    return this.call<string>('sign', deploy, publicKey);
   }
 
   async getActivePublicKey() {

@@ -31,7 +31,7 @@
       "all_frames": true
     }
   ],
-  "permissions": ["notifications"],
+  "permissions": ["notifications", "storage", "tabs"],
   "web_accessible_resources": [
     "scripts/content/inpage.js",
     "scripts/content/signerTestMethods.js",

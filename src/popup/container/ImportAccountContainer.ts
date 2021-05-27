@@ -74,7 +74,6 @@ export class ImportAccountFormData implements SubmittableFormData {
   //                 publicPEMOptions: { label: 'PUBLIC KEY' },
   //                 curveParameters: undefined
   //               });
-  //               console.log(fileContents);
   //               let decoded = encoder.encodePrivate(fileContents, 'pem', 'raw');
   //               this.secretKeyBase64.onChange(decoded);
   //             }

@@ -128,10 +128,17 @@ class Home extends React.Component<Props, {}> {
           {this.props.authContainer.userAccounts.length > 0 ? (
             <Grid item className={this.props.classes.alignCenter}>
               <img src={logo} alt="logo" width={120} />
-              <Typography variant={'h6'} align={'center'}>
-                You have {this.props.authContainer.userAccounts.length} account
-                key(s)
-              </Typography>
+              {this.props.authContainer.userAccounts.length > 1 ? (
+                <Typography variant={'h6'} align={'center'}>
+                  You have {this.props.authContainer.userAccounts.length}{' '}
+                  account keys
+                </Typography>
+              ) : (
+                <Typography variant={'h6'} align={'center'}>
+                  You have {this.props.authContainer.userAccounts.length}{' '}
+                  account key
+                </Typography>
+              )}
               {this.props.authContainer.selectedUserAccount && (
                 <Typography variant={'h6'} align={'center'}>
                   Active key:{' '}
@@ -145,7 +152,7 @@ class Home extends React.Component<Props, {}> {
             <Grid item className={this.props.classes.alignCenter}>
               <AddCircleIcon style={{ color: '#e24c2c', fontSize: '4rem' }} />
               <Typography variant={'h5'} align={'center'}>
-                Please create or import an account to get started
+                Please create an account to get started
               </Typography>
             </Grid>
           )}

@@ -29,8 +29,9 @@ export class BackgroundManager {
   private onStateUpdate(appState: AppState) {
     console.log(appState);
     this.appState.isUnlocked = appState.isUnlocked;
-    this.appState.connectionStatus = appState.connectionStatus;
+    this.appState.currentTab = appState.currentTab;
     this.appState.connectionRequested = appState.connectionRequested;
+    this.appState.connectedSites = appState.connectedSites;
     this.appState.hasCreatedVault = appState.hasCreatedVault;
     this.appState.selectedUserAccount = appState.selectedUserAccount;
     this.appState.userAccounts.replace(appState.userAccounts);
@@ -79,7 +80,6 @@ export class BackgroundManager {
   }
 
   public signDeploy(deployId: number) {
-    console.log('BM :: Calling sign.signDeploy...');
     return this.errors.withCapture(
       this.rpc.call<void>('sign.signDeploy', deployId)
     );
@@ -136,16 +136,21 @@ export class BackgroundManager {
       this.rpc.call<void>('account.downloadAccountKeys', accountAlias)
     );
   }
-
-  public connectToSite() {
+  public connectToSite(url?: string) {
     return this.errors.withCapture(
-      this.rpc.call<void>('connection.connectToSite')
+      this.rpc.call<void>('connection.connectToSite', url)
     );
   }
 
-  public disconnectFromSite() {
+  public disconnectFromSite(site?: string) {
     return this.errors.withCapture(
-      this.rpc.call<void>('connection.disconnectFromSite')
+      this.rpc.call<void>('connection.disconnectFromSite', site)
+    );
+  }
+
+  public removeSite(url: string) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('connection.removeSite', url)
     );
   }
 
