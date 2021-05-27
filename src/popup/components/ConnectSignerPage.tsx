@@ -57,6 +57,9 @@ class ConnectSignerPage extends React.Component<Props, {}> {
                   }}
                   variant="contained"
                   color="primary"
+                  style={{
+                    backgroundColor: 'var(--cspr-dark-blue)'
+                  }}
                 >
                   Connect
                 </Button>

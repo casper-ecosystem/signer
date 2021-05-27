@@ -98,8 +98,8 @@ class Home extends React.Component<Props, {}> {
                   color="primary"
                   disabled={this.props.homeContainer.createVaultDisabled}
                   onClick={async () => {
-                    const password = this.props.homeContainer.homeForm.$
-                      .setPasswordField.$;
+                    const password =
+                      this.props.homeContainer.homeForm.$.setPasswordField.$;
                     await this.props.authContainer.createNewVault(password);
                     this.props.homeContainer.homeForm.$.setPasswordField.reset();
                     this.props.homeContainer.homeForm.$.confirmPasswordField.reset();
@@ -143,7 +143,7 @@ class Home extends React.Component<Props, {}> {
                 <Typography variant={'h6'} align={'center'}>
                   Active key:{' '}
                   <span style={{ wordBreak: 'break-all' }}>
-                    {this.props.authContainer.selectedUserAccount.name}
+                    {this.props.authContainer.selectedUserAccount.alias}
                   </span>
                 </Typography>
               )}
@@ -168,6 +168,10 @@ class Home extends React.Component<Props, {}> {
                   this.props.popupManager.openPopup('importAccount')
                 }
                 to={Pages.ImportAccount}
+                style={{
+                  backgroundColor: '#fff',
+                  color: 'var(--cspr-dark-blue)'
+                }}
               >
                 Import Account
               </Button>
@@ -180,6 +184,10 @@ class Home extends React.Component<Props, {}> {
                 variant="contained"
                 color="primary"
                 to={Pages.CreateAccount}
+                style={{
+                  backgroundColor: '#fff',
+                  color: 'var(--cspr-dark-blue)'
+                }}
               >
                 Create Account
               </Button>
@@ -223,6 +231,7 @@ class Home extends React.Component<Props, {}> {
               <FormControl fullWidth>
                 <TextFieldWithFormState
                   aria-label="Enter password for vault"
+                  autoFocus={true}
                   fieldState={
                     this.props.homeContainer.homeForm.$.setPasswordField
                   }
@@ -239,8 +248,8 @@ class Home extends React.Component<Props, {}> {
                   color="primary"
                   disabled={this.props.homeContainer.submitDisabled}
                   onClick={async () => {
-                    let password = this.props.homeContainer.homeForm.$
-                      .setPasswordField.$;
+                    let password =
+                      this.props.homeContainer.homeForm.$.setPasswordField.$;
                     try {
                       await this.props.authContainer.unlock(password);
                       this.props.homeContainer.homeForm.$.setPasswordField.reset();
@@ -283,7 +292,7 @@ class Home extends React.Component<Props, {}> {
           // Not connected and there is a request to connect
           return <Redirect to={Pages.ConnectSigner} />;
         } else {
-          if (this.props.authContainer.toSignMessages.length > 0) {
+          if (this.props.authContainer.unsignedDeploys.length > 0) {
             return <Redirect to={Pages.SignMessage} />;
           } else {
             return this.renderAccountLists();

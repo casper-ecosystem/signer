@@ -1,108 +1,146 @@
 import { FieldState } from 'formstate';
-import { fieldSubmittable, valueRequired } from '../../lib/FormValidator';
+import {
+  fieldSubmittable,
+  valueRequired,
+  isAlgorithm
+} from '../../lib/FormValidator';
 import { action, computed, observable } from 'mobx';
-import * as nacl from 'tweetnacl-ts';
-import React from 'react';
 import { encodeBase64 } from 'tweetnacl-util';
 import ErrorContainer from './ErrorContainer';
 import { Keys } from 'casper-client-sdk';
-import { SignKeyPair } from 'tweetnacl-ts';
-
+// import KeyEncoder from 'key-encoder';
+// import ec from 'elliptic';
 export interface SubmittableFormData {
   submitDisabled: boolean;
   resetFields: () => void;
 }
 
 export class ImportAccountFormData implements SubmittableFormData {
-  privateKeyBase64: FieldState<string> = new FieldState<string>('').validators(
+  secretKeyBase64: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
+  );
+  algorithm: FieldState<string> = new FieldState<string>('').validators(
+    valueRequired,
+    isAlgorithm
   );
   name: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
   @observable file: File | null = null;
-  private key: SignKeyPair | null = null;
 
-  private checkFileContent(fileContent: string) {
-    if (!fileContent) {
-      return 'The content of imported file cannot be empty!';
-    }
-    try {
-      const privateKey = Keys.Ed25519.parsePrivateKey(
-        Keys.Ed25519.readBase64WithPEM(fileContent)
-      );
-      this.key = nacl.sign_keyPair_fromSeed(privateKey);
-    } catch (e) {
-      return e.message;
-    }
-    return null;
-  }
+  // private checkFileContent(fileContent: string) {
+  //   if (!fileContent) {
+  //     return 'The content of imported file cannot be empty!';
+  //   }
+  //   if (fileContent.includes('PUBLIC KEY')) {
+  //     return 'Not a secret key file!';
+  //   }
+  //   return null;
+  // }
 
   constructor(private errors: ErrorContainer) {}
 
-  handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      this.file = e.target.files[0];
-      const reader = new FileReader();
-      reader.readAsText(this.file);
-      reader.onload = e => {
-        const errorMsg = this.checkFileContent(reader.result as string);
-        if (errorMsg === null) {
-          const fileName = this.file?.name!.split('.')[0];
-          if (fileName === undefined) {
-            this.errors.capture(
-              Promise.reject(new Error('File name undefined'))
-            );
-          } else {
-            const name = fileName.replace(/_secret_key$/, '');
-            this.name.onChange(name);
-            this.privateKeyBase64.onChange(encodeBase64(this.key?.secretKey!));
-          }
-        } else {
-          this.errors.capture(Promise.reject(new Error(errorMsg)));
-        }
-      };
-    }
-  };
+  //   handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     if (this.errors.lastError) {
+  //       this.errors.dismissLast();
+  //     }
+  //     if (e.target.files) {
+  //       this.file = e.target.files[0];
+  //       const reader = new FileReader();
+  //       reader.readAsText(this.file);
+  //       reader.onload = e => {
+  //         const fileContents = reader.result as string;
+  //         const errorMsg = this.checkFileContent(fileContents);
+  //         if (errorMsg === null) {
+  //           const file = this.file?.name!.split('.');
+  //           if (file === undefined) {
+  //             this.errors.capture(Promise.reject(new Error('File undefined')));
+  //           } else {
+  //             // File is not undefined now check format by extension
+  //             const fileExt = file[1];
+  //             if (fileExt !== 'pem') {
+  //               this.errors.capture(
+  //                 Promise.reject(
+  //                   new Error(
+  //                     `Invalid file format: .${fileExt}. Please upload a .pem file.`
+  //                   )
+  //                 )
+  //               );
+  //             } else {
+  //               // Move decodeFromPEM to background by passing fileContents
+  //               const encoder = new KeyEncoder({
+  //                 curve: new ec('secp256k1'),
+  //                 privatePEMOptions: { label: 'PRIVATE KEY' },
+  //                 publicPEMOptions: { label: 'PUBLIC KEY' },
+  //                 curveParameters: undefined
+  //               });
+  //               let decoded = encoder.encodePrivate(fileContents, 'pem', 'raw');
+  //               this.secretKeyBase64.onChange(decoded);
+  //             }
+  //           }
+  //         } else {
+  //           this.errors.capture(Promise.reject(new Error(errorMsg)));
+  //         }
+  //       };
+  //     }
+  //   };
 
   @computed
   get submitDisabled(): boolean {
     return !(
-      fieldSubmittable(this.privateKeyBase64) && fieldSubmittable(this.name)
+      fieldSubmittable(this.secretKeyBase64) &&
+      fieldSubmittable(this.name) &&
+      fieldSubmittable(this.algorithm)
     );
   }
 
   @action
   resetFields() {
-    this.privateKeyBase64.reset();
+    this.secretKeyBase64.reset();
+    this.algorithm.reset();
     this.name.reset();
   }
 }
 
 export class CreateAccountFormData extends ImportAccountFormData {
-  publicKeyBase64: FieldState<string> = new FieldState<string>('').validators(
+  publicKey: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
 
   constructor(errors: ErrorContainer) {
     super(errors);
-    let newKeyPair = nacl.sign_keyPair();
-    this.publicKeyBase64.onChange(nacl.encodeBase64(newKeyPair.publicKey));
-    this.privateKeyBase64.onChange(nacl.encodeBase64(newKeyPair.secretKey));
+    this.algorithm.onUpdate(fieldState => {
+      switch (fieldState.value) {
+        case 'ed25519': {
+          let ed25519KP = Keys.Ed25519.new();
+          this.publicKey.onChange(ed25519KP.publicKey.toAccountHex());
+          this.secretKeyBase64.onChange(encodeBase64(ed25519KP.privateKey));
+          break;
+        }
+        case 'secp256k1': {
+          let secp256k1KP = Keys.Secp256K1.new();
+          this.publicKey.onChange(secp256k1KP.publicKey.toAccountHex());
+          this.secretKeyBase64.onChange(encodeBase64(secp256k1KP.privateKey));
+          break;
+        }
+        default:
+          throw new Error('Invalid algorithm');
+      }
+    });
   }
 
   @computed
   get submitDisabled(): boolean {
     return !(
-      fieldSubmittable(this.privateKeyBase64) &&
+      fieldSubmittable(this.secretKeyBase64) &&
       fieldSubmittable(this.name) &&
-      fieldSubmittable(this.publicKeyBase64)
+      fieldSubmittable(this.publicKey)
     );
   }
 
   @action
   resetFields() {
     super.resetFields();
-    this.publicKeyBase64.reset();
+    this.publicKey.reset();
   }
 }
