@@ -12,6 +12,8 @@ import {
 } from 'casper-client-sdk';
 import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
+import { saveAs } from 'file-saver';
+// import KeyEncoder from 'key-encoder';
 
 export interface SerializedKeyPairWithAlias {
   name: string;
@@ -184,25 +186,33 @@ class AuthController {
     this.persistVault();
   }
 
-  async downloadAccountKeys(account: KeyPairWithAlias) {
+  getAccountFromAlias(alias: string) {
+    if (!alias) throw new Error('Cannot find account for invalid alias');
+    return this.appState.userAccounts.find(storedAccount => {
+      return storedAccount.alias === alias;
+    })?.KeyPair;
+  }
+
+  async downloadAccountKeys(accountAlias: string) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock Signer before downloading keys.');
     }
-    this.appState.userAccounts.find(storedAccount => {
-      return storedAccount.alias === account.alias;
-    });
-    saveToFile(
-      account.KeyPair.exportPrivateKeyInPem(),
-      `${account.alias}_secret_key.pem`
-    );
-    saveToFile(
-      account.KeyPair.exportPublicKeyInPem(),
-      `${account.alias}_public_key.pem`
-    );
-    saveToFile(
-      account.KeyPair.publicKey.toAccountHex(),
-      `${account.alias}_public_key_hex.txt`
-    );
+    let accountKeys = this.getAccountFromAlias(accountAlias);
+
+    if (accountKeys) {
+      saveToFile(
+        accountKeys.exportPrivateKeyInPem(),
+        `${accountAlias}_secret_key.pem`
+      );
+      saveToFile(
+        accountKeys.exportPublicKeyInPem(),
+        `${accountAlias}_public_key.pem`
+      );
+      saveToFile(
+        accountKeys.publicKey.toAccountHex(),
+        `${accountAlias}_public_key_hex.txt`
+      );
+    }
   }
 
   /**

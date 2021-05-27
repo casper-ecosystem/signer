@@ -35,6 +35,7 @@ import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
 import { KeyPairWithAlias } from '../../@types/models';
 import { PublicKey } from 'casper-client-sdk';
+import { GetApp } from '@material-ui/icons';
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
   // styles we need to apply on draggables
@@ -94,6 +95,10 @@ class AccountManagementPage extends React.Component<Props, State> {
       accountHash: hash,
       openKeyDialog: true
     });
+  };
+
+  handleDownloadKeys = async (alias: string) => {
+    return await this.props.authContainer.downloadPemFiles(alias);
   };
 
   handleCopyMessage = (event?: React.SyntheticEvent, reason?: string) => {
@@ -212,6 +217,16 @@ class AccountManagementPage extends React.Component<Props, State> {
                                       }}
                                     >
                                       <VpnKeyIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Download">
+                                    <IconButton
+                                      edge={'end'}
+                                      onClick={() => {
+                                        this.handleDownloadKeys(item.alias);
+                                      }}
+                                    >
+                                      <GetApp />
                                     </IconButton>
                                   </Tooltip>
                                 </ListItemSecondaryAction>

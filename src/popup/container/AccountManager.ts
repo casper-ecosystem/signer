@@ -65,15 +65,15 @@ class AccountManager {
     return this.appState.userAccounts;
   }
 
-  async downloadPemFiles(account: KeyPairWithAlias) {
+  async downloadPemFiles(accountAlias: string) {
     // Save the secret and public keys to disk.
-    this.backgroundManager.downloadAccountKeys(account);
+    this.backgroundManager.downloadAccountKeys(accountAlias);
   }
 
   async downloadActiveKey() {
     let userAccount = await this.backgroundManager.getSelectUserAccount();
     // Save the secret and public keys to disk.
-    this.downloadPemFiles(userAccount);
+    this.downloadPemFiles(userAccount.alias);
   }
 
   async getSelectedAccountKey(acctName: string) {
