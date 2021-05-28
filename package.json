@@ -1,6 +1,6 @@
 {
   "name": "casperlabs-signer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "dependencies": {
     "@extend-chrome/storage": "^1.4.3",
