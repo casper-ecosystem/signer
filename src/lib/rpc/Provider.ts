@@ -69,4 +69,8 @@ export function setupInjectPageAPIServer(
     'removeSite',
     connectionManager.removeSite.bind(connectionManager)
   );
+  rpc.register(
+    'getVersion',
+    connectionManager.getVersion.bind(connectionManager)
+  );
 }

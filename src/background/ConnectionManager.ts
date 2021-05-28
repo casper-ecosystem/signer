@@ -119,6 +119,10 @@ export default class ConnectionManager {
     this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
   }
 
+  public getVersion() {
+    return chrome.runtime.getManifest().version;
+  }
+
   private getActiveTab(): Promise<string | null> {
     return new Promise((resolve, reject) => {
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, tabs => {
