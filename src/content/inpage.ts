@@ -34,6 +34,10 @@ class CasperLabsPluginHelper {
   async getActivePublicKey() {
     return this.call<string>('getActivePublicKey');
   }
+
+  async getVersion() {
+    return this.call<string>('getVersion');
+  }
 }
 
 // inject to window, so that Clarity code could use it.
