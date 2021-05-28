@@ -44,14 +44,7 @@ export function setupInjectPageAPIServer(
     destination: 'page',
     source: 'background'
   });
-  rpc.register(
-    'sign',
-    signMessageManager.addUnsignedMessageBase16Async.bind(signMessageManager)
-  );
-  rpc.register(
-    'getSelectedPublicKeyBase64',
-    signMessageManager.getSelectedPublicKeyBase64.bind(signMessageManager)
-  );
+  rpc.register('sign', signMessageManager.signDeploy.bind(signMessageManager));
   rpc.register(
     'getActivePublicKey',
     signMessageManager.getActivePublicKey.bind(signMessageManager)
@@ -71,5 +64,9 @@ export function setupInjectPageAPIServer(
   rpc.register(
     'disconnectFromSite',
     connectionManager.disconnectFromSite.bind(connectionManager)
+  );
+  rpc.register(
+    'removeSite',
+    connectionManager.removeSite.bind(connectionManager)
   );
 }

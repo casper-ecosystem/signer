@@ -66,6 +66,18 @@ async function setupPopupAPIServer() {
     accountController.getSelectUserAccount.bind(accountController)
   );
   rpc.register(
+    'account.getActivePublicKeyHex',
+    accountController.getActivePublicKeyHex.bind(accountController)
+  );
+  rpc.register(
+    'account.getActiveAccountHash',
+    accountController.getActiveAccountHash.bind(accountController)
+  );
+  rpc.register(
+    'account.downloadAccountKeys',
+    accountController.downloadAccountKeys.bind(accountController)
+  );
+  rpc.register(
     'account.resetVault',
     accountController.resetVault.bind(accountController)
   );
@@ -77,12 +89,16 @@ async function setupPopupAPIServer() {
     return appState;
   });
   rpc.register(
-    'sign.signMessage',
-    signMessageManager.approveMsg.bind(signMessageManager)
+    'sign.signDeploy',
+    signMessageManager.approveSignDeploy.bind(signMessageManager)
   );
   rpc.register(
-    'sign.rejectMessage',
-    signMessageManager.rejectMsg.bind(signMessageManager)
+    'sign.rejectSignDeploy',
+    signMessageManager.rejectSignDeploy.bind(signMessageManager)
+  );
+  rpc.register(
+    'sign.parseDeployData',
+    signMessageManager.parseDeployData.bind(signMessageManager)
   );
   rpc.register(
     'connection.requestConnection',
@@ -99,5 +115,9 @@ async function setupPopupAPIServer() {
   rpc.register(
     'connection.disconnectFromSite',
     connectionManager.disconnectFromSite.bind(connectionManager)
+  );
+  rpc.register(
+    'connection.removeSite',
+    connectionManager.removeSite.bind(connectionManager)
   );
 }

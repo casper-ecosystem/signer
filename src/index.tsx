@@ -27,7 +27,6 @@ const authContainer = new AccountManager(
   appState
 );
 const signMessageContainer = new SignMessageContainer(
-  errorsContainer,
   backgroundManager,
   appState
 );

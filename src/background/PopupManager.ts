@@ -26,7 +26,7 @@ export default class PopupManager {
               ? 'index.html?#/import'
               : 'index.html?#/',
           type: 'popup',
-          height: 480,
+          height: openFor === 'sign' ? 820 : 480,
           width: 300,
           left: windowWidth + xOffset - popupWidth - bufferRight,
           top: yOffset + bufferTop

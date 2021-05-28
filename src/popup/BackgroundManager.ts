@@ -3,7 +3,8 @@ import { Rpc } from '../lib/rpc/rpc';
 import { AppState } from '../lib/MemStore';
 import { action } from 'mobx';
 import ErrorContainer from './container/ErrorContainer';
-import { SerializedSignKeyPairWithAlias } from '../background/AuthController';
+import { KeyPairWithAlias } from '../@types/models';
+import { DeployData } from '../background/SignMessageManager';
 
 export class BackgroundManager {
   private rpc: Rpc;
@@ -26,13 +27,15 @@ export class BackgroundManager {
 
   @action.bound
   private onStateUpdate(appState: AppState) {
+    console.log(appState);
     this.appState.isUnlocked = appState.isUnlocked;
-    this.appState.connectionStatus = appState.connectionStatus;
+    this.appState.currentTab = appState.currentTab;
     this.appState.connectionRequested = appState.connectionRequested;
+    this.appState.connectedSites = appState.connectedSites;
     this.appState.hasCreatedVault = appState.hasCreatedVault;
     this.appState.selectedUserAccount = appState.selectedUserAccount;
     this.appState.userAccounts.replace(appState.userAccounts);
-    this.appState.toSignMessages.replace(appState.toSignMessages);
+    this.appState.unsignedDeploys.replace(appState.unsignedDeploys);
   }
 
   public unlock(password: string) {
@@ -49,9 +52,18 @@ export class BackgroundManager {
     return this.rpc.call<void>('account.lock');
   }
 
-  public importUserAccount(name: string, privateKey: string) {
+  public importUserAccount(
+    name: string,
+    secretKeyBase64: string,
+    algorithm: string
+  ) {
     return this.errors.withCapture(
-      this.rpc.call<void>('account.importUserAccount', name, privateKey)
+      this.rpc.call<void>(
+        'account.importUserAccount',
+        name,
+        secretKeyBase64,
+        algorithm
+      )
     );
   }
 
@@ -67,15 +79,21 @@ export class BackgroundManager {
     );
   }
 
-  public signMessage(msgId: number) {
+  public signDeploy(deployId: number) {
     return this.errors.withCapture(
-      this.rpc.call<void>('sign.signMessage', msgId)
+      this.rpc.call<void>('sign.signDeploy', deployId)
     );
   }
 
-  public rejectSignMessage(msgId: number) {
+  public rejectSignDeploy(deployId: number) {
     return this.errors.withCapture(
-      this.rpc.call<void>('sign.rejectMessage', msgId)
+      this.rpc.call<void>('sign.rejectSignDeploy', deployId)
+    );
+  }
+
+  public parseDeployData(deployId: number) {
+    return this.errors.withCapture(
+      this.rpc.call<DeployData>('sign.parseDeployData', deployId)
     );
   }
 
@@ -87,9 +105,19 @@ export class BackgroundManager {
 
   public getSelectUserAccount() {
     return this.errors.withCapture(
-      this.rpc.call<SerializedSignKeyPairWithAlias>(
-        'account.getSelectUserAccount'
-      )
+      this.rpc.call<KeyPairWithAlias>('account.getSelectUserAccount')
+    );
+  }
+
+  public getActivePublicKeyHex() {
+    return this.errors.withCapture(
+      this.rpc.call<string>('account.getActivePublicKeyHex')
+    );
+  }
+
+  public getActiveAccountHash() {
+    return this.errors.withCapture(
+      this.rpc.call<string>('account.getActiveAccountHash')
     );
   }
 
@@ -103,15 +131,26 @@ export class BackgroundManager {
     );
   }
 
-  public connectToSite() {
+  public downloadAccountKeys(accountAlias: string) {
     return this.errors.withCapture(
-      this.rpc.call<void>('connection.connectToSite')
+      this.rpc.call<void>('account.downloadAccountKeys', accountAlias)
+    );
+  }
+  public connectToSite(url?: string) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('connection.connectToSite', url)
     );
   }
 
-  public disconnectFromSite() {
+  public disconnectFromSite(site?: string) {
     return this.errors.withCapture(
-      this.rpc.call<void>('connection.disconnectFromSite')
+      this.rpc.call<void>('connection.disconnectFromSite', site)
+    );
+  }
+
+  public removeSite(url: string) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('connection.removeSite', url)
     );
   }
 
