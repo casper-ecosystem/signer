@@ -8,6 +8,9 @@ import { action, computed, observable } from 'mobx';
 import { encodeBase64 } from 'tweetnacl-util';
 import ErrorContainer from './ErrorContainer';
 import { Keys } from 'casper-client-sdk';
+import ASN1 from '@lapo/asn1js';
+import Base64 from '@lapo/asn1js/base64';
+import Hex from '@lapo/asn1js/hex';
 export interface SubmittableFormData {
   submitDisabled: boolean;
   resetFields: () => void;
@@ -24,7 +27,23 @@ export class ImportAccountFormData implements SubmittableFormData {
   name: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
+  reHex = /^\s*(?:[0-9A-Fa-f][0-9A-Fa-f]\s*)+$/;
+  //prettier-ignore
+  ed25519DerPrefix = Buffer.from([48, 46, 2, 1, 0, 48, 5, 6, 3, 43, 101, 112, 4, 34, 4, 32]);
   @observable file: File | null = null;
+
+  private decodeText(val: any) {
+    try {
+      var der: Uint8Array = this.reHex.test(val)
+        ? Hex.decode(val)
+        : Base64.unarmor(val);
+      // if (der.slice(0, 15) === this.ed25519DerPrefix) return 'ed25519';
+      var decoded = ASN1.decode(der);
+      console.log(decoded.toPrettyString());
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   private checkFileContent(fileContent: string) {
     if (!fileContent) {
@@ -66,6 +85,8 @@ export class ImportAccountFormData implements SubmittableFormData {
               );
             } else {
               let pem, parsedKey;
+              console.log(fileContents);
+              this.decodeText(fileContents);
               try {
                 switch (this.algorithm.$) {
                   case 'ed25519': {
@@ -84,7 +105,11 @@ export class ImportAccountFormData implements SubmittableFormData {
                 }
                 this.secretKeyBase64.onChange(encodeBase64(parsedKey));
               } catch (e) {
-                console.log('ERROR', e);
+                this.errors.capture(
+                  Promise.reject(
+                    new Error('Key did not match selected algorithm')
+                  )
+                );
               }
             }
           }
