@@ -11,12 +11,12 @@ import {
 import ErrorContainer from '../container/ErrorContainer';
 import {
   Button,
-  // Checkbox,
+  Checkbox,
   createStyles,
   Theme,
   Typography,
   WithStyles,
-  // FormControlLabel,
+  FormControlLabel,
   FormControl,
   Box,
   InputLabel,
@@ -177,10 +177,7 @@ class AccountPage extends React.Component<
                 type="file"
                 style={{ display: 'none' }}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  // form.handleFileSelect(e)
-                  {
-                    return;
-                  }
+                  form.handleFileSelect(e)
                 }
               />
             </Button>
@@ -292,10 +289,6 @@ class AccountPage extends React.Component<
           id="import-name"
           fieldState={this.accountForm.name}
         />
-        {/* 
-          TODO: Uncomment the below FormControl and delete the subsequent
-          TextFieldWithFormState when SECP256k1 generation is fixed
-        */}
         <FormControl fullWidth>
           <InputLabel id="algo-select-lbl">Algorithm</InputLabel>
           <SelectFieldWithFormState
