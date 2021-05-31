@@ -85,6 +85,12 @@ export class ImportAccountFormData implements SubmittableFormData {
                 this.secretKeyBase64.onChange(encodeBase64(parsedKey));
               } catch (e) {
                 console.log('ERROR', e);
+                this.errors.capture(
+                  Promise.reject({
+                    message:
+                      'Key did not match selected algorithm, please close/refresh to try again.'
+                  })
+                );
               }
             }
           }
