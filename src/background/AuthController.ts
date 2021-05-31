@@ -414,10 +414,12 @@ class AuthController {
     let encryptedVault = await this.getStoredValueWithKey(
       this.encryptedVaultKey
     );
+    console.log("VAULT", encryptedVault);
     if (!encryptedVault) {
       throw new Error('There is no vault');
     }
     let storedSalt = await this.getStoredValueWithKey(this.saltKey);
+    console.log("STORED SALT", storedSalt);
     let [, saltedPassword] = this.saltPassword(password, storedSalt);
     let saltedPasswordHash = this.hash(saltedPassword);
 
@@ -464,7 +466,8 @@ class AuthController {
    */
   private hash(bytes: Uint8Array) {
     let hashedBytes = nacl.hash(bytes);
-    return encodeBase16(hashedBytes);
+    console.log(encodeBase64(hashedBytes));
+    return encodeBase64(hashedBytes);
   }
 
   /*
