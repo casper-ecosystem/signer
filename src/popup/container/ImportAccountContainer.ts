@@ -66,22 +66,26 @@ export class ImportAccountFormData implements SubmittableFormData {
               );
             } else {
               let pem, parsedKey;
-              switch (this.algorithm.$) {
-                case 'ed25519': {
-                  pem = Keys.Ed25519.readBase64WithPEM(fileContents);
-                  parsedKey = Keys.Ed25519.parsePrivateKey(pem);
-                  break;
+              try {
+                switch (this.algorithm.$) {
+                  case 'ed25519': {
+                    pem = Keys.Ed25519.readBase64WithPEM(fileContents);
+                    parsedKey = Keys.Ed25519.parsePrivateKey(pem);
+                    break;
+                  }
+                  case 'secp256k1': {
+                    pem = Keys.Secp256K1.readBase64WithPEM(fileContents);
+                    parsedKey = Keys.Secp256K1.parsePrivateKey(pem);
+                    break;
+                  }
+                  default: {
+                    throw new Error('Invalid algorithm selected');
+                  }
                 }
-                case 'secp256k1': {
-                  pem = Keys.Secp256K1.readBase64WithPEM(fileContents);
-                  parsedKey = Keys.Secp256K1.parsePrivateKey(pem);
-                  break;
-                }
-                default: {
-                  throw new Error('Invalid algorithm selected');
-                }
+                this.secretKeyBase64.onChange(encodeBase64(parsedKey));
+              } catch (e) {
+                console.log('ERROR', e);
               }
-              this.secretKeyBase64.onChange(encodeBase64(parsedKey));
             }
           }
         } else {
