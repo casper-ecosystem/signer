@@ -10,7 +10,6 @@ import ErrorContainer from './ErrorContainer';
 import { Keys } from 'casper-client-sdk';
 import KeyEncoder from 'key-encoder';
 import ec from 'elliptic';
-import keyEncoder from 'key-encoder';
 export interface SubmittableFormData {
   submitDisabled: boolean;
   resetFields: () => void;
@@ -50,6 +49,7 @@ export class ImportAccountFormData implements SubmittableFormData {
       const reader = new FileReader();
       reader.readAsText(this.file);
       reader.onload = e => {
+        console.log("E", e);
         const fileContents = reader.result as string;
         const errorMsg = this.checkFileContent(fileContents);
         if (errorMsg === null) {
@@ -69,7 +69,13 @@ export class ImportAccountFormData implements SubmittableFormData {
               );
             } else {
               console.log(fileContents);
-              keyEncoder = new KeyEncoder('secp256k1');
+
+              // There should be if with algorithm
+              const pem = Keys.Secp256K1.readBase64WithPEM(fileContents);
+              const myKey = Keys.Secp256K1.parsePrivateKey(pem);
+              console.log('myKey', myKey, this.algorithm);
+              // const myKey = Keys.Ed25519.readBase64WithPEM(fileContents);
+              // keyEncoder = new KeyEncoder('secp256k1');
               // this.secretKeyBase64.onChange('noKey');
             }
           }
