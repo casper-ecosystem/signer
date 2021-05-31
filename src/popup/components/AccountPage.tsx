@@ -11,12 +11,12 @@ import {
 import ErrorContainer from '../container/ErrorContainer';
 import {
   Button,
-  Checkbox,
+  // Checkbox,
   createStyles,
   Theme,
   Typography,
   WithStyles,
-  FormControlLabel,
+  // FormControlLabel,
   FormControl,
   Box,
   InputLabel,
@@ -48,11 +48,13 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   action: 'Import' | 'Create';
 }
 
+interface State {
+  keyDownloadEnabled: boolean;
+  algoAnchorEl: HTMLButtonElement | null;
+}
+
 @observer
-class AccountPage extends React.Component<
-  Props,
-  { keyDownloadEnabled: boolean; algoAnchorEl: HTMLButtonElement | null }
-> {
+class AccountPage extends React.Component<Props, State> {
   @observable accountForm: ImportAccountFormData | CreateAccountFormData;
 
   private popupManager: PopupManager;
@@ -153,46 +155,17 @@ class AccountPage extends React.Component<
     const form = this.accountForm as ImportAccountFormData;
     return (
       <form className={this.props.classes.root}>
-        <FormControl>
-          <Typography id="continuous-slider" variant="h6" gutterBottom>
-            Import from Secret Key File
-          </Typography>
-          <Box
-            display={'flex'}
-            flexDirection={'row'}
-            alignItems={'center'}
-            m={1}
-          >
-            <Button
-              id={'private-key-uploader'}
-              variant="contained"
-              style={{
-                backgroundColor: 'var(--cspr-dark-blue)',
-                color: 'white'
-              }}
-              component="label"
-            >
-              Upload
-              <input
-                type="file"
-                style={{ display: 'none' }}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  form.handleFileSelect(e)
-                }
-              />
-            </Button>
-            <Box ml={1}>
-              <Typography component={'span'}>
-                <Box fontSize={12}>
-                  {form.file ? form.file.name : 'No file selected'}
-                </Box>
-              </Typography>
-            </Box>
-          </Box>
-        </FormControl>
+        <Typography id="continuous-slider" variant="h6" gutterBottom>
+          Import from Secret Key File
+        </Typography>
         <Box>
-          <FormControl style={{ width: '80%' }}>
-            <InputLabel id="algo-select-lbl">Algorithm</InputLabel>
+          <FormControl
+            style={{
+              width: '80%',
+              marginBottom: '1rem'
+            }}
+          >
+            <InputLabel id="algo-select-lbl">Select algorithm</InputLabel>
             <SelectFieldWithFormState
               fullWidth
               labelId="algo-select-lbl"
@@ -243,9 +216,48 @@ class AccountPage extends React.Component<
             </Popover>
           )}
         </Box>
+        <FormControl>
+          <Box
+            display={'flex'}
+            flexDirection={'row'}
+            alignItems={'center'}
+            m={1}
+          >
+            <Button
+              id={'private-key-uploader'}
+              variant="contained"
+              style={{
+                backgroundColor: 'var(--cspr-dark-blue)',
+                color: 'white'
+              }}
+              component="label"
+            >
+              Upload
+              <input
+                disabled={!form.algorithm.$}
+                type="file"
+                style={{ display: 'none' }}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  form.handleFileSelect(e)
+                }
+              />
+            </Button>
+            <Box ml={1}>
+              <Typography component={'span'}>
+                <Box fontSize={12}>
+                  {form.file
+                    ? form.file.name
+                    : form.algorithm.$
+                    ? 'No file selected'
+                    : 'Please select algorithm first'}
+                </Box>
+              </Typography>
+            </Box>
+          </Box>
+        </FormControl>
         <TextFieldWithFormState
           fullWidth
-          label="Name"
+          label="Name imported account"
           placeholder="Human Readable Alias"
           id="import-name"
           fieldState={this.accountForm.name}
