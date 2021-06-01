@@ -151,6 +151,17 @@ export default class SignMessageManager extends events.EventEmitter {
     publicKey: string // hex-encoded PublicKey bytes with algo prefix
   ): Promise<any> {
     return new Promise((resolve, reject) => {
+      // TODO: Need to abstract it to reusable method
+      const { currentTab, connectedSites } = this.appState;
+      const connected =
+        currentTab &&
+        connectedSites.some(
+          site => site.url === currentTab.url && site.isConnected
+        );
+      if (!connected) {
+        return reject('This site is not connected');
+      }
+
       // Adding the deploy to the queue will update the extension state and UI
       const deployId = this.addUnsignedDeployToQueue(deploy, publicKey);
       this.popupManager.openPopup('sign');
