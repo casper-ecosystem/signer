@@ -167,7 +167,7 @@ class Home extends React.Component<Props, {}> {
           )}
 
           <Grid item>
-            {/* <FormControl fullWidth className={this.props.classes.margin}>
+            <FormControl fullWidth className={this.props.classes.margin}>
               <Button
                 aria-label="This will open a new window to import a key to your vault"
                 component={Link}
@@ -184,8 +184,7 @@ class Home extends React.Component<Props, {}> {
               >
                 Import Account
               </Button>
-            </FormControl> */}
-
+            </FormControl>
             <FormControl fullWidth className={this.props.classes.margin}>
               <Button
                 aria-label="This will open a form to create an account - focus will be given to the input field for key name"
