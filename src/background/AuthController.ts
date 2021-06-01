@@ -48,6 +48,15 @@ class AuthController {
     if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
       this.appState.hasCreatedVault = true;
     }
+
+    this.initStore();
+  }
+
+  async initStore() {
+    const passwordSalt = await this.getStoredValueWithKey(this.saltKey);
+    if (passwordSalt) {
+      this.passwordSalt = passwordSalt;
+    }
   }
 
   @action.bound
