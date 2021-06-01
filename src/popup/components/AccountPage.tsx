@@ -240,11 +240,7 @@ class AccountPage extends React.Component<Props, State> {
             <Box ml={1}>
               <Typography component={'span'}>
                 <Box fontSize={12}>
-                  {form.file
-                    ? form.file.name
-                    : form.algorithm.$
-                    ? 'No file selected'
-                    : 'Please select algorithm first'}
+                  {form.file ? form.file.name : 'No file selected'}
                 </Box>
               </Typography>
             </Box>
