@@ -136,13 +136,22 @@ class AccountPage extends React.Component<Props, State> {
     await this.props.authContainer.importUserAccount(
       this.accountForm.name.$,
       this.accountForm.secretKeyBase64.value,
-      this.accountForm.algorithmType!
+      this.accountForm.algorithm.$
     );
     this.props.history.push(Pages.Home);
     this.props.history.replace(Pages.Home);
   }
 
   renderImportForm() {
+    const showAlgoHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
+      this.setState({ algoAnchorEl: event.currentTarget });
+    };
+    const helpOpen = Boolean(showAlgoHelp);
+    const helpId = helpOpen ? 'algo-helper' : undefined;
+    const helpClose = () => {
+      this.setState({ algoAnchorEl: null });
+    };
+
     const form = this.accountForm as ImportAccountFormData;
     return (
       <form className={this.props.classes.root}>
@@ -236,7 +245,11 @@ class AccountPage extends React.Component<Props, State> {
             <Box ml={1}>
               <Typography component={'span'}>
                 <Box fontSize={12}>
-                  {form.file ? form.file.name : 'No file selected'}
+                  {form.file
+                    ? form.file.name
+                    : form.algorithm.$
+                    ? 'No file selected'
+                    : 'Please select algorithm first'}
                 </Box>
               </Typography>
             </Box>
