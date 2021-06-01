@@ -144,6 +144,8 @@ class AuthController {
     }
     const secretKeyBytes = decodeBase64(secretKeyBase64);
     let secretKey, publicKey, keyPair: Keys.Ed25519 | Keys.Secp256K1;
+    console.log('AAA', algorithm);
+
     switch (algorithm) {
       case 'ed25519': {
         secretKey = Keys.Ed25519.parsePrivateKey(secretKeyBytes);
