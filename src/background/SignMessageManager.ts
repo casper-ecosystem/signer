@@ -265,10 +265,14 @@ export default class SignMessageManager extends events.EventEmitter {
         ? 'Contract Call'
         : 'Contract Deployment';
 
+      console.log('TYPE', type);
+
       const amount = deploy.deploy.session.transfer
         ?.getArgByName('amount')!
         .asBigNumber()
         .toString();
+
+      console.log('!amount', amount);
 
       const transferId = deploy.deploy.session.transfer
         ?.getArgByName('id')!
@@ -277,9 +281,13 @@ export default class SignMessageManager extends events.EventEmitter {
         .asBigNumber()
         .toString();
 
-      let target = encodeBase16(
-        deploy.deploy.session.transfer?.getArgByName('target')!.asBytesArray()!
-      );
+      console.log('!id', transferId);
+
+      const targetBytes = deploy.deploy.session.transfer
+        ?.getArgByName('target')!
+        .asBytesArray()!;
+
+      let target = targetBytes ? encodeBase16(targetBytes) : '';
 
       return {
         deployHash: encodeBase16(deploy.deploy.hash),
