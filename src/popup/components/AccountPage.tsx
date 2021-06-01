@@ -11,19 +11,14 @@ import {
 import ErrorContainer from '../container/ErrorContainer';
 import {
   Button,
-  // Checkbox,
   createStyles,
   Theme,
   Typography,
   WithStyles,
-  // FormControlLabel,
   FormControl,
   Box,
-  InputLabel,
-  Popover,
-  IconButton
+  InputLabel
 } from '@material-ui/core';
-import HelpIcon from '@material-ui/icons/Help';
 import { SelectFieldWithFormState, TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { decodeBase16, decodeBase64, Keys } from 'casper-client-sdk';
@@ -143,14 +138,14 @@ class AccountPage extends React.Component<Props, State> {
   }
 
   renderImportForm() {
-    const showAlgoHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
-      this.setState({ algoAnchorEl: event.currentTarget });
-    };
-    const helpOpen = Boolean(showAlgoHelp);
-    const helpId = helpOpen ? 'algo-helper' : undefined;
-    const helpClose = () => {
-      this.setState({ algoAnchorEl: null });
-    };
+    // const showAlgoHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
+    //   this.setState({ algoAnchorEl: event.currentTarget });
+    // };
+    // const helpOpen = Boolean(showAlgoHelp);
+    // const helpId = helpOpen ? 'algo-helper' : undefined;
+    // const helpClose = () => {
+    // this.setState({ algoAnchorEl: null });
+    // };
 
     const form = this.accountForm as ImportAccountFormData;
     return (

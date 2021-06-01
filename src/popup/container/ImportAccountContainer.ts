@@ -56,13 +56,13 @@ export class ImportAccountFormData implements SubmittableFormData {
           );
         }
         if (algorithmCheck === 'curveEd25519') {
-          this.algorithm.$ = 'ed25519';
+          this.algorithm.onChange('ed25519');
           let hexKey = decoded.toPrettyString().split('\n')[4].split('|')[1];
-          this.secretKeyBase64.$ = encodeBase64(decodeBase16(hexKey));
+          this.secretKeyBase64.onChange(encodeBase64(decodeBase16(hexKey)));
         } else {
-          this.algorithm.$ = algorithmCheck;
+          this.algorithm.onChange(algorithmCheck);
           let hexKey = decoded.toPrettyString().split('\n')[2].split('|')[1];
-          this.secretKeyBase64.$ = encodeBase64(decodeBase16(hexKey));
+          this.secretKeyBase64.onChange(encodeBase64(decodeBase16(hexKey)));
         }
       } catch (err) {
         console.log(err);
@@ -113,9 +113,6 @@ export class ImportAccountFormData implements SubmittableFormData {
             } else {
               try {
                 this.parseAlgorithm(fileContents);
-                console.log(
-                  `Algorithm: ${this.algorithm.$}\n Key: ${this.secretKeyBase64.$}`
-                );
               } catch (e) {
                 this.errors.capture(
                   Promise.reject(new Error('Failed to parse key'))
