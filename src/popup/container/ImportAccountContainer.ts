@@ -16,8 +16,6 @@ export interface SubmittableFormData {
   resetFields: () => void;
 }
 
-type Algorithms = 'ed25519' | 'secp256k1';
-
 export class ImportAccountFormData implements SubmittableFormData {
   secretKeyBase64: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
@@ -26,8 +24,6 @@ export class ImportAccountFormData implements SubmittableFormData {
     valueRequired,
     isAlgorithm
   );
-  algorithmType: Algorithms | undefined = undefined;
-
   name: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
@@ -43,7 +39,7 @@ export class ImportAccountFormData implements SubmittableFormData {
         : Base64.unarmor(val);
       // if (der.slice(0, 15) === this.ed25519DerPrefix) return 'ed25519';
       const decoded = ASN1.decode(der);
-      const pretty = decoded.toPrettyString().replace(/(\r\n|\n|\r)/gm, '');
+      const pretty = decoded.toPrettyString().replace(/(\r\n|\n|\r)/gm, "");
       if (pretty.search('secp256k1') > -1) return 'secp256k1';
       if (pretty.search('curveEd25519') > -1) return 'ed25519';
     } catch (e) {
@@ -92,7 +88,6 @@ export class ImportAccountFormData implements SubmittableFormData {
             } else {
               let pem, parsedKey;
               const type = this.decodeText(fileContents);
-              this.algorithmType = type;
               switch (type) {
                 case 'ed25519': {
                   pem = Keys.Ed25519.readBase64WithPEM(fileContents);
@@ -121,14 +116,16 @@ export class ImportAccountFormData implements SubmittableFormData {
   @computed
   get submitDisabled(): boolean {
     return !(
-      fieldSubmittable(this.secretKeyBase64) && fieldSubmittable(this.name)
+      fieldSubmittable(this.secretKeyBase64) &&
+      fieldSubmittable(this.name) &&
+      fieldSubmittable(this.algorithm)
     );
   }
 
   @action
   resetFields() {
     this.secretKeyBase64.reset();
-    this.algorithmType = undefined;
+    this.algorithm.reset();
     this.name.reset();
   }
 }

@@ -136,19 +136,86 @@ class AccountPage extends React.Component<Props, State> {
     await this.props.authContainer.importUserAccount(
       this.accountForm.name.$,
       this.accountForm.secretKeyBase64.value,
-      this.accountForm.algorithmType!
+      this.accountForm.algorithm.$
     );
     this.props.history.push(Pages.Home);
     this.props.history.replace(Pages.Home);
   }
 
   renderImportForm() {
+    const showAlgoHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
+      this.setState({ algoAnchorEl: event.currentTarget });
+    };
+    const helpOpen = Boolean(showAlgoHelp);
+    const helpId = helpOpen ? 'algo-helper' : undefined;
+    const helpClose = () => {
+      this.setState({ algoAnchorEl: null });
+    };
+
     const form = this.accountForm as ImportAccountFormData;
     return (
       <form className={this.props.classes.root}>
         <Typography id="continuous-slider" variant="h6" gutterBottom>
           Import from Secret Key File
         </Typography>
+        <Box>
+          <FormControl
+            style={{
+              width: '80%',
+              marginBottom: '1rem'
+            }}
+          >
+            <InputLabel id="algo-select-lbl">Select algorithm</InputLabel>
+            <SelectFieldWithFormState
+              fullWidth
+              labelId="algo-select-lbl"
+              fieldState={this.accountForm.algorithm}
+              selectItems={[
+                { value: 'ed25519', text: 'ED25519' },
+                { value: 'secp256k1', text: 'SECP256k1' }
+              ]}
+            />
+          </FormControl>
+          <IconButton onClick={showAlgoHelp} style={{ float: 'right' }}>
+            <HelpIcon />
+          </IconButton>
+          {this.state.algoAnchorEl && (
+            <Popover
+              id={helpId}
+              open={helpOpen}
+              anchorEl={this.state.algoAnchorEl}
+              onClose={helpClose}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right'
+              }}
+              transformOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right'
+              }}
+            >
+              <Typography
+                component={'summary'}
+                style={{
+                  padding: '1.4em',
+                  backgroundColor: 'var(--cspr-dark-blue)',
+                  color: 'white'
+                }}
+              >
+                <b>Which algorithm?</b>
+                <br />
+                Open your <code>public_key_hex</code> file which should be in
+                the same location as the secret key file.
+                <br />
+                If the key starts with:
+                <ul>
+                  <li>01: ED25519</li>
+                  <li>02: SECP256k1</li>
+                </ul>
+              </Typography>
+            </Popover>
+          )}
+        </Box>
         <FormControl>
           <Box
             display={'flex'}
@@ -167,6 +234,7 @@ class AccountPage extends React.Component<Props, State> {
             >
               Upload
               <input
+                disabled={!form.algorithm.$}
                 type="file"
                 style={{ display: 'none' }}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -177,7 +245,11 @@ class AccountPage extends React.Component<Props, State> {
             <Box ml={1}>
               <Typography component={'span'}>
                 <Box fontSize={12}>
-                  {form.file ? form.file.name : 'No file selected'}
+                  {form.file
+                    ? form.file.name
+                    : form.algorithm.$
+                    ? 'No file selected'
+                    : 'Please select algorithm first'}
                 </Box>
               </Typography>
             </Box>
