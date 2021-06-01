@@ -226,11 +226,6 @@ export default class SignMessageManager extends events.EventEmitter {
       deployData.signingKey &&
       activeKeyPair.publicKey.toAccountHex() !== deployData.signingKey
     ) {
-      console.log(
-        '!',
-        activeKeyPair.publicKey.toAccountHex(),
-        deployData.signingKey
-      );
       deployData.status = 'failed';
       deployData.error = new Error('Active key changed during signing');
       this.saveAndEmitEventIfNeeded(deployData);

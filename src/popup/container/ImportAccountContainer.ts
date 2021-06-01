@@ -65,10 +65,10 @@ export class ImportAccountFormData implements SubmittableFormData {
           this.secretKeyBase64.onChange(encodeBase64(decodeBase16(hexKey)));
         }
       } catch (err) {
-        console.log(err);
+        this.errors.capture(Promise.reject(err));
       }
     } catch (e) {
-      console.error(e);
+      this.errors.capture(Promise.reject(e));
     }
   }
 
