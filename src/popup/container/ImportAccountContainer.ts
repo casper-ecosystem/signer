@@ -34,13 +34,12 @@ export class ImportAccountFormData implements SubmittableFormData {
 
   private decodeText(val: any): 'secp256k1' | 'ed25519' | undefined {
     try {
-      var der: Uint8Array = this.reHex.test(val)
+      const der: Uint8Array = this.reHex.test(val)
         ? Hex.decode(val)
         : Base64.unarmor(val);
       // if (der.slice(0, 15) === this.ed25519DerPrefix) return 'ed25519';
-      var decoded = ASN1.decode(der);
+      const decoded = ASN1.decode(der);
       const pretty = decoded.toPrettyString().replace(/(\r\n|\n|\r)/gm, "");
-      console.log(pretty);
       if (pretty.search('secp256k1') > -1) return 'secp256k1';
       if (pretty.search('curveEd25519') > -1) return 'ed25519';
     } catch (e) {
@@ -89,7 +88,6 @@ export class ImportAccountFormData implements SubmittableFormData {
             } else {
               let pem, parsedKey;
               const type = this.decodeText(fileContents);
-              console.log(fileContents, type);
               switch (type) {
                 case 'ed25519': {
                   pem = Keys.Ed25519.readBase64WithPEM(fileContents);
