@@ -7,7 +7,7 @@ import {
 import { action, computed, observable } from 'mobx';
 import { encodeBase64 } from 'tweetnacl-util';
 import ErrorContainer from './ErrorContainer';
-import { Keys } from 'casper-client-sdk';
+import { decodeBase16, Keys } from 'casper-client-sdk';
 import ASN1 from '@lapo/asn1js';
 import Base64 from '@lapo/asn1js/base64';
 import Hex from '@lapo/asn1js/hex';
@@ -28,18 +28,45 @@ export class ImportAccountFormData implements SubmittableFormData {
     valueRequired
   );
   reHex = /^\s*(?:[0-9A-Fa-f][0-9A-Fa-f]\s*)+$/;
-  //prettier-ignore
-  ed25519DerPrefix = Buffer.from([48, 46, 2, 1, 0, 48, 5, 6, 3, 43, 101, 112, 4, 34, 4, 32]);
   @observable file: File | null = null;
 
-  private decodeText(val: any) {
+  private parseAlgorithm(val: any) {
+    let decoded;
     try {
       var der: Uint8Array = this.reHex.test(val)
         ? Hex.decode(val)
         : Base64.unarmor(val);
-      // if (der.slice(0, 15) === this.ed25519DerPrefix) return 'ed25519';
-      var decoded = ASN1.decode(der);
-      console.log(decoded.toPrettyString());
+      decoded = ASN1.decode(der);
+      let algorithmCheck: string;
+
+      // Get the algorithm
+      try {
+        // for Ed25519
+        algorithmCheck = decoded.toPrettyString().split('\n')[3].split('|')[1];
+        if (!algorithmCheck) {
+          // for Secp256k1
+          algorithmCheck = decoded
+            .toPrettyString()
+            .split('\n')[4]
+            .split('|')[1];
+        }
+        if (!algorithmCheck) {
+          this.errors.capture(
+            Promise.reject('Could not parse algorithm from DER encoding')
+          );
+        }
+        if (algorithmCheck === 'curveEd25519') {
+          this.algorithm.$ = 'ed25519';
+          let hexKey = decoded.toPrettyString().split('\n')[4].split('|')[1];
+          this.secretKeyBase64.$ = encodeBase64(decodeBase16(hexKey));
+        } else {
+          this.algorithm.$ = algorithmCheck;
+          let hexKey = decoded.toPrettyString().split('\n')[2].split('|')[1];
+          this.secretKeyBase64.$ = encodeBase64(decodeBase16(hexKey));
+        }
+      } catch (err) {
+        console.log(err);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -73,7 +100,7 @@ export class ImportAccountFormData implements SubmittableFormData {
           if (file === undefined) {
             this.errors.capture(Promise.reject(new Error('File undefined')));
           } else {
-            // File is not undefined now check format by extension
+            // File is defined now check format by extension
             const fileExt = file[1];
             if (fileExt !== 'pem') {
               this.errors.capture(
@@ -84,31 +111,14 @@ export class ImportAccountFormData implements SubmittableFormData {
                 )
               );
             } else {
-              let pem, parsedKey;
-              console.log(fileContents);
-              this.decodeText(fileContents);
               try {
-                switch (this.algorithm.$) {
-                  case 'ed25519': {
-                    pem = Keys.Ed25519.readBase64WithPEM(fileContents);
-                    parsedKey = Keys.Ed25519.parsePrivateKey(pem);
-                    break;
-                  }
-                  case 'secp256k1': {
-                    pem = Keys.Secp256K1.readBase64WithPEM(fileContents);
-                    parsedKey = Keys.Secp256K1.parsePrivateKey(pem);
-                    break;
-                  }
-                  default: {
-                    throw new Error('Invalid algorithm selected');
-                  }
-                }
-                this.secretKeyBase64.onChange(encodeBase64(parsedKey));
+                this.parseAlgorithm(fileContents);
+                console.log(
+                  `Algorithm: ${this.algorithm.$}\n Key: ${this.secretKeyBase64.$}`
+                );
               } catch (e) {
                 this.errors.capture(
-                  Promise.reject(
-                    new Error('Key did not match selected algorithm')
-                  )
+                  Promise.reject(new Error('Failed to parse key'))
                 );
               }
             }

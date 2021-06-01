@@ -158,7 +158,7 @@ class AccountPage extends React.Component<Props, State> {
         <Typography id="continuous-slider" variant="h6" gutterBottom>
           Import from Secret Key File
         </Typography>
-        <Box>
+        {/* <Box>
           <FormControl
             style={{
               width: '80%',
@@ -215,7 +215,7 @@ class AccountPage extends React.Component<Props, State> {
               </Typography>
             </Popover>
           )}
-        </Box>
+        </Box> */}
         <FormControl>
           <Box
             display={'flex'}
@@ -234,7 +234,7 @@ class AccountPage extends React.Component<Props, State> {
             >
               Upload
               <input
-                disabled={!form.algorithm.$}
+                // disabled={!form.algorithm.$}
                 type="file"
                 style={{ display: 'none' }}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -245,11 +245,7 @@ class AccountPage extends React.Component<Props, State> {
             <Box ml={1}>
               <Typography component={'span'}>
                 <Box fontSize={12}>
-                  {form.file
-                    ? form.file.name
-                    : form.algorithm.$
-                    ? 'No file selected'
-                    : 'Please select algorithm first'}
+                  {form.file ? form.file.name : 'No file selected'}
                 </Box>
               </Typography>
             </Box>
