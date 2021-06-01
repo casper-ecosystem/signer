@@ -16,6 +16,8 @@ export interface SubmittableFormData {
   resetFields: () => void;
 }
 
+type Algorithms = 'ed25519' | 'secp256k1';
+
 export class ImportAccountFormData implements SubmittableFormData {
   secretKeyBase64: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
@@ -24,6 +26,8 @@ export class ImportAccountFormData implements SubmittableFormData {
     valueRequired,
     isAlgorithm
   );
+  algorithmType: Algorithms | undefined = undefined;
+
   name: FieldState<string> = new FieldState<string>('').validators(
     valueRequired
   );
@@ -33,7 +37,7 @@ export class ImportAccountFormData implements SubmittableFormData {
   private parseAlgorithm(val: any) {
     let decoded;
     try {
-      var der: Uint8Array = this.reHex.test(val)
+      const der: Uint8Array = this.reHex.test(val)
         ? Hex.decode(val)
         : Base64.unarmor(val);
       decoded = ASN1.decode(der);
@@ -133,16 +137,14 @@ export class ImportAccountFormData implements SubmittableFormData {
   @computed
   get submitDisabled(): boolean {
     return !(
-      fieldSubmittable(this.secretKeyBase64) &&
-      fieldSubmittable(this.name) &&
-      fieldSubmittable(this.algorithm)
+      fieldSubmittable(this.secretKeyBase64) && fieldSubmittable(this.name)
     );
   }
 
   @action
   resetFields() {
     this.secretKeyBase64.reset();
-    this.algorithm.reset();
+    this.algorithmType = undefined;
     this.name.reset();
   }
 }

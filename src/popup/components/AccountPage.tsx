@@ -136,22 +136,13 @@ class AccountPage extends React.Component<Props, State> {
     await this.props.authContainer.importUserAccount(
       this.accountForm.name.$,
       this.accountForm.secretKeyBase64.value,
-      this.accountForm.algorithm.$
+      this.accountForm.algorithmType!
     );
     this.props.history.push(Pages.Home);
     this.props.history.replace(Pages.Home);
   }
 
   renderImportForm() {
-    const showAlgoHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
-      this.setState({ algoAnchorEl: event.currentTarget });
-    };
-    const helpOpen = Boolean(showAlgoHelp);
-    const helpId = helpOpen ? 'algo-helper' : undefined;
-    const helpClose = () => {
-      this.setState({ algoAnchorEl: null });
-    };
-
     const form = this.accountForm as ImportAccountFormData;
     return (
       <form className={this.props.classes.root}>

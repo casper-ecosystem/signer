@@ -45,28 +45,17 @@ class AuthController {
   private saltKey = 'passwordSalt';
 
   constructor(private appState: AppState) {
-    // NOTE: this code is doing migration from localStorage to chrome.storage,
-    // we need to keep this for now but after few releases remember to get rid of this code.
-    if (localStorage.getItem(this.encryptedVaultKey)) {
-      console.log(
-        'there is old encrypedVault in localStorage, moving it to secure store...'
-      );
-      const v = localStorage.getItem(this.encryptedVaultKey);
-      this.saveKeyValuetoStore(this.encryptedVaultKey, JSON.parse(v as string));
-      localStorage.removeItem(this.encryptedVaultKey);
-    }
-
-    if (localStorage.getItem(this.saltKey)) {
-      console.log(
-        'there is old saltKey in localStorage, moving it to secure store...'
-      );
-      const v = localStorage.getItem(this.saltKey);
-      this.saveKeyValuetoStore(this.saltKey, JSON.parse(v as string));
-      localStorage.removeItem(this.saltKey);
-    }
-
     if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
       this.appState.hasCreatedVault = true;
+    }
+
+    this.initStore();
+  }
+
+  async initStore() {
+    const passwordSalt = await this.getStoredValueWithKey(this.saltKey);
+    if (passwordSalt) {
+      this.passwordSalt = passwordSalt;
     }
   }
 
@@ -155,6 +144,8 @@ class AuthController {
     }
     const secretKeyBytes = decodeBase64(secretKeyBase64);
     let secretKey, publicKey, keyPair: Keys.Ed25519 | Keys.Secp256K1;
+    console.log('AAA', algorithm);
+
     switch (algorithm) {
       case 'ed25519': {
         secretKey = Keys.Ed25519.parsePrivateKey(secretKeyBytes);
@@ -382,8 +373,8 @@ class AuthController {
         : null
     });
 
-    this.saveKeyValuetoStore(this.encryptedVaultKey, encryptedVault);
-    this.saveKeyValuetoStore(this.saltKey, this.passwordSalt!);
+    await this.saveKeyValuetoStore(this.encryptedVaultKey, encryptedVault);
+    await this.saveKeyValuetoStore(this.saltKey, this.passwordSalt!);
   }
 
   /**
@@ -392,7 +383,8 @@ class AuthController {
    * @param value Value to save under Key in store.
    */
   private async saveKeyValuetoStore(key: string, value: any) {
-    storage.local.set({ [key]: JSON.stringify(value) });
+    if (!value) return;
+    return storage.local.set({ [key]: JSON.stringify(value) });
   }
 
   /**
@@ -464,7 +456,7 @@ class AuthController {
    */
   private hash(bytes: Uint8Array) {
     let hashedBytes = nacl.hash(bytes);
-    return encodeBase16(hashedBytes);
+    return encodeBase64(hashedBytes);
   }
 
   /*
