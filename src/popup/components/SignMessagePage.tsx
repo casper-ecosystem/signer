@@ -78,15 +78,29 @@ class SignMessagePage extends React.Component<
       this.createRow('Timestamp', deployData.timestamp),
       this.createRow('Chain Name', deployData.chainName),
       this.createRow('Gas Price', deployData.gasPrice),
-      this.createRow('Deploy Type', deployData.deployType)
+      this.createRow('Deploy Type', deployData.deployType),
+      this.createRow('Amount', deployData.amount)
     ];
     if (deployData.deployType === 'Transfer') {
       this.setState({
         rows: [
           ...baseRows,
           this.createRow('To', this.truncateString(deployData.target!, 6, 6)),
-          this.createRow('Amount', deployData.amount),
           this.createRow('Transfer ID', deployData.id)
+        ]
+      });
+    } else if (deployData.deployType === 'Contract Deployment') {
+      this.setState({
+        rows: [
+          ...baseRows,
+          this.createRow(
+            'Validator',
+            this.truncateString(deployData.validator!, 6, 6)
+          ),
+          this.createRow(
+            'Delegator',
+            this.truncateString(deployData.delegator!, 6, 6)
+          )
         ]
       });
     } else {
