@@ -18,6 +18,10 @@ import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import { deployWithID } from '../../background/SignMessageManager';
 
+// TODO: Move it to helper functions
+const numberWithSpaces = (num: number) =>
+  num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
 interface Props extends RouteComponentProps {
   signMessageContainer: SignMessageContainer;
   authContainer: AccountManager;
@@ -79,7 +83,7 @@ class SignMessagePage extends React.Component<
       this.createRow('Chain Name', deployData.chainName),
       this.createRow('Gas Price', deployData.gasPrice),
       this.createRow('Deploy Type', deployData.deployType),
-      this.createRow('Amount', deployData.amount)
+      this.createRow('Amount', `${numberWithSpaces(deployData.amount)} motes`)
     ];
     if (deployData.deployType === 'Transfer') {
       this.setState({
