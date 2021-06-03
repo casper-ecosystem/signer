@@ -172,10 +172,6 @@ export default class SignMessageManager extends events.EventEmitter {
         return reject('This site is not connected');
       }
 
-      // First let's check if the provided targetPublicKey matches the one used in deploy
-      // We're doing it because its impossible to extract target in a form of PublicKey from Deploy
-      // const targetKeyHash = PublicKey.fromHex(targetPublicKeyHex).toAccountHash();
-
       // Adding the deploy to the queue will update the extension state and UI
       const deployId = this.addUnsignedDeployToQueue(
         deploy,
