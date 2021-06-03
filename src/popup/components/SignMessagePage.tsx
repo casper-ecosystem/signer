@@ -26,8 +26,8 @@ const numberWithSpaces = (num: number) =>
 
 const styles = () => ({
   tooltip: {
-    width: '200px',
-    margin: 0
+    width: '260px',
+    margin: '10px 0 0 0'
   }
 });
 
@@ -153,7 +153,7 @@ class SignMessagePage extends React.Component<
                     key={row.key}
                     title={row.title ? row.title : ''}
                     classes={{ tooltip: this.props.classes.tooltip }}
-                    placement="top-end"
+                    placement="top"
                   >
                     <TableRow key={row.key}>
                       <TableCell
