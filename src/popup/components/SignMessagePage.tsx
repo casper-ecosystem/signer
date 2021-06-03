@@ -5,13 +5,15 @@ import SignMessageContainer from '../container/SignMessageContainer';
 import Pages from './Pages';
 import { browser } from 'webextension-polyfill-ts';
 import AccountManager from '../container/AccountManager';
+import { withStyles } from '@material-ui/core/styles';
 import {
   Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
-  TableRow
+  TableRow,
+  Tooltip
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -21,6 +23,25 @@ import { deployWithID } from '../../background/SignMessageManager';
 // TODO: Move it to helper functions
 const numberWithSpaces = (num: number) =>
   num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+const splitIntoParts = (str: string) => {
+  const halfLength = Math.abs(str.length / 2);
+  const one = str.substring(0, halfLength);
+  const two = str.substring(halfLength);
+
+  // return str;
+  return `${one} ${two}`;
+};
+
+const styles = {
+  tooltip: {
+    width: '92px',
+    height: '36px',
+    borderRadius: '18px',
+    boxShadow: '0 20px 80px 0',
+    backgroundColor: 'red'
+  }
+};
 
 interface Props extends RouteComponentProps {
   signMessageContainer: SignMessageContainer;
@@ -52,8 +73,8 @@ class SignMessagePage extends React.Component<
     }
   }
 
-  createRow(key: string, value: any) {
-    return { key, value };
+  createRow(key: string, value: any, title?: any) {
+    return { key, value, title };
   }
 
   truncateString(
@@ -75,10 +96,19 @@ class SignMessagePage extends React.Component<
     let baseRows = [
       this.createRow(
         'Signing Key',
-        this.truncateString(deployData.signingKey, 6, 6)
+        this.truncateString(deployData.signingKey, 6, 6),
+        deployData.signingKey
       ),
-      this.createRow('Account', this.truncateString(deployData.account, 6, 6)),
-      this.createRow('Hash', this.truncateString(deployData.deployHash, 6, 6)),
+      this.createRow(
+        'Account',
+        this.truncateString(deployData.account, 6, 6),
+        deployData.account
+      ),
+      this.createRow(
+        'Hash',
+        this.truncateString(deployData.deployHash, 6, 6),
+        deployData.deployHash
+      ),
       this.createRow('Timestamp', deployData.timestamp),
       this.createRow('Chain Name', deployData.chainName),
       this.createRow('Gas Price', deployData.gasPrice),
@@ -89,7 +119,11 @@ class SignMessagePage extends React.Component<
       this.setState({
         rows: [
           ...baseRows,
-          this.createRow('To', this.truncateString(deployData.target!, 6, 6)),
+          this.createRow(
+            'Target',
+            this.truncateString(deployData.target!, 6, 6),
+            deployData.target
+          ),
           this.createRow('Transfer ID', deployData.id)
         ]
       });
@@ -99,11 +133,13 @@ class SignMessagePage extends React.Component<
           ...baseRows,
           this.createRow(
             'Validator',
-            this.truncateString(deployData.validator!, 6, 6)
+            this.truncateString(deployData.validator!, 6, 6),
+            deployData.validator
           ),
           this.createRow(
             'Delegator',
-            this.truncateString(deployData.delegator!, 6, 6)
+            this.truncateString(deployData.delegator!, 6, 6),
+            deployData.delegator
           )
         ]
       });
@@ -124,16 +160,23 @@ class SignMessagePage extends React.Component<
             <Table style={{ maxWidth: '100%' }}>
               <TableBody>
                 {this.state.rows.map((row: any) => (
-                  <TableRow key={row.key}>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ fontWeight: 'bold' }}
-                    >
-                      {row.key}
-                    </TableCell>
-                    <TableCell align="right">{row.value}</TableCell>
-                  </TableRow>
+                  <Tooltip
+                    key={row.key}
+                    title={row.title ? splitIntoParts(row.title) : ''}
+                    classes={{ tooltip: { maxWidth: '200' } }}
+                    placement="bottom"
+                  >
+                    <TableRow key={row.key}>
+                      <TableCell
+                        component="th"
+                        scope="row"
+                        style={{ fontWeight: 'bold' }}
+                      >
+                        {row.key}
+                      </TableCell>
+                      <TableCell align="right">{row.value}</TableCell>
+                    </TableRow>
+                  </Tooltip>
                 ))}
               </TableBody>
             </Table>
@@ -185,4 +228,4 @@ class SignMessagePage extends React.Component<
   }
 }
 
-export default withRouter(SignMessagePage);
+export default withStyles(styles)(withRouter(SignMessagePage));
