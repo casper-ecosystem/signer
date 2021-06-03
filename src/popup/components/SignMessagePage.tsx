@@ -24,28 +24,17 @@ import { deployWithID } from '../../background/SignMessageManager';
 const numberWithSpaces = (num: number) =>
   num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-const splitIntoParts = (str: string) => {
-  const halfLength = Math.abs(str.length / 2);
-  const one = str.substring(0, halfLength);
-  const two = str.substring(halfLength);
-
-  // return str;
-  return `${one} ${two}`;
-};
-
-const styles = {
+const styles = () => ({
   tooltip: {
-    width: '92px',
-    height: '36px',
-    borderRadius: '18px',
-    boxShadow: '0 20px 80px 0',
-    backgroundColor: 'red'
+    width: '200px',
+    margin: 0
   }
-};
+});
 
 interface Props extends RouteComponentProps {
   signMessageContainer: SignMessageContainer;
   authContainer: AccountManager;
+  classes: Record<keyof ReturnType<typeof styles>, string>;
 }
 
 @observer
@@ -162,9 +151,9 @@ class SignMessagePage extends React.Component<
                 {this.state.rows.map((row: any) => (
                   <Tooltip
                     key={row.key}
-                    title={row.title ? splitIntoParts(row.title) : ''}
-                    classes={{ tooltip: { maxWidth: '200' } }}
-                    placement="bottom"
+                    title={row.title ? row.title : ''}
+                    classes={{ tooltip: this.props.classes.tooltip }}
+                    placement="top-end"
                   >
                     <TableRow key={row.key}>
                       <TableCell
