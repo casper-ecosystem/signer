@@ -2,6 +2,7 @@ import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
 import { DeployUtil, encodeBase16 } from 'casper-client-sdk';
+import { toJS } from 'mobx';
 
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 export interface deployWithID {
@@ -25,6 +26,8 @@ export interface DeployData {
   id?: any;
   amount?: any;
   target?: string;
+  validator?: string;
+  delegator?: string;
 }
 
 /**
@@ -259,16 +262,46 @@ export default class SignMessageManager extends events.EventEmitter {
       let header = deploy.deploy.header;
 
       // TODO: Double-check that this is correct way to determine deploy type.
-      let type = deploy.deploy.isTransfer()
+      const type = deploy.deploy.isTransfer()
         ? 'Transfer'
         : deploy.deploy.session.isModuleBytes()
         ? 'Contract Call'
         : 'Contract Deployment';
 
-      const amount = deploy.deploy.session.transfer
-        ?.getArgByName('amount')!
-        .asBigNumber()
-        .toString();
+      let amount;
+      let target;
+      let validator;
+      let delegator;
+
+      if (deploy.deploy.session.transfer) {
+        amount = deploy.deploy.session.transfer
+          ?.getArgByName('amount')!
+          .asBigNumber()
+          .toString();
+
+        target = encodeBase16(
+          deploy.deploy.session.transfer
+            ?.getArgByName('target')!
+            .asBytesArray()!
+        );
+      }
+
+      if (deploy.deploy.session.storedContractByHash) {
+        amount = deploy.deploy.session.storedContractByHash
+          ?.getArgByName('amount')!
+          .asBigNumber()
+          .toString();
+
+        validator = deploy.deploy.session.storedContractByHash
+          ?.getArgByName('validator')!
+          .asPublicKey()
+          .toAccountHex();
+
+        delegator = deploy.deploy.session.storedContractByHash
+          ?.getArgByName('delegator')!
+          .asPublicKey()
+          .toAccountHex();
+      }
 
       const transferId = deploy.deploy.session.transfer
         ?.getArgByName('id')!
@@ -276,10 +309,6 @@ export default class SignMessageManager extends events.EventEmitter {
         .getSome()
         .asBigNumber()
         .toString();
-
-      let target = encodeBase16(
-        deploy.deploy.session.transfer?.getArgByName('target')!.asBytesArray()!
-      );
 
       return {
         deployHash: encodeBase16(deploy.deploy.hash),
@@ -291,8 +320,10 @@ export default class SignMessageManager extends events.EventEmitter {
         payment: encodeBase16(deploy.deploy.payment.toBytes()),
         deployType: type,
         id: type === 'Transfer' ? transferId : undefined,
-        amount: type === 'Transfer' ? amount : undefined,
-        target: type === 'Transfer' ? target : undefined
+        amount: amount,
+        target: type === 'Transfer' ? target : undefined,
+        validator,
+        delegator
       };
     } else {
       throw new Error('Deploy undefined!');
