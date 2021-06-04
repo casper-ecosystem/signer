@@ -11,7 +11,7 @@ owasp.tests.required.push((password: any) => {
 export const valueRequired = (val: any) => !val && 'Value required';
 
 export const valuesMatch = (val1: any, val2: any) =>
-  !(val1 === val2) && 'Values must match';
+  !(val1 === val2) && 'Passwords must match';
 
 export const isAlgorithm = (val: any) =>
   !(val === 'ed25519' || val === 'secp256k1') && 'Invalid Algorithm';
