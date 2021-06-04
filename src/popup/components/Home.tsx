@@ -310,7 +310,7 @@ class Home extends React.Component<
                   aria-label="Enter password for vault"
                   autoFocus={true}
                   fieldState={
-                    this.props.homeContainer.homeForm.$.setPasswordField
+                    this.props.homeContainer.homeForm.$.unlockPasswordField
                   }
                   required
                   id={'unlock-password'}
@@ -327,16 +327,16 @@ class Home extends React.Component<
                     root: this.props.classes.unlockButton,
                     disabled: this.props.classes.disabled
                   }}
-                  disabled={this.props.homeContainer.submitDisabled}
+                  disabled={this.props.homeContainer.unlockDisabled}
                   onClick={async () => {
                     let password =
-                      this.props.homeContainer.homeForm.$.setPasswordField.$;
+                      this.props.homeContainer.homeForm.$.unlockPasswordField.$;
                     try {
                       await this.props.authContainer.unlock(password);
-                      this.props.homeContainer.homeForm.$.setPasswordField.reset();
+                      this.props.homeContainer.homeForm.$.unlockPasswordField.reset();
                       this.props.errors.dismissLast();
                     } catch (e) {
-                      this.props.homeContainer.homeForm.$.setPasswordField.setError(
+                      this.props.homeContainer.homeForm.$.unlockPasswordField.setError(
                         e.message
                       );
                     }

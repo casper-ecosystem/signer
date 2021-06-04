@@ -13,7 +13,8 @@ export class HomeContainer {
       valueRequired,
       strongPassword
     ),
-    confirmPasswordField: new FieldState<string>('').validators(valueRequired)
+    confirmPasswordField: new FieldState<string>('').validators(valueRequired),
+    unlockPasswordField: new FieldState<string>('').validators(valueRequired)
   })
     .compose()
     .validators($ =>
@@ -21,11 +22,11 @@ export class HomeContainer {
     );
 
   @computed
-  get submitDisabled(): boolean {
+  get unlockDisabled(): boolean {
     return (
-      !this.homeForm.$.setPasswordField.hasBeenValidated ||
-      (this.homeForm.$.setPasswordField.hasBeenValidated &&
-        this.homeForm.$.setPasswordField.hasError)
+      !this.homeForm.$.unlockPasswordField.hasBeenValidated ||
+      (this.homeForm.$.unlockPasswordField.hasBeenValidated &&
+        this.homeForm.$.unlockPasswordField.hasError)
     );
   }
 
