@@ -1,12 +1,18 @@
 import { FieldState, FormState } from 'formstate';
-import { valueRequired, valuesMatch } from '../../lib/FormValidator';
+import {
+  strongPassword,
+  valueRequired,
+  valuesMatch
+} from '../../lib/FormValidator';
 import { computed } from 'mobx';
 
 export class HomeContainer {
   homeForm = new FormState({
     // The text field for storing user input password, used in 'Create Vault' and 'Unlock Vault' page.
-    setPasswordField: new FieldState<string>('').validators(valueRequired),
-
+    setPasswordField: new FieldState<string>('').validators(
+      valueRequired,
+      strongPassword
+    ),
     confirmPasswordField: new FieldState<string>('').validators(valueRequired)
   })
     .compose()
