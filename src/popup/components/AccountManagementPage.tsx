@@ -31,7 +31,7 @@ import AccountManager from '../container/AccountManager';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer, Observer } from 'mobx-react';
 import Dialog from '@material-ui/core/Dialog';
-import { confirm } from './Confirmation';
+import { confirmWithPassword } from './Confirmation';
 import copy from 'copy-to-clipboard';
 import { KeyPairWithAlias } from '../../@types/models';
 import { PublicKey } from 'casper-client-sdk';
@@ -139,9 +139,11 @@ class AccountManagementPage extends React.Component<Props, State> {
   };
 
   handleClickRemove = (name: string) => {
-    confirm(
+    confirmWithPassword(
       <div className="text-danger">Remove account</div>,
-      'Are you sure you want to remove this account?'
+      <span>
+        Confirm password to remove account: <b>{name}</b>
+      </span>
     ).then(() => this.props.authContainer.removeUserAccount(name));
   };
 
