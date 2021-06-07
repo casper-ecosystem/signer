@@ -1,7 +1,6 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import AccountManager from '../container/AccountManager';
-import PopupManager from '../../background/PopupManager';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { observable } from 'mobx';
 import {
@@ -24,6 +23,7 @@ import withStyles from '@material-ui/core/styles/withStyles';
 import { decodeBase16, decodeBase64, Keys } from 'casper-client-sdk';
 import { KeyPairWithAlias } from '../../@types/models';
 import Pages from './Pages';
+import { confirmWithPassword } from './Confirmation';
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -46,13 +46,12 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
 interface State {
   keyDownloadEnabled: boolean;
   algoAnchorEl: HTMLButtonElement | null;
+  revealSecretKey: boolean;
 }
 
 @observer
 class AccountPage extends React.Component<Props, State> {
   @observable accountForm: ImportAccountFormData | CreateAccountFormData;
-
-  private popupManager: PopupManager;
 
   constructor(props: Props) {
     super(props);
@@ -63,9 +62,9 @@ class AccountPage extends React.Component<Props, State> {
     }
     this.state = {
       keyDownloadEnabled: false,
-      algoAnchorEl: null
+      algoAnchorEl: null,
+      revealSecretKey: false
     };
-    this.popupManager = new PopupManager();
   }
 
   async onCreateAccount() {
@@ -138,15 +137,6 @@ class AccountPage extends React.Component<Props, State> {
   }
 
   renderImportForm() {
-    // const showAlgoHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
-    //   this.setState({ algoAnchorEl: event.currentTarget });
-    // };
-    // const helpOpen = Boolean(showAlgoHelp);
-    // const helpId = helpOpen ? 'algo-helper' : undefined;
-    // const helpClose = () => {
-    // this.setState({ algoAnchorEl: null });
-    // };
-
     const form = this.accountForm as ImportAccountFormData;
     return (
       <form className={this.props.classes.root}>
@@ -212,6 +202,16 @@ class AccountPage extends React.Component<Props, State> {
     );
   }
 
+  revealSecretKey = () => {
+    confirmWithPassword(
+      <div className="text-danger">Reveal Key</div>,
+      <span>Confirm password to reveal key</span>
+    ).then(() => {
+      this.setState({ revealSecretKey: true });
+      setTimeout(() => this.setState({ revealSecretKey: false }), 3500);
+    });
+  };
+
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
     // const toggleDownloadKey = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -257,9 +257,16 @@ class AccountPage extends React.Component<Props, State> {
           fullWidth
           InputProps={{ readOnly: true, disabled: true }}
           label="Secret Key (Base64)"
-          placeholder="Base64 encoded Ed25519 secret key"
+          placeholder="Base64 encoded secret key"
           id="create-secret-key"
-          value={formData.secretKeyBase64.$ ? formData.secretKeyBase64.$ : ''}
+          onClick={this.revealSecretKey}
+          value={
+            formData.secretKeyBase64.$
+              ? this.state.revealSecretKey
+                ? formData.secretKeyBase64.$
+                : 'Click to Reveal'
+              : ''
+          }
         />
         {/* 
           Because the account is not yet saved it cannot be downloaded. 
