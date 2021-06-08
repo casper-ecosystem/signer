@@ -43,7 +43,7 @@ const App = (props: AppProps) => {
       Lockout time is hardcoded here but this could be made configurable
       to allow users to set convenient timeouts.
       */}
-      <IdleTimer timeout={15000} onIdle={lockOnIdle} debounce={250} />
+      <IdleTimer timeout={30000} onIdle={lockOnIdle} debounce={250} />
       <AnalyticsProvider />
       <MainAppBar
         authContainer={props.authContainer}
