@@ -125,6 +125,21 @@ class AccountManager {
     return this.appState.unsignedDeploys;
   }
 
+  @computed
+  get remainingUnlockAttempts() {
+    return this.appState.unlockAttempts;
+  }
+
+  @computed
+  get isLockedOut() {
+    return this.appState.lockedOut;
+  }
+
+  @action
+  async resetLockOut() {
+    return this.backgroundManager.resetLockOut();
+  }
+
   async renameUserAccount(oldName: string, newName: string) {
     return this.backgroundManager.renameUserAccount(oldName, newName);
   }

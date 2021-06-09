@@ -22,6 +22,7 @@ import Pages from './Pages';
 import { confirm } from './Confirmation';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
+import Lockout from '../components/Lockout';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -249,6 +250,14 @@ class Home extends React.Component<Props, {}> {
                   type={'password'}
                 />
               </FormControl>
+              {this.props.authContainer.remainingUnlockAttempts < 5 && (
+                <FormControl fullWidth style={{ marginTop: '.5rem' }}>
+                  <Typography variant={'subtitle1'}>
+                    Attempts remaining:{' '}
+                    {this.props.authContainer.remainingUnlockAttempts}
+                  </Typography>
+                </FormControl>
+              )}
               <FormControl fullWidth className={this.props.classes.margin}>
                 <Button
                   type="submit"
@@ -311,7 +320,11 @@ class Home extends React.Component<Props, {}> {
           }
         }
       } else {
-        return this.renderUnlock();
+        if (this.props.authContainer.isLockedOut) {
+          return Lockout(this.props.errors, this.props.authContainer);
+        } else {
+          return this.renderUnlock();
+        }
       }
     } else {
       return this.renderCreateNewVault();

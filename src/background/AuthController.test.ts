@@ -87,6 +87,26 @@ describe('AuthController', () => {
     expect(authController.isUnlocked).toBeTruthy();
   });
 
+  it('should allow 5 password attempts and then lock out', async () => {
+    for (let i = 5; i > -1; i--) {
+      expect(appState.unlockAttempts).toEqual(i);
+      try {
+        await authController.unlock(wrongPassword);
+      } catch (e) {
+        if (i === 0) {
+          expect(e.message).toBe('Locked out please wait');
+        } else {
+          expect(appState.unlockAttempts).toEqual(i - 1);
+        }
+      }
+    }
+    // After 5 failed attempts user should be locked out
+    expect(appState.lockedOut).toBeTruthy();
+    await authController.resetLockOut();
+    expect(appState.unlockAttempts).toEqual(5);
+    expect(appState.lockedOut).toBeFalsy();
+  });
+
   it('should be able to save and restore userAccounts and selectUserAccount information', async () => {
     await authController.importUserAccount(
       'account1',

@@ -5,6 +5,10 @@ import { deployWithID } from '../background/SignMessageManager';
 
 export class AppState {
   @observable isUnlocked: boolean = false;
+  @observable unlockAttempts: number = 5;
+  @computed get lockedOut(): boolean {
+    return this.unlockAttempts === 0;
+  }
   @observable currentTab: Tab | null = null;
   @computed get connectionStatus(): boolean {
     const url = this.currentTab && this.currentTab.url;

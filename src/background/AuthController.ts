@@ -474,7 +474,16 @@ class AuthController {
    */
   @action.bound
   async unlock(password: string) {
-    let vaultResponse = await this.restoreVault(password);
+    if (this.appState.lockedOut) {
+      throw new Error('Locked out please wait');
+    }
+    let vaultResponse;
+    try {
+      vaultResponse = await this.restoreVault(password);
+    } catch (e) {
+      this.appState.unlockAttempts -= 1;
+      throw new Error(e);
+    }
     let vault = vaultResponse[0];
     this.passwordHash = vaultResponse[1];
     this.appState.isUnlocked = true;
@@ -484,6 +493,13 @@ class AuthController {
     this.appState.selectedUserAccount = vault.selectedUserAccount
       ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
       : null;
+  }
+
+  @action.bound
+  async resetLockOut() {
+    console.log(this.appState.unlockAttempts);
+    this.appState.unlockAttempts += 5;
+    console.log(this.appState.unlockAttempts);
   }
 
   @computed
