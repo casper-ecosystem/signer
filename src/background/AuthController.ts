@@ -486,6 +486,7 @@ class AuthController {
     }
     let vault = vaultResponse[0];
     this.passwordHash = vaultResponse[1];
+    this.resetLockout();
     this.appState.isUnlocked = true;
     this.appState.userAccounts.replace(
       vault.userAccounts.map(this.deserializeKeyPairWithAlias)
@@ -497,7 +498,7 @@ class AuthController {
 
   @action.bound
   async resetLockout() {
-    this.appState.unlockAttempts += 5;
+    this.appState.unlockAttempts = 5;
   }
 
   @action
