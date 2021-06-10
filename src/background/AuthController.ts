@@ -496,10 +496,22 @@ class AuthController {
   }
 
   @action.bound
-  async resetLockOut() {
-    console.log(this.appState.unlockAttempts);
+  async resetLockout() {
     this.appState.unlockAttempts += 5;
-    console.log(this.appState.unlockAttempts);
+  }
+
+  @action
+  async startLockoutTimer(timeInMinutes: number) {
+    this.appState.lockoutTimerStarted = true;
+    setTimeout(() => {
+      this.resetLockout();
+      this.resetLockoutTimer();
+    }, timeInMinutes * 60 * 1000);
+  }
+
+  @action.bound
+  async resetLockoutTimer() {
+    this.appState.lockoutTimerStarted = false;
   }
 
   @computed

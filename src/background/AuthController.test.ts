@@ -102,7 +102,7 @@ describe('AuthController', () => {
     }
     // After 5 failed attempts user should be locked out
     expect(appState.lockedOut).toBeTruthy();
-    await authController.resetLockOut();
+    await authController.resetLockout();
     expect(appState.unlockAttempts).toEqual(5);
     expect(appState.lockedOut).toBeFalsy();
   });

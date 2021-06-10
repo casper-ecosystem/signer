@@ -4,7 +4,7 @@ import { Button, Typography } from '@material-ui/core';
 import { ErrorContainer } from '../container/ErrorContainer';
 import AccountManager from '../container/AccountManager';
 
-export default function Lockout(
+export function Lockout(
   errorsContainer: ErrorContainer,
   accountManager: AccountManager
 ) {
@@ -21,23 +21,18 @@ export default function Lockout(
   // });
 
   // const classes = useStyles();
-  // var lockoutTimer;
+  // const [lockoutTimer, setLockoutTimer] = useState(10);
 
-  // useEffect(() => {
-  //   // errorsContainer.dismissLast();
-  //   // Cancel lockout after 5 minutes
+  // useEffect(function reset() {
+  //   console.log('mounted');
   // });
 
   return (
     <div>
       <Typography variant={'h4'}>Locked Out</Typography>
-      {/* {lockoutTimer !== undefined ?? lockoutTimer.current !== undefined ?? (
-        <Typography variant={'body1'}>
-          Time left: {lockoutTimer.current}
-        </Typography>
-      )} */}
+      {/* <Typography>Timer: {lockoutTimer}</Typography> */}
       <Typography>{accountManager.remainingUnlockAttempts}</Typography>
-      <Button onClick={() => accountManager.resetLockOut()}>Reset</Button>
+      <Button onClick={() => accountManager.resetLockout()}>Reset</Button>
     </div>
   );
 }

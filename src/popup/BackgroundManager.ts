@@ -29,6 +29,7 @@ export class BackgroundManager {
   private onStateUpdate(appState: AppState) {
     this.appState.isUnlocked = appState.isUnlocked;
     this.appState.unlockAttempts = appState.unlockAttempts;
+    this.appState.lockoutTimerStarted = appState.lockoutTimerStarted;
     this.appState.currentTab = appState.currentTab;
     this.appState.connectionRequested = appState.connectionRequested;
     this.appState.connectedSites = appState.connectedSites;
@@ -125,8 +126,20 @@ export class BackgroundManager {
     return this.errors.withCapture(this.rpc.call<void>('account.resetVault'));
   }
 
-  public resetLockOut() {
-    return this.errors.withCapture(this.rpc.call<void>('account.resetLockOut'));
+  public resetLockout() {
+    return this.errors.withCapture(this.rpc.call<void>('account.resetLockout'));
+  }
+
+  public startLockoutTimer(timeInMinutes: number) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.startLockoutTimer', timeInMinutes)
+    );
+  }
+
+  public resetLockoutTimer() {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.resetLockoutTimer')
+    );
   }
 
   public renameUserAccount(oldName: string, newName: string) {

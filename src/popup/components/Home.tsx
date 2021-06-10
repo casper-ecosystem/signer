@@ -11,6 +11,7 @@ import {
   Grid
 } from '@material-ui/core';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
+import NotInterestedIcon from '@material-ui/icons/NotInterested';
 import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
 import PopupManager from '../../background/PopupManager';
@@ -22,7 +23,7 @@ import Pages from './Pages';
 import { confirm } from './Confirmation';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
-import Lockout from '../components/Lockout';
+// import { Lockout } from '../components/Lockout';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -41,7 +42,29 @@ const styles = (theme: Theme) =>
         color: 'grey'
       }
     },
-    disabled: {}
+    disabled: {},
+    lockout: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      left: 0,
+      bottom: 0,
+      background:
+        'linear-gradient(30deg, var(--cspr-dark-blue) 50%, var(--cspr-red) 100%)',
+      padding: '2em',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      color: 'snow',
+      textAlign: 'center',
+      '& > *': {
+        marginBottom: '1rem'
+      },
+      '& > :nth-child(2)': {
+        fontSize: '1.2rem'
+      }
+    }
   });
 
 interface Props extends RouteComponentProps, WithStyles<typeof styles> {
@@ -54,6 +77,12 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
 
 @observer
 class Home extends React.Component<Props, {}> {
+  componentDidUpdate() {
+    if (this.props.authContainer.isLockedOut) {
+      this.props.errors.dismissLast();
+      this.props.homeContainer.homeForm.$.setPasswordField.reset();
+    }
+  }
   renderCreateNewVault() {
     return (
       <div>
@@ -303,6 +332,26 @@ class Home extends React.Component<Props, {}> {
     );
   }
 
+  renderLockedOut() {
+    if (
+      this.props.authContainer.isLockedOut &&
+      !this.props.authContainer.lockoutTimerStarted
+    ) {
+      // 5 minute timer before resetting lockout
+      this.props.authContainer.startLockoutTimer(0.3);
+    }
+    return (
+      <div className={this.props.classes.lockout}>
+        <NotInterestedIcon style={{ fontSize: '5.5rem' }} />
+        <Typography variant={'body1'}>
+          Your vault has been temporarily locked out due to too many incorrect
+          password attempts.
+        </Typography>
+        <Typography variant={'h6'}>Please try again in 5 minutes.</Typography>
+      </div>
+    );
+  }
+
   render() {
     if (this.props.authContainer.hasCreatedVault) {
       if (this.props.authContainer.isUnLocked) {
@@ -321,7 +370,7 @@ class Home extends React.Component<Props, {}> {
         }
       } else {
         if (this.props.authContainer.isLockedOut) {
-          return Lockout(this.props.errors, this.props.authContainer);
+          return this.renderLockedOut();
         } else {
           return this.renderUnlock();
         }

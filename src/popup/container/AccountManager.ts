@@ -136,8 +136,23 @@ class AccountManager {
   }
 
   @action
-  async resetLockOut() {
-    return this.backgroundManager.resetLockOut();
+  async resetLockout() {
+    return this.backgroundManager.resetLockout();
+  }
+
+  @action
+  async startLockoutTimer(timeInMinutes: number) {
+    return this.backgroundManager.startLockoutTimer(timeInMinutes);
+  }
+
+  @computed
+  get lockoutTimerStarted() {
+    return this.appState.lockoutTimerStarted;
+  }
+
+  @action
+  async resetLockoutTimer() {
+    return this.backgroundManager.resetLockoutTimer();
   }
 
   async renameUserAccount(oldName: string, newName: string) {

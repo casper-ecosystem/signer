@@ -82,8 +82,16 @@ async function setupPopupAPIServer() {
     accountController.resetVault.bind(accountController)
   );
   rpc.register(
-    'account.resetLockOut',
-    accountController.resetLockOut.bind(accountController)
+    'account.resetLockout',
+    accountController.resetLockout.bind(accountController)
+  );
+  rpc.register(
+    'account.startLockoutTimer',
+    accountController.startLockoutTimer.bind(accountController)
+  );
+  rpc.register(
+    'account.resetLockoutTimer',
+    accountController.resetLockoutTimer.bind(accountController)
   );
   rpc.register(
     'account.switchToAccount',
