@@ -2,6 +2,7 @@ import { browser } from 'webextension-polyfill-ts';
 import { Rpc } from './rpc';
 import SignMessageManager from '../../background/SignMessageManager';
 import ConnectionManager from '../../background/ConnectionManager';
+import EventBus from '../../background/EventBus';
 
 /*
  * A proxy set up in Content Script
@@ -36,6 +37,7 @@ let rpc: Rpc;
 export function setupInjectPageAPIServer(
   signMessageManager: SignMessageManager,
   connectionManager: ConnectionManager,
+  eventBus: EventBus,
   logMessages: boolean = false
 ) {
   rpc = new Rpc({
@@ -72,5 +74,9 @@ export function setupInjectPageAPIServer(
   rpc.register(
     'getVersion',
     connectionManager.getVersion.bind(connectionManager)
+  );
+  rpc.register(
+    'eventBus',
+    eventBus.bus.bind(eventBus)
   );
 }

@@ -9,6 +9,7 @@ class CasperLabsPluginHelper {
 
   constructor() {
     this.call = registerClient();
+    console.log("!");
   }
 
   async isConnected() {
@@ -37,6 +38,10 @@ class CasperLabsPluginHelper {
 
   async getVersion() {
     return this.call<string>('getVersion');
+  }
+
+  async eventBus() {
+    return this.call<any>('eventBus');
   }
 }
 
