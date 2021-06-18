@@ -11,3 +11,16 @@ export const isAlgorithm = (val: any) =>
 export const fieldSubmittable = (val: FieldState<any>) => {
   return val.hasBeenValidated && !val.hasError;
 };
+
+export const minNameLength = (val: string) => {
+  return !(val.length > 2) && 'Invalid name - too short';
+};
+
+export const humanReadable = (val: string) => {
+  // Accept any alphanumeric (also underscores)
+  const humanReadableRegex = /^\w+$/;
+  return (
+    !val.match(humanReadableRegex) &&
+    'Invalid name - only use A-Z, a-z, 0-9 and _'
+  );
+};
