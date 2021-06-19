@@ -23,7 +23,6 @@ import Pages from './Pages';
 import { confirm } from './Confirmation';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
-// import { Lockout } from '../components/Lockout';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
