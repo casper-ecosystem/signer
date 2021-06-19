@@ -209,7 +209,7 @@ class AccountPage extends React.Component<Props, State> {
       <span>Confirm password to reveal key</span>
     ).then(() => {
       this.setState({ revealSecretKey: true });
-      setTimeout(() => this.setState({ revealSecretKey: false }), 3500);
+      setTimeout(() => this.setState({ revealSecretKey: false }), 5000);
     });
   };
 
