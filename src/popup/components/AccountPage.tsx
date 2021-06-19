@@ -203,6 +203,7 @@ class AccountPage extends React.Component<Props, State> {
   }
 
   revealSecretKey = () => {
+    if (this.state.revealSecretKey) return;
     confirmWithPassword(
       <div className="text-danger">Reveal Key</div>,
       <span>Confirm password to reveal key</span>
