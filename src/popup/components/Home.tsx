@@ -8,9 +8,12 @@ import {
   WithStyles,
   Typography,
   withStyles,
-  Grid
+  Grid,
+  Popover,
+  IconButton
 } from '@material-ui/core';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
+import HelpIcon from '@material-ui/icons/Help';
 import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
 import PopupManager from '../../background/PopupManager';
@@ -52,8 +55,25 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
 }
 
 @observer
-class Home extends React.Component<Props, {}> {
+class Home extends React.Component<
+  Props,
+  { helpAnchorEl: HTMLButtonElement | null }
+> {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      helpAnchorEl: null
+    };
+  }
   renderCreateNewVault() {
+    const showPasswordHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
+      this.setState({ helpAnchorEl: event.currentTarget });
+    };
+    const helpOpen = Boolean(showPasswordHelp);
+    const helpId = helpOpen ? 'password-help' : undefined;
+    const closePasswordHelp = () => {
+      this.setState({ helpAnchorEl: null });
+    };
     return (
       <div>
         <Grid
@@ -75,8 +95,8 @@ class Home extends React.Component<Props, {}> {
           </Grid>
 
           <Grid item container>
-            <form style={{ textAlign: 'center' }}>
-              <FormControl fullWidth>
+            <form style={{ textAlign: 'center', width: '100%' }}>
+              <FormControl style={{ width: '80%' }}>
                 <TextFieldWithFormState
                   fieldState={
                     this.props.homeContainer.homeForm.$.setPasswordField
@@ -86,16 +106,65 @@ class Home extends React.Component<Props, {}> {
                   type={'password'}
                 />
               </FormControl>
-              <FormControl fullWidth>
-                <TextFieldWithFormState
-                  fieldState={
-                    this.props.homeContainer.homeForm.$.confirmPasswordField
-                  }
-                  required
-                  label={'Confirm Password'}
-                  type={'password'}
-                />
-              </FormControl>
+              <IconButton
+                onClick={showPasswordHelp}
+                style={{
+                  float: 'right',
+                  transform: 'translateY(.3em)'
+                }}
+              >
+                <HelpIcon />
+              </IconButton>
+              {this.state.helpAnchorEl && (
+                <Popover
+                  id={helpId}
+                  open={helpOpen}
+                  anchorEl={this.state.helpAnchorEl}
+                  onClose={closePasswordHelp}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right'
+                  }}
+                  transformOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right'
+                  }}
+                >
+                  <Typography
+                    component={'summary'}
+                    style={{
+                      padding: '1.4em',
+                      backgroundColor: 'var(--cspr-dark-blue)',
+                      color: 'white'
+                    }}
+                  >
+                    Please include at least one of each of the following:
+                    <ul>
+                      <li>lowercase letter</li>
+                      <li>UPPERCASE letter</li>
+                      <li>Number</li>
+                      <li>Special character</li>
+                    </ul>
+                    Or you can enter a &gt;20 char passphrase if you would
+                    prefer e.g. 'correct horse battery staple'
+                  </Typography>
+                </Popover>
+              )}
+              {this.props.homeContainer.homeForm.$.setPasswordField
+                .hasBeenValidated &&
+                !this.props.homeContainer.homeForm.$.setPasswordField
+                  .hasError && (
+                  <FormControl fullWidth>
+                    <TextFieldWithFormState
+                      fieldState={
+                        this.props.homeContainer.homeForm.$.confirmPasswordField
+                      }
+                      required
+                      label={'Confirm Password'}
+                      type={'password'}
+                    />
+                  </FormControl>
+                )}
               <Typography variant="subtitle2" className="text-danger">
                 {this.props.homeContainer.homeForm.showFormError &&
                   this.props.homeContainer.homeForm.formError}
@@ -241,7 +310,7 @@ class Home extends React.Component<Props, {}> {
                   aria-label="Enter password for vault"
                   autoFocus={true}
                   fieldState={
-                    this.props.homeContainer.homeForm.$.setPasswordField
+                    this.props.homeContainer.homeForm.$.unlockPasswordField
                   }
                   required
                   id={'unlock-password'}
@@ -258,16 +327,16 @@ class Home extends React.Component<Props, {}> {
                     root: this.props.classes.unlockButton,
                     disabled: this.props.classes.disabled
                   }}
-                  disabled={this.props.homeContainer.submitDisabled}
+                  disabled={this.props.homeContainer.unlockDisabled}
                   onClick={async () => {
                     let password =
-                      this.props.homeContainer.homeForm.$.setPasswordField.$;
+                      this.props.homeContainer.homeForm.$.unlockPasswordField.$;
                     try {
                       await this.props.authContainer.unlock(password);
-                      this.props.homeContainer.homeForm.$.setPasswordField.reset();
+                      this.props.homeContainer.homeForm.$.unlockPasswordField.reset();
                       this.props.errors.dismissLast();
                     } catch (e) {
-                      this.props.homeContainer.homeForm.$.setPasswordField.setError(
+                      this.props.homeContainer.homeForm.$.unlockPasswordField.setError(
                         e.message
                       );
                     }
