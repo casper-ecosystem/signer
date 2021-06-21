@@ -120,4 +120,8 @@ async function setupPopupAPIServer() {
     'connection.removeSite',
     connectionManager.removeSite.bind(connectionManager)
   );
+  rpc.register(
+    'account.confirmPassword',
+    accountController.confirmPassword.bind(accountController)
+  );
 }
