@@ -81,6 +81,7 @@ class Confirmation extends React.Component<Props, { boxChecked: boolean }> {
             <FormControlLabel
               control={
                 <Checkbox
+                  style={{ alignSelf: 'flex-start' }}
                   checked={this.state.boxChecked}
                   onChange={this.handleCheckboxChange}
                 />
