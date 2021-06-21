@@ -18,7 +18,7 @@ export const minNameLength = (val: string) => {
 
 export const humanReadable = (val: string) => {
   // Accept any alphanumeric (also underscores)
-  const humanReadableRegex = /^\w+$/;
+  const humanReadableRegex = /^[A-Za-zÀ-ÖØ-öø-ÿœ0-9_]+$/;
   return (
     !val.match(humanReadableRegex) &&
     'Invalid name - only use A-Z, a-z, 0-9 and _'
