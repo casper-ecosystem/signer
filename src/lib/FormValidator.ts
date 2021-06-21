@@ -20,6 +20,19 @@ export const fieldSubmittable = (val: FieldState<string>) => {
   return val.hasBeenValidated && !val.hasError;
 };
 
+export const minNameLength = (val: string) => {
+  return !(val.length > 2) && 'Invalid name - too short';
+};
+
+export const humanReadable = (val: string) => {
+  // Accept any alphanumeric (also underscores)
+  const humanReadableRegex = /^[A-Za-zÀ-ÖØ-öø-ÿœ0-9_]+$/;
+  return (
+    !val.match(humanReadableRegex) &&
+    'Invalid name - only use A-Z, a-z, 0-9 and _'
+  );
+};
+
 export const strongPassword = (val: string) => {
   const result = owasp.test(val);
   return !result.strong && result.errors[0];

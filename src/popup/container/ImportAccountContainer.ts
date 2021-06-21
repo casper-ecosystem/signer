@@ -2,7 +2,9 @@ import { FieldState } from 'formstate';
 import {
   fieldSubmittable,
   valueRequired,
-  isAlgorithm
+  isAlgorithm,
+  humanReadable,
+  minNameLength
 } from '../../lib/FormValidator';
 import { action, computed, observable } from 'mobx';
 import { encodeBase64 } from 'tweetnacl-util';
@@ -25,7 +27,9 @@ export class ImportAccountFormData implements SubmittableFormData {
     isAlgorithm
   );
   name: FieldState<string> = new FieldState<string>('').validators(
-    valueRequired
+    valueRequired,
+    minNameLength,
+    humanReadable
   );
   reHex = /^\s*(?:[0-9A-Fa-f][0-9A-Fa-f]\s*)+$/;
   @observable file: File | null = null;
