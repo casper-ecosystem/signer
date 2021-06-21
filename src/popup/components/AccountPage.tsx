@@ -23,7 +23,7 @@ import withStyles from '@material-ui/core/styles/withStyles';
 import { decodeBase16, decodeBase64, Keys } from 'casper-client-sdk';
 import { KeyPairWithAlias } from '../../@types/models';
 import Pages from './Pages';
-import { confirmWithPassword } from './Confirmation';
+import { confirm } from './Confirmation';
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -204,9 +204,12 @@ class AccountPage extends React.Component<Props, State> {
 
   revealSecretKey = () => {
     if (this.state.revealSecretKey) return;
-    confirmWithPassword(
+    confirm(
       <div className="text-danger">Reveal Key</div>,
-      <span>Confirm password to reveal key</span>
+      <span>Confirm password to reveal key</span>,
+      'Reveal',
+      'Cancel',
+      { requirePassword: true }
     ).then(() => {
       this.setState({ revealSecretKey: true });
       setTimeout(() => this.setState({ revealSecretKey: false }), 5000);

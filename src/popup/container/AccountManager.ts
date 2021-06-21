@@ -145,7 +145,6 @@ class AccountManager {
       !this.confirmPasswordForm.$.confirmPasswordField.hasBeenValidated ||
       (this.confirmPasswordForm.$.confirmPasswordField.hasBeenValidated &&
         this.confirmPasswordForm.$.confirmPasswordField.hasError);
-    console.log(`Disabled: ${disabled}`);
     return disabled;
   }
 }
