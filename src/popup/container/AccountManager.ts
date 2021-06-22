@@ -155,6 +155,11 @@ class AccountManager {
     return this.appState.timerDurationMins;
   }
 
+  @computed
+  get remainingMins() {
+    return this.appState.remainingMins;
+  }
+
   @action
   async resetLockoutTimer() {
     return this.backgroundManager.resetLockoutTimer();

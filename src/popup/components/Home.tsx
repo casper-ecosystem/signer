@@ -75,7 +75,12 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
 }
 
 @observer
-class Home extends React.Component<Props, {}> {
+class Home extends React.Component<Props, { remainingMins: number }> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { remainingMins: this.props.authContainer.remainingMins };
+  }
+
   componentDidUpdate() {
     if (this.props.authContainer.isLockedOut) {
       this.props.errors.dismissLast();
@@ -348,7 +353,11 @@ class Home extends React.Component<Props, {}> {
           Your vault has been temporarily locked out due to too many incorrect
           password attempts.
         </Typography>
-        <Typography variant={'h6'}>Please try again in 5 minutes.</Typography>
+        <Typography variant={'h6'}>
+          Please try again in{' '}
+          {Math.round(this.props.authContainer.remainingMins)} minute
+          {this.props.authContainer.remainingMins <= 1 ? '.' : 's.'}
+        </Typography>
       </div>
     );
   }

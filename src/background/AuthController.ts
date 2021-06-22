@@ -62,11 +62,10 @@ class AuthController {
         let timeElapsedMins =
           (currentTimeMillis - lockedOutTimestampMillis) / 1000 / 60;
         if (timeElapsedMins < this.appState.timerDurationMins) {
+          let remainingMins = this.appState.timerDurationMins - timeElapsedMins;
+          this.appState.remainingMins = remainingMins;
           this.appState.unlockAttempts = 0;
-          this.startLockoutTimer(
-            this.appState.timerDurationMins - timeElapsedMins,
-            false
-          );
+          this.startLockoutTimer(remainingMins, false);
         }
       });
     this.initStore();
@@ -517,6 +516,18 @@ class AuthController {
   }
 
   @action
+  refreshRemainingTime(minutesLeft: number) {
+    if (minutesLeft <= 1) {
+      this.appState.remainingMins = 1;
+      return;
+    }
+    this.appState.remainingMins = minutesLeft;
+    setTimeout(() => {
+      this.refreshRemainingTime(minutesLeft - 1);
+    }, 1000 * 60);
+  }
+
+  @action
   async startLockoutTimer(
     timeInMinutes: number,
     resetTimestamp: boolean = true
@@ -529,7 +540,8 @@ class AuthController {
     setTimeout(() => {
       this.resetLockout();
       this.resetLockoutTimer();
-    }, timeInMinutes * 60 * 1000);
+    }, timeInMinutes * 1000 * 60);
+    this.refreshRemainingTime(timeInMinutes);
   }
 
   @action.bound

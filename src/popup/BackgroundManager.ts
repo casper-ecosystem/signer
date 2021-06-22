@@ -30,6 +30,7 @@ export class BackgroundManager {
     this.appState.isUnlocked = appState.isUnlocked;
     this.appState.unlockAttempts = appState.unlockAttempts;
     this.appState.lockoutTimerStarted = appState.lockoutTimerStarted;
+    this.appState.remainingMins = appState.remainingMins;
     this.appState.currentTab = appState.currentTab;
     this.appState.connectionRequested = appState.connectionRequested;
     this.appState.connectedSites = appState.connectedSites;
