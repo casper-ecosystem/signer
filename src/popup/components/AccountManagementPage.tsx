@@ -141,7 +141,13 @@ class AccountManagementPage extends React.Component<Props, State> {
   handleClickRemove = (name: string) => {
     confirm(
       <div className="text-danger">Remove account</div>,
-      'Are you sure you want to remove this account?'
+      <span>
+        This account will be permanently deleted. Confirm password to remove
+        account: <b>{name}</b>
+      </span>,
+      'Remove',
+      'Cancel',
+      { requirePassword: true }
     ).then(() => this.props.authContainer.removeUserAccount(name));
   };
 
