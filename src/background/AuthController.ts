@@ -13,7 +13,6 @@ import {
 import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
 import { saveAs } from 'file-saver';
-// import KeyEncoder from 'key-encoder';
 
 interface TimerStore {
   lockedOutTimestampMillis: number;
