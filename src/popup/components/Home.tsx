@@ -337,7 +337,9 @@ class Home extends React.Component<Props, {}> {
       !this.props.authContainer.lockoutTimerStarted
     ) {
       // 5 minute timer before resetting lockout
-      this.props.authContainer.startLockoutTimer(0.3);
+      this.props.authContainer.startLockoutTimer(
+        this.props.authContainer.timerDuration
+      );
     }
     return (
       <div className={this.props.classes.lockout}>

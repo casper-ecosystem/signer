@@ -1,6 +1,6 @@
 import { action, computed } from 'mobx';
 import passworder from 'browser-passworder';
-import { storage } from '@extend-chrome/storage';
+import { Bucket, getBucket, storage } from '@extend-chrome/storage';
 import * as nacl from 'tweetnacl';
 import {
   encodeBase16,
@@ -14,6 +14,10 @@ import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
 import { saveAs } from 'file-saver';
 // import KeyEncoder from 'key-encoder';
+
+interface TimerStore {
+  lockedOutTimestampMillis: number;
+}
 
 export interface SerializedKeyPairWithAlias {
   name: string;
@@ -44,11 +48,28 @@ class AuthController {
   private encryptedVaultKey = 'encryptedVault';
   private saltKey = 'passwordSalt';
 
+  private timerStore: Bucket<TimerStore>;
+
   constructor(private appState: AppState) {
     if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
       this.appState.hasCreatedVault = true;
     }
-
+    this.timerStore = getBucket<TimerStore>('timerStore');
+    this.timerStore
+      .get('lockedOutTimestampMillis')
+      .then(({ lockedOutTimestampMillis }) => {
+        if (!lockedOutTimestampMillis) return;
+        let currentTimeMillis = new Date().getTime();
+        let timeElapsedMins =
+          (currentTimeMillis - lockedOutTimestampMillis) / 1000 / 60;
+        if (timeElapsedMins < this.appState.timerDurationMins) {
+          this.appState.unlockAttempts = 0;
+          this.startLockoutTimer(
+            this.appState.timerDurationMins - timeElapsedMins,
+            false
+          );
+        }
+      });
     this.initStore();
   }
 
@@ -496,18 +517,26 @@ class AuthController {
       : null;
   }
 
-  @action.bound
-  async resetLockout() {
-    this.appState.unlockAttempts = 5;
-  }
-
   @action
-  async startLockoutTimer(timeInMinutes: number) {
+  async startLockoutTimer(
+    timeInMinutes: number,
+    resetTimestamp: boolean = true
+  ) {
     this.appState.lockoutTimerStarted = true;
+    if (resetTimestamp) {
+      let currentTimeMillis = new Date().getTime();
+      this.timerStore.set({ lockedOutTimestampMillis: currentTimeMillis });
+    }
     setTimeout(() => {
       this.resetLockout();
       this.resetLockoutTimer();
     }, timeInMinutes * 60 * 1000);
+  }
+
+  @action.bound
+  async resetLockout() {
+    this.timerStore.set({ lockedOutTimestampMillis: 0 });
+    this.appState.unlockAttempts = 5;
   }
 
   @action.bound

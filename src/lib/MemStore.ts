@@ -10,6 +10,8 @@ export class AppState {
     return this.unlockAttempts === 0;
   }
   @observable lockoutTimerStarted: boolean = false;
+  @observable lockedOutTimestampMillis: number = 0;
+  timerDurationMins: number = 1;
   @observable currentTab: Tab | null = null;
   @computed get connectionStatus(): boolean {
     const url = this.currentTab && this.currentTab.url;

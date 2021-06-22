@@ -150,6 +150,11 @@ class AccountManager {
     return this.appState.lockoutTimerStarted;
   }
 
+  @computed
+  get timerDuration() {
+    return this.appState.timerDurationMins;
+  }
+
   @action
   async resetLockoutTimer() {
     return this.backgroundManager.resetLockoutTimer();
