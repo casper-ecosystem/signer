@@ -1,7 +1,7 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
-import { DeployUtil, encodeBase16 } from 'casper-client-sdk';
+import { DeployUtil, encodeBase16, PublicKey } from 'casper-client-sdk';
 
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 export interface deployWithID {
@@ -9,6 +9,7 @@ export interface deployWithID {
   status: deployStatus;
   deploy: DeployUtil.Deploy | undefined;
   signingKey: string;
+  targetKey: string;
   error?: Error;
   pushed?: boolean;
 }
@@ -25,6 +26,8 @@ export interface DeployData {
   id?: any;
   amount?: any;
   target?: string;
+  validator?: string;
+  delegator?: string;
 }
 
 /**
@@ -116,7 +119,11 @@ export default class SignMessageManager extends events.EventEmitter {
    * @param {JSON} deployJson
    * @returns {number} id for added deploy
    */
-  public addUnsignedDeployToQueue(deployJson: any, publicKey: string): number {
+  public addUnsignedDeployToQueue(
+    deployJson: any,
+    sourcePublicKey: string,
+    targetPublicKey: string
+  ): number {
     const id: number = this.createId();
 
     try {
@@ -124,14 +131,16 @@ export default class SignMessageManager extends events.EventEmitter {
         id: id,
         status: 'unsigned',
         deploy: DeployUtil.deployFromJson(deployJson),
-        signingKey: publicKey
+        signingKey: sourcePublicKey,
+        targetKey: targetPublicKey
       });
     } catch (err) {
       this.unsignedDeploys.push({
         id: id,
         status: 'failed',
         deploy: undefined,
-        signingKey: publicKey,
+        signingKey: sourcePublicKey,
+        targetKey: targetPublicKey,
         error: err
       });
     }
@@ -148,7 +157,8 @@ export default class SignMessageManager extends events.EventEmitter {
    */
   public signDeploy(
     deploy: any,
-    publicKey: string // hex-encoded PublicKey bytes with algo prefix
+    sourcePublicKeyHex: string, // hex-encoded PublicKey bytes with algo prefix
+    targetPublicKeyHex: string
   ): Promise<any> {
     return new Promise((resolve, reject) => {
       // TODO: Need to abstract it to reusable method
@@ -163,7 +173,11 @@ export default class SignMessageManager extends events.EventEmitter {
       }
 
       // Adding the deploy to the queue will update the extension state and UI
-      const deployId = this.addUnsignedDeployToQueue(deploy, publicKey);
+      const deployId = this.addUnsignedDeployToQueue(
+        deploy,
+        sourcePublicKeyHex,
+        targetPublicKeyHex
+      );
       this.popupManager.openPopup('sign');
       // Await outcome of user interaction with popup.
       this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
@@ -259,16 +273,60 @@ export default class SignMessageManager extends events.EventEmitter {
       let header = deploy.deploy.header;
 
       // TODO: Double-check that this is correct way to determine deploy type.
-      let type = deploy.deploy.isTransfer()
+      const type = deploy.deploy.isTransfer()
         ? 'Transfer'
         : deploy.deploy.session.isModuleBytes()
         ? 'Contract Call'
         : 'Contract Deployment';
 
-      const amount = deploy.deploy.session.transfer
-        ?.getArgByName('amount')!
-        .asBigNumber()
-        .toString();
+      let amount;
+      let target;
+      let validator;
+      let delegator;
+
+      if (deploy.deploy.session.transfer) {
+        // First let's check if the provided targetPublicKey matches the one used in deploy
+        // We're doing it because its impossible to extract target in a form of PublicKey from Deploy
+        const providedTargetKeyHash = encodeBase16(
+          PublicKey.fromHex(deploy.targetKey).toAccountHash()
+        );
+
+        const deployTargetKeyHash = encodeBase16(
+          deploy.deploy.session.transfer
+            ?.getArgByName('target')!
+            .asBytesArray()!
+        );
+
+        if (providedTargetKeyHash !== deployTargetKeyHash) {
+          throw new Error(
+            "Provided target public key doesn't match the one in deploy"
+          );
+        }
+
+        target = deploy.targetKey;
+
+        amount = deploy.deploy.session.transfer
+          ?.getArgByName('amount')!
+          .asBigNumber()
+          .toString();
+      }
+
+      if (deploy.deploy.session.storedContractByHash) {
+        amount = deploy.deploy.session.storedContractByHash
+          ?.getArgByName('amount')!
+          .asBigNumber()
+          .toString();
+
+        validator = deploy.deploy.session.storedContractByHash
+          ?.getArgByName('validator')!
+          .asPublicKey()
+          .toAccountHex();
+
+        delegator = deploy.deploy.session.storedContractByHash
+          ?.getArgByName('delegator')!
+          .asPublicKey()
+          .toAccountHex();
+      }
 
       const transferId = deploy.deploy.session.transfer
         ?.getArgByName('id')!
@@ -276,10 +334,6 @@ export default class SignMessageManager extends events.EventEmitter {
         .getSome()
         .asBigNumber()
         .toString();
-
-      let target = encodeBase16(
-        deploy.deploy.session.transfer?.getArgByName('target')!.asBytesArray()!
-      );
 
       return {
         deployHash: encodeBase16(deploy.deploy.hash),
@@ -291,8 +345,10 @@ export default class SignMessageManager extends events.EventEmitter {
         payment: encodeBase16(deploy.deploy.payment.toBytes()),
         deployType: type,
         id: type === 'Transfer' ? transferId : undefined,
-        amount: type === 'Transfer' ? amount : undefined,
-        target: type === 'Transfer' ? target : undefined
+        amount: amount,
+        target: type === 'Transfer' ? target : undefined,
+        validator,
+        delegator
       };
     } else {
       throw new Error('Deploy undefined!');

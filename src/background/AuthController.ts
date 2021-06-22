@@ -560,6 +560,24 @@ class AuthController {
     return this.appState.isUnlocked;
   }
 
+  async confirmPassword(password: string) {
+    let encryptedVault = await this.getStoredValueWithKey(
+      this.encryptedVaultKey
+    );
+    if (!encryptedVault) {
+      throw new Error('There is no vault');
+    }
+    let storedSalt = await this.getStoredValueWithKey(this.saltKey);
+    let [, saltedPassword] = this.saltPassword(password, storedSalt);
+    let saltedPasswordHash = this.hash(saltedPassword);
+    try {
+      await passworder.decrypt(saltedPasswordHash, encryptedVault);
+      return true;
+    } catch (err) {
+      throw new Error(err);
+    }
+  }
+
   @action.bound
   async clearAccount() {
     this.appState.userAccounts.clear();

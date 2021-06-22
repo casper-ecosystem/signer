@@ -3,6 +3,8 @@ import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
 import { KeyPairWithAlias } from '../../@types/models';
+import { FieldState, FormState } from 'formstate';
+import { valueRequired } from '../../lib/FormValidator';
 
 class AccountManager {
   constructor(
@@ -167,6 +169,24 @@ class AccountManager {
 
   async renameUserAccount(oldName: string, newName: string) {
     return this.backgroundManager.renameUserAccount(oldName, newName);
+  }
+
+  async confirmPassword(password: string) {
+    return this.backgroundManager.confirmPassword(password);
+  }
+
+  confirmPasswordForm = new FormState({
+    confirmPasswordField: new FieldState<string>('').validators(valueRequired)
+  });
+
+  @computed
+  get confirmPasswordDisabled(): boolean {
+    let disabled =
+      !this.confirmPasswordForm.$.confirmPasswordField.hasBeenValidated ||
+      (this.confirmPasswordForm.$.confirmPasswordField.hasBeenValidated &&
+        this.confirmPasswordForm.$.confirmPasswordField.hasError);
+    console.log(`Disabled: ${disabled}`);
+    return disabled;
   }
 }
 
