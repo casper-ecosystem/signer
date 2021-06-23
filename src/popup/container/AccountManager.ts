@@ -127,6 +127,46 @@ class AccountManager {
     return this.appState.unsignedDeploys;
   }
 
+  @computed
+  get remainingUnlockAttempts() {
+    return this.appState.unlockAttempts;
+  }
+
+  @computed
+  get isLockedOut() {
+    return this.appState.lockedOut;
+  }
+
+  @action
+  async resetLockout() {
+    return this.backgroundManager.resetLockout();
+  }
+
+  @action
+  async startLockoutTimer(timeInMinutes: number) {
+    return this.backgroundManager.startLockoutTimer(timeInMinutes);
+  }
+
+  @computed
+  get lockoutTimerStarted() {
+    return this.appState.lockoutTimerStarted;
+  }
+
+  @computed
+  get timerDuration() {
+    return this.appState.timerDurationMins;
+  }
+
+  @computed
+  get remainingMins() {
+    return this.appState.remainingMins;
+  }
+
+  @action
+  async resetLockoutTimer() {
+    return this.backgroundManager.resetLockoutTimer();
+  }
+
   async renameUserAccount(oldName: string, newName: string) {
     return this.backgroundManager.renameUserAccount(oldName, newName);
   }
