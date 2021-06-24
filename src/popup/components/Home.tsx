@@ -65,6 +65,33 @@ class Home extends React.Component<
       helpAnchorEl: null
     };
   }
+  // NOT USING THIS JUST NOW - BUT LEFT IT HERE IN CASE WE COME BACK TO USE THIS KIND OF METHOD
+  //
+  // componentDidMount() {
+  //   setTimeout(() => this.sessionTimeout(), 0.2 * 60 * 1000);
+  // }
+
+  // sessionTimeout() {
+  //   confirm(
+  //     'Are you there?',
+  //     'Your session is about to lock, would you like to keep it open?',
+  //     'Keep open',
+  //     'Lock',
+  //     { unmountAfter: 1000 }
+  //   ).then(
+  //     () => {
+  //       console.log('Keep open');
+  //       // Keep open - ask again in another X minutes
+  //       setTimeout(() => this.sessionTimeout(), 0.2 * 60 * 1000);
+  //     },
+  //     () => {
+  //       console.log('Lock');
+  //       // Lock
+  //       this.props.authContainer.lock();
+  //     }
+  //   );
+  // }
+
   renderCreateNewVault() {
     const showPasswordHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
       this.setState({ helpAnchorEl: event.currentTarget });

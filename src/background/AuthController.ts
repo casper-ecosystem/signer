@@ -484,7 +484,13 @@ class AuthController {
     this.appState.selectedUserAccount = vault.selectedUserAccount
       ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
       : null;
+    // await this.sessionLock();
   }
+
+  // @action.bound
+  // async sessionLock() {
+  //   setTimeout(this.lock, 1 * 60 * 1000);
+  // }
 
   @computed
   get isUnlocked(): boolean {
