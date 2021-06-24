@@ -13,6 +13,7 @@ import {
   IconButton
 } from '@material-ui/core';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
+import NotInterestedIcon from '@material-ui/icons/NotInterested';
 import HelpIcon from '@material-ui/icons/Help';
 import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
@@ -43,7 +44,29 @@ const styles = (theme: Theme) =>
         color: 'grey'
       }
     },
-    disabled: {}
+    disabled: {},
+    lockout: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      left: 0,
+      bottom: 0,
+      background:
+        'linear-gradient(30deg, var(--cspr-dark-blue) 50%, var(--cspr-red) 100%)',
+      padding: '2em',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      color: 'snow',
+      textAlign: 'center',
+      '& > *': {
+        marginBottom: '1rem'
+      },
+      '& > :nth-child(2)': {
+        fontSize: '1.2rem'
+      }
+    }
   });
 
 interface Props extends RouteComponentProps, WithStyles<typeof styles> {
@@ -57,11 +80,12 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
 @observer
 class Home extends React.Component<
   Props,
-  { helpAnchorEl: HTMLButtonElement | null }
+  { remainingMins: number; helpAnchorEl: HTMLButtonElement | null }
 > {
   constructor(props: Props) {
     super(props);
     this.state = {
+      remainingMins: this.props.authContainer.remainingMins,
       helpAnchorEl: null
     };
   }
@@ -91,6 +115,13 @@ class Home extends React.Component<
   //     }
   //   );
   // }
+
+  componentDidUpdate() {
+    if (this.props.authContainer.isLockedOut) {
+      this.props.errors.dismissLast();
+      this.props.homeContainer.homeForm.$.setPasswordField.reset();
+    }
+  }
 
   renderCreateNewVault() {
     const showPasswordHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -352,6 +383,14 @@ class Home extends React.Component<
                   type={'password'}
                 />
               </FormControl>
+              {this.props.authContainer.remainingUnlockAttempts < 5 && (
+                <FormControl fullWidth style={{ marginTop: '.5rem' }}>
+                  <Typography variant={'subtitle1'}>
+                    Attempts remaining:{' '}
+                    {this.props.authContainer.remainingUnlockAttempts}
+                  </Typography>
+                </FormControl>
+              )}
               <FormControl fullWidth className={this.props.classes.margin}>
                 <Button
                   type="submit"
@@ -397,6 +436,32 @@ class Home extends React.Component<
     );
   }
 
+  renderLockedOut() {
+    if (
+      this.props.authContainer.isLockedOut &&
+      !this.props.authContainer.lockoutTimerStarted
+    ) {
+      // 5 minute timer before resetting lockout
+      this.props.authContainer.startLockoutTimer(
+        this.props.authContainer.timerDuration
+      );
+    }
+    return (
+      <div className={this.props.classes.lockout}>
+        <NotInterestedIcon style={{ fontSize: '5.5rem' }} />
+        <Typography variant={'body1'}>
+          Your vault has been temporarily locked out due to too many incorrect
+          password attempts.
+        </Typography>
+        <Typography variant={'h6'}>
+          Please try again in{' '}
+          {Math.round(this.props.authContainer.remainingMins)} minute
+          {this.props.authContainer.remainingMins <= 1 ? '.' : 's.'}
+        </Typography>
+      </div>
+    );
+  }
+
   render() {
     if (this.props.authContainer.hasCreatedVault) {
       if (this.props.authContainer.isUnLocked) {
@@ -414,7 +479,11 @@ class Home extends React.Component<
           }
         }
       } else {
-        return this.renderUnlock();
+        if (this.props.authContainer.isLockedOut) {
+          return this.renderLockedOut();
+        } else {
+          return this.renderUnlock();
+        }
       }
     } else {
       return this.renderCreateNewVault();
