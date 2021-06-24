@@ -70,10 +70,15 @@ class AuthController {
       });
     this.initStore();
 
+    this.timer = null;
+
     chrome.runtime.onConnect.addListener(port => {
+      clearTimeout(this.timer);
       port.onDisconnect.addListener(() => {
         console.log('popup closed');
-        this.lock();
+        this.timer = setTimeout(() => {
+          this.lock();
+        }, 1000 * 60)
       });
       console.log('popup open');
     });
