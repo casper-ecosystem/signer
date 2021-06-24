@@ -35,6 +35,13 @@ async function setupPopupAPIServer() {
       console.log(e);
     });
     updateBadge(appState);
+    chrome.runtime.onConnect.addListener(port => {
+      port.onDisconnect.addListener(() => {
+        console.log('popup closed');
+        accountController.lock();
+      });
+      console.log('popup open');
+    });
   });
   rpc.register(
     'account.unlock',
