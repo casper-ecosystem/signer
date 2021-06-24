@@ -29,6 +29,7 @@ interface Props extends ReactConfirmProps {
     requirePassword: boolean;
     requireCheckbox: boolean;
     checkboxText: string;
+    unmountAfter: number;
   };
 }
 
@@ -156,13 +157,19 @@ export function confirm(
     requirePassword?: boolean;
     requireCheckbox?: boolean;
     checkboxText?: string;
+    unmountAfter?: number;
   } = {
     requirePassword: false,
     requireCheckbox: false,
-    checkboxText: ''
+    checkboxText: '',
+    unmountAfter: 10000
   }
 ) {
-  return createConfirmation(confirmable(Confirmation))({
+  console.log(options.unmountAfter);
+  return createConfirmation(
+    confirmable(Confirmation),
+    options.unmountAfter
+  )({
     title,
     confirmation,
     proceedLabel,
