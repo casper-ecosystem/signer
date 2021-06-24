@@ -369,7 +369,7 @@ class Home extends React.Component<
           </Grid>
 
           <Grid item container>
-            <form style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
               <FormControl fullWidth>
                 <TextFieldWithFormState
                   aria-label="Enter password for vault"
@@ -429,7 +429,7 @@ class Home extends React.Component<
                   Reset Vault?
                 </a>
               </div>
-            </form>
+            </div>
           </Grid>
         </Grid>
       </div>

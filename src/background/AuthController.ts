@@ -69,6 +69,14 @@ class AuthController {
         }
       });
     this.initStore();
+
+    chrome.runtime.onConnect.addListener(port => {
+      port.onDisconnect.addListener(() => {
+        console.log('popup closed');
+        this.lock();
+      });
+      console.log('popup open');
+    });
   }
 
   async initStore() {
