@@ -48,6 +48,7 @@ class AuthController {
   private saltKey = 'passwordSalt';
 
   private timerStore: Bucket<TimerStore>;
+  private timer: any;
 
   constructor(private appState: AppState) {
     if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
@@ -69,6 +70,19 @@ class AuthController {
         }
       });
     this.initStore();
+
+    this.timer = null;
+
+    chrome.runtime.onConnect.addListener(port => {
+      if (this.timer) {
+        clearTimeout(this.timer);
+      }
+      port.onDisconnect.addListener(() => {
+        this.timer = setTimeout(() => {
+          this.lock();
+        }, 1000 * 60);
+      });
+    });
   }
 
   async initStore() {
@@ -513,7 +527,13 @@ class AuthController {
     this.appState.selectedUserAccount = vault.selectedUserAccount
       ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
       : null;
+    // await this.sessionLock();
   }
+
+  // @action.bound
+  // async sessionLock() {
+  //   setTimeout(this.lock, 1 * 60 * 1000);
+  // }
 
   @action
   refreshRemainingTime(minutesLeft: number) {
