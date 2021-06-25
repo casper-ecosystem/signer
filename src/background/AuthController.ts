@@ -48,6 +48,7 @@ class AuthController {
   private saltKey = 'passwordSalt';
 
   private timerStore: Bucket<TimerStore>;
+  private timer: any;
 
   constructor(private appState: AppState) {
     if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
@@ -73,14 +74,14 @@ class AuthController {
     this.timer = null;
 
     chrome.runtime.onConnect.addListener(port => {
-      clearTimeout(this.timer);
+      if (this.timer) {
+        clearTimeout(this.timer);
+      }
       port.onDisconnect.addListener(() => {
-        console.log('popup closed');
         this.timer = setTimeout(() => {
           this.lock();
-        }, 1000 * 60)
+        }, 1000 * 60);
       });
-      console.log('popup open');
     });
   }
 
