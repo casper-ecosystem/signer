@@ -47,6 +47,8 @@ jest.mock('browser-passworder', () => {
   };
 });
 
+jest.mock('webextension-polyfill-ts', () => ({ browser: {} }));
+
 describe('AuthController', () => {
   let appState: AppState;
   let authController: AuthController;
