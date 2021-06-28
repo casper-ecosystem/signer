@@ -88,10 +88,7 @@ class AuthController {
 
     const tab = this.appState.currentTab;
     if (tab && tab.tabId) {
-      chrome.tabs.sendMessage(tab.tabId, {
-        msg: 'activeKeyChange',
-        data: this.appState.selectedUserAccount.KeyPair.publicKey.toAccountHex()
-      });
+    updateStatusEvent(this.appState, 'activeKeyChanged');
     }
   }
 
@@ -475,6 +472,7 @@ class AuthController {
     this.passwordHash = null;
     this.appState.isUnlocked = false;
     await this.clearAccount();
+    updateStatusEvent(this.appState, 'locked');
   }
 
   /**
@@ -494,7 +492,7 @@ class AuthController {
       ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
       : null;
 
-    updateStatusEvent(this.appState);
+    updateStatusEvent(this.appState, 'unlocked');
   }
 
   @computed

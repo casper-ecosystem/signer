@@ -13,7 +13,7 @@ export function updateBadge(appState: AppState) {
   browser.browserAction.setBadgeBackgroundColor({ color: 'red' });
 }
 
-export function updateStatusEvent(appState: AppState) {
+export function updateStatusEvent(appState: AppState, msg: string) {
   if (!appState.currentTab) return;
   const savedSite = appState.connectedSites.find(
     s => s.url === appState.currentTab!.url
@@ -21,8 +21,9 @@ export function updateStatusEvent(appState: AppState) {
   if (savedSite) {
     const account = appState.selectedUserAccount;
     chrome.tabs.sendMessage(appState.currentTab!.tabId, {
-      msg: 'update',
+      msg,
       data: {
+        isUnlocked: appState.isUnlocked,
         isConnected: savedSite.isConnected,
         activeKey: account ? account.KeyPair.publicKey.toAccountHex() : null
       }

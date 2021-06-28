@@ -55,7 +55,7 @@ export default class ConnectionManager {
       const currentUrl = await this.getActiveTab();
       if (currentUrl) {
         this.appState.currentTab = { tabId: activeInfo.tabId, url: currentUrl };
-        updateStatusEvent(appState);
+        updateStatusEvent(appState, 'tabUpdated');
       }
     });
   }
@@ -101,7 +101,7 @@ export default class ConnectionManager {
       this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
 
       if (tab && tab.tabId) {
-        chrome.tabs.sendMessage(tab.tabId, { msg: 'connected' });
+        updateStatusEvent(this.appState, 'connected');
       }
 
       this.popupManager.closePopup();
@@ -119,6 +119,7 @@ export default class ConnectionManager {
 
       if (tab && tab.tabId) {
         chrome.tabs.sendMessage(tab.tabId, { msg: 'disconnected' });
+        updateStatusEvent(this.appState, 'disconnected');
       }
     }
   }
