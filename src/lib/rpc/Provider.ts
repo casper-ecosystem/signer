@@ -37,7 +37,6 @@ let rpc: Rpc;
 export function setupInjectPageAPIServer(
   signMessageManager: SignMessageManager,
   connectionManager: ConnectionManager,
-  eventBus: EventBus,
   logMessages: boolean = false
 ) {
   rpc = new Rpc({
@@ -74,9 +73,5 @@ export function setupInjectPageAPIServer(
   rpc.register(
     'getVersion',
     connectionManager.getVersion.bind(connectionManager)
-  );
-  rpc.register(
-    'eventBus',
-    eventBus.bus.bind(eventBus)
   );
 }

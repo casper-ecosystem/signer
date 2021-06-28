@@ -5,7 +5,6 @@ import { AppState } from '../lib/MemStore';
 import { autorun } from 'mobx';
 import SignMessageManager from './SignMessageManager';
 import ConnectionManager from './ConnectionManager';
-import EventBus from './EventBus';
 import { updateBadge } from './utils';
 import { setupInjectPageAPIServer } from '../lib/rpc/Provider';
 
@@ -13,14 +12,13 @@ const appState = new AppState();
 const accountController = new AccountController(appState);
 const signMessageManager = new SignMessageManager(appState);
 const connectionManager = new ConnectionManager(appState);
-const eventBus = new EventBus();
 
 initialize().catch(console.log);
 
 async function initialize() {
   await setupPopupAPIServer();
   // Setup RPC server for inject page
-  setupInjectPageAPIServer(signMessageManager, connectionManager, eventBus);
+  setupInjectPageAPIServer(signMessageManager, connectionManager);
 }
 
 // Setup RPC server for Popup
