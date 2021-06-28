@@ -1,7 +1,7 @@
 import { getBucket, Bucket } from '@extend-chrome/storage';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
-import { toJS } from "mobx";
+import { updateStatusEvent } from './utils';
 
 export interface Tab {
   tabId: number;
@@ -47,7 +47,6 @@ export default class ConnectionManager {
         const url = parseTabURL(tab.url);
         if (url && !BLACKLIST_PROTOCOLS.includes(url.protocol)) {
           this.appState.currentTab = url ? { tabId, url: url.hostname } : null;
-
         }
       }
     });
@@ -56,11 +55,7 @@ export default class ConnectionManager {
       const currentUrl = await this.getActiveTab();
       if (currentUrl) {
         this.appState.currentTab = { tabId: activeInfo.tabId, url: currentUrl };
-        const savedSite = this.appState.connectedSites.find(s => s.url === currentUrl);
-        if (savedSite) {
-          console.log(toJS(this.appState));
-          chrome.tabs.sendMessage(activeInfo.tabId, { msg: "update", data: { isConnected: savedSite.isConnected }})
-        }
+        updateStatusEvent(appState);
       }
     });
   }
@@ -106,7 +101,7 @@ export default class ConnectionManager {
       this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
 
       if (tab && tab.tabId) {
-        chrome.tabs.sendMessage(tab.tabId, { msg: "connected" })
+        chrome.tabs.sendMessage(tab.tabId, { msg: 'connected' });
       }
 
       this.popupManager.closePopup();
@@ -123,7 +118,7 @@ export default class ConnectionManager {
       this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
 
       if (tab && tab.tabId) {
-        chrome.tabs.sendMessage(tab.tabId, { msg: "disconnected" })
+        chrome.tabs.sendMessage(tab.tabId, { msg: 'disconnected' });
       }
     }
   }

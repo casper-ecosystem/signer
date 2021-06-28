@@ -13,6 +13,7 @@ import {
 import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
 import { saveAs } from 'file-saver';
+import { updateStatusEvent } from './utils';
 // import KeyEncoder from 'key-encoder';
 
 export interface SerializedKeyPairWithAlias {
@@ -84,6 +85,14 @@ class AuthController {
       );
     }
     this.appState.selectedUserAccount = this.appState.userAccounts[i];
+
+    const tab = this.appState.currentTab;
+    if (tab && tab.tabId) {
+      chrome.tabs.sendMessage(tab.tabId, {
+        msg: 'activeKeyChange',
+        data: this.appState.selectedUserAccount.KeyPair.publicKey.toAccountHex()
+      });
+    }
   }
 
   getSelectUserAccount(): KeyPairWithAlias {
@@ -484,6 +493,8 @@ class AuthController {
     this.appState.selectedUserAccount = vault.selectedUserAccount
       ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
       : null;
+
+    updateStatusEvent(this.appState);
   }
 
   @computed
