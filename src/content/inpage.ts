@@ -9,7 +9,6 @@ class CasperLabsPluginHelper {
 
   constructor() {
     this.call = registerClient();
-    console.log("!");
   }
 
   async isConnected() {
