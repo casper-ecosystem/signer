@@ -22,8 +22,8 @@ export function updateStatusEvent(appState: AppState, msg: string) {
     const { selectedUserAccount, isUnlocked } = appState;
     const { isConnected } = savedSite;
     chrome.tabs.sendMessage(appState.currentTab!.tabId, {
-      msg,
-      data: {
+      name: msg,
+      detail: {
         isUnlocked,
         isConnected: isUnlocked ? savedSite.isConnected : null,
         activeKey:
