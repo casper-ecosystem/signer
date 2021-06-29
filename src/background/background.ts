@@ -133,6 +133,10 @@ async function setupPopupAPIServer() {
     connectionManager.removeSite.bind(connectionManager)
   );
   rpc.register(
+    'eventBus',
+    connectionManager.removeSite.bind(connectionManager)
+  );
+  rpc.register(
     'account.confirmPassword',
     accountController.confirmPassword.bind(accountController)
   );

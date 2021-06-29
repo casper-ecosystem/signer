@@ -13,6 +13,8 @@ import {
 import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
 import { saveAs } from 'file-saver';
+import { updateStatusEvent } from './utils';
+// import KeyEncoder from 'key-encoder';
 
 interface TimerStore {
   lockedOutTimestampMillis: number;
@@ -117,6 +119,11 @@ class AuthController {
       );
     }
     this.appState.selectedUserAccount = this.appState.userAccounts[i];
+
+    const tab = this.appState.currentTab;
+    if (tab && tab.tabId) {
+      updateStatusEvent(this.appState, 'activeKeyChanged');
+    }
   }
 
   getSelectUserAccount(): KeyPairWithAlias {
@@ -499,6 +506,7 @@ class AuthController {
     this.passwordHash = null;
     this.appState.isUnlocked = false;
     await this.clearAccount();
+    updateStatusEvent(this.appState, 'locked');
   }
 
   /**
@@ -527,13 +535,9 @@ class AuthController {
     this.appState.selectedUserAccount = vault.selectedUserAccount
       ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
       : null;
-    // await this.sessionLock();
-  }
 
-  // @action.bound
-  // async sessionLock() {
-  //   setTimeout(this.lock, 1 * 60 * 1000);
-  // }
+    updateStatusEvent(this.appState, 'unlocked');
+  }
 
   @action
   refreshRemainingTime(minutesLeft: number) {
