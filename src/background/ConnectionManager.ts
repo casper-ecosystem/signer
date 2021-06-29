@@ -118,7 +118,6 @@ export default class ConnectionManager {
       this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
 
       if (tab && tab.tabId) {
-        chrome.tabs.sendMessage(tab.tabId, { msg: 'disconnected' });
         updateStatusEvent(this.appState, 'disconnected');
       }
     }
