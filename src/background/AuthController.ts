@@ -119,11 +119,7 @@ class AuthController {
       );
     }
     this.appState.selectedUserAccount = this.appState.userAccounts[i];
-
-    const tab = this.appState.currentTab;
-    if (tab && tab.tabId) {
-      updateStatusEvent(this.appState, 'activeKeyChanged');
-    }
+    updateStatusEvent(this.appState, 'activeKeyChanged');
   }
 
   getSelectUserAccount(): KeyPairWithAlias {
@@ -209,6 +205,7 @@ class AuthController {
     this.appState.selectedUserAccount =
       this.appState.userAccounts[this.appState.userAccounts.length - 1];
     this.persistVault();
+
   }
 
   @action
@@ -413,6 +410,7 @@ class AuthController {
 
     await this.saveKeyValuetoStore(this.encryptedVaultKey, encryptedVault);
     await this.saveKeyValuetoStore(this.saltKey, this.passwordSalt!);
+    updateStatusEvent(this.appState, 'activeKeyChanged');
   }
 
   /**
