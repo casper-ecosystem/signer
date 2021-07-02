@@ -335,6 +335,8 @@ export default class SignMessageManager extends events.EventEmitter {
       const transferId = deploy.deploy.session.transfer
         ?.getArgByName('id')!
         .value()
+        .unwrap()
+        .value()
         .toString();
 
       return {
