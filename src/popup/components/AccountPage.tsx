@@ -20,7 +20,7 @@ import {
 } from '@material-ui/core';
 import { SelectFieldWithFormState, TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
-import { decodeBase16, decodeBase64, Keys } from 'casper-client-sdk';
+import { decodeBase16, decodeBase64, Keys } from 'casper-js-sdk';
 import { KeyPairWithAlias } from '../../@types/models';
 import Pages from './Pages';
 import { confirm } from './Confirmation';

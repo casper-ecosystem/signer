@@ -34,7 +34,7 @@ import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
 import { KeyPairWithAlias } from '../../@types/models';
-import { PublicKey } from 'casper-client-sdk';
+import { CLPublicKey } from 'casper-js-sdk';
 import { GetApp } from '@material-ui/icons';
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
@@ -56,7 +56,7 @@ interface State {
   openKeyDialog: boolean;
   selectedAccount: KeyPairWithAlias | null;
   alias: string | null;
-  publicKey: PublicKey | null;
+  publicKey: CLPublicKey | null;
   publicKeyHex: string | null;
   accountHash: string | null;
   copyStatus: boolean;

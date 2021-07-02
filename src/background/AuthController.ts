@@ -6,10 +6,10 @@ import {
   encodeBase16,
   decodeBase16,
   Keys,
-  PublicKey,
+  CLPublicKey,
   encodeBase64,
   decodeBase64
-} from 'casper-client-sdk';
+} from 'casper-js-sdk';
 import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
 import { saveAs } from 'file-saver';
@@ -134,7 +134,7 @@ class AuthController {
       throw new Error('There is no active key');
     }
     let account = this.appState.selectedUserAccount;
-    return account.KeyPair.publicKey.toAccountHex();
+    return account.KeyPair.publicKey.toHex();
   }
 
   getActiveAccountHash(): string {
@@ -256,7 +256,7 @@ class AuthController {
         `${accountAlias}_public_key.pem`
       );
       saveToFile(
-        accountKeys.publicKey.toAccountHex(),
+        accountKeys.publicKey.toHex(),
         `${accountAlias}_public_key_hex.txt`
       );
     }
@@ -344,7 +344,7 @@ class AuthController {
     return {
       name: KeyPairWithAlias.alias,
       keyPair: {
-        publicKey: KeyPairWithAlias.KeyPair.publicKey.toAccountHex(),
+        publicKey: KeyPairWithAlias.KeyPair.publicKey.toHex(),
         secretKey: encodeBase64(KeyPairWithAlias.KeyPair.privateKey)
       }
     };
@@ -361,11 +361,11 @@ class AuthController {
         deserializedPublicKeyBytes = Keys.Ed25519.parsePublicKey(
           decodeBase16(serializedPublicKey.substring(2))
         );
-        deserializedPublicKey = PublicKey.fromEd25519(
+        deserializedPublicKey = CLPublicKey.fromEd25519(
           deserializedPublicKeyBytes
         );
         deserializedKeyPair = Keys.Ed25519.parseKeyPair(
-          deserializedPublicKey.rawPublicKey,
+          deserializedPublicKey.value(),
           decodeBase64(serializedKeyPairWithAlias.keyPair.secretKey)
         );
         break;
@@ -374,11 +374,11 @@ class AuthController {
           decodeBase16(serializedPublicKey.substring(2)),
           'raw'
         );
-        deserializedPublicKey = PublicKey.fromSecp256K1(
+        deserializedPublicKey = CLPublicKey.fromSecp256K1(
           deserializedPublicKeyBytes
         );
         deserializedKeyPair = Keys.Secp256K1.parseKeyPair(
-          deserializedPublicKey.rawPublicKey,
+          deserializedPublicKey.value(),
           decodeBase64(serializedKeyPairWithAlias.keyPair.secretKey),
           'raw'
         );
