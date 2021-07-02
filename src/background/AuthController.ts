@@ -205,7 +205,6 @@ class AuthController {
     this.appState.selectedUserAccount =
       this.appState.userAccounts[this.appState.userAccounts.length - 1];
     this.persistVault();
-
   }
 
   @action
