@@ -2,7 +2,7 @@ import AuthController from './AuthController';
 import { AppState } from '../lib/MemStore';
 import { encodeBase64 } from 'tweetnacl-ts';
 import { storage } from '@extend-chrome/storage';
-import { Keys } from 'casper-client-sdk';
+import { Keys } from 'casper-js-sdk';
 import { KeyPairWithAlias } from '../@types/models';
 
 jest.mock('@extend-chrome/storage', () => {
@@ -258,8 +258,8 @@ describe('AuthController', () => {
         keyPair.signatureAlgorithm
       );
       let account = authController.getSelectUserAccount();
-      expect(keyPair.publicKey.toAccountHex()).toEqual(
-        account.KeyPair.publicKey.toAccountHex()
+      expect(keyPair.publicKey.toHex()).toEqual(
+        account.KeyPair.publicKey.toHex()
       );
       expect(keyPair.publicKey.toAccountHash()).toEqual(
         account.KeyPair.publicKey.toAccountHash()
@@ -361,8 +361,8 @@ describe('AuthController', () => {
         keyPair.signatureAlgorithm
       );
       let account = authController.getSelectUserAccount();
-      expect(keyPair.publicKey.toAccountHex()).toEqual(
-        account.KeyPair.publicKey.toAccountHex()
+      expect(keyPair.publicKey.toHex()).toEqual(
+        account.KeyPair.publicKey.toHex()
       );
       expect(keyPair.publicKey.toAccountHash()).toEqual(
         account.KeyPair.publicKey.toAccountHash()

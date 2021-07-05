@@ -28,7 +28,7 @@ export function updateStatusEvent(appState: AppState, msg: string) {
         isConnected: isUnlocked ? savedSite.isConnected : null,
         activeKey:
           isConnected && isUnlocked && selectedUserAccount
-            ? selectedUserAccount.KeyPair.publicKey.toAccountHex()
+            ? selectedUserAccount.KeyPair.publicKey.toHex()
             : null
       }
     });
