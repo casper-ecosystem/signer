@@ -4,6 +4,7 @@ import { KeyPairWithAlias } from '../@types/models';
 import { deployWithID } from '../background/SignMessageManager';
 
 export class AppState {
+  @observable isIntegratedSite: boolean = false;
   @observable isUnlocked: boolean = false;
   @observable unlockAttempts: number = 5;
   @computed get lockedOut(): boolean {
