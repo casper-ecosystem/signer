@@ -101,9 +101,17 @@ export default class SignMessageManager extends events.EventEmitter {
     return new Promise<string>((resolve, reject) => {
       let publicKey = this.appState.selectedUserAccount?.KeyPair.publicKey;
       if (!this.appState.connectionStatus) {
-        return reject(new Error('Please connect to the Signer first.'));
-      } else if (publicKey === undefined) {
-        return reject(new Error('Please create an account first.'));
+        return reject(new Error('Please connect to the Signer to read key'));
+      }
+      if (!this.appState.isUnlocked || this.appState.lockedOut) {
+        return reject(new Error('Please unlock the Signer to read key'));
+      }
+      if (!publicKey) {
+        return reject(
+          new Error(
+            'Please create an account first before attempting to read key'
+          )
+        );
       }
       if (publicKey.isEd25519()) {
         return resolve(publicKey.toHex());
