@@ -71,15 +71,12 @@ class SignMessagePage extends React.Component<
     startChunk: number,
     endChunk: number
   ): string {
-    if (longString) {
-      return (
-        longString.substring(0, startChunk) +
-        '...' +
-        longString.substring(longString.length - endChunk)
-      );
-    } else {
-      return '';
-    }
+    if (!longString) throw new Error('Error parsing long string.');
+    return (
+      longString.substring(0, startChunk) +
+      '...' +
+      longString.substring(longString.length - endChunk)
+    );
   }
 
   async generateDeployInfo(deployToSign: deployWithID) {
