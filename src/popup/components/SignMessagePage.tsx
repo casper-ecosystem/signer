@@ -120,6 +120,8 @@ class SignMessagePage extends React.Component<
       let deployArgsRows = [];
 
       for (let [key, value] of Object.entries(deployData.deployArgs)) {
+        key = key.charAt(0).toUpperCase() + key.slice(1);
+        key = key.replace('_', ' ');
         if (value.length > 20) {
           value = this.truncateString(value, 6, 6);
         }
