@@ -320,9 +320,7 @@ export default class SignMessageManager extends events.EventEmitter {
           ?.getArgByName('amount')!
           .value()
           .toString();
-      }
 
-      if (deploy.deploy.session.storedContractByHash) {
         deploy.deploy.session.storedContractByHash.args.args.forEach(
           (value, key) => {
             if (value.clType() instanceof CLPublicKeyType) {
