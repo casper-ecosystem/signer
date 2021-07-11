@@ -102,8 +102,7 @@ class SignMessagePage extends React.Component<
       this.createRow('Timestamp', deployData.timestamp),
       this.createRow('Chain Name', deployData.chainName),
       this.createRow('Gas Price', deployData.gasPrice),
-      this.createRow('Deploy Type', deployData.deployType),
-      this.createRow('Amount', `${numberWithSpaces(deployData.amount)} motes`)
+      this.createRow('Deploy Type', deployData.deployType)
     ];
     if (deployData.deployType === 'Transfer') {
       this.setState({
@@ -113,6 +112,10 @@ class SignMessagePage extends React.Component<
             'Target',
             this.truncateString(deployData.target!, 6, 6),
             deployData.target
+          ),
+          this.createRow(
+            'Amount',
+            `${numberWithSpaces(deployData.amount)} motes`
           ),
           this.createRow('Transfer ID', deployData.id)
         ]
