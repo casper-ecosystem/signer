@@ -272,7 +272,6 @@ export default class SignMessageManager extends events.EventEmitter {
   }
 
   public parseDeployData(deployId: number): DeployData {
-    console.log('parseDeployData called');
     let deployWithID = this.getDeployById(deployId);
     if (deployWithID !== undefined && deployWithID.deploy !== undefined) {
       let header = deployWithID.deploy.header;
