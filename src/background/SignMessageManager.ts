@@ -26,6 +26,7 @@ export interface DeployData {
   id?: any;
   amount?: any;
   target?: string;
+  recipient?: string;
   validator?: string;
   delegator?: string;
 }
@@ -113,13 +114,9 @@ export default class SignMessageManager extends events.EventEmitter {
           )
         );
       }
-      if (publicKey.isEd25519()) {
-        return resolve(publicKey.toHex());
-      } else if (publicKey.isSecp256K1()) {
-        return resolve(publicKey.toHex());
-      } else {
-        return reject(new Error('Key was not of expected format!'));
-      }
+      if (!publicKey.isEd25519 && !publicKey.isSecp256K1())
+        reject(new Error('Key was not of expected format!'));
+      return publicKey.toHex();
     });
   }
   /**
@@ -173,8 +170,6 @@ export default class SignMessageManager extends events.EventEmitter {
       if (!connected) {
         return reject('This site is not connected');
       }
-
-      console.log(deploy);
 
       // Adding the deploy to the queue will update the extension state and UI
       const deployId = this.addUnsignedDeployToQueue(
@@ -283,7 +278,7 @@ export default class SignMessageManager extends events.EventEmitter {
         ? 'Contract Call'
         : 'Contract Deployment';
 
-      let amount, target, validator, delegator;
+      let amount, target, recipient, validator, delegator;
 
       if (deployWithID.deploy.session.transfer) {
         // First let's check if the provided targetPublicKey matches the one used in deploy
@@ -302,7 +297,14 @@ export default class SignMessageManager extends events.EventEmitter {
           );
         }
 
-        target = deployWithID.targetKey;
+        const targetByteArray = deployWithID.deploy.session.transfer
+          ?.getArgByName('target')!
+          .value()
+          .toString();
+
+        target = encodeBase16(targetByteArray);
+
+        recipient = deployWithID.targetKey;
 
         amount = deployWithID.deploy.session.transfer
           ?.getArgByName('amount')!
@@ -349,11 +351,12 @@ export default class SignMessageManager extends events.EventEmitter {
         gasPrice: header.gasPrice,
         payment: payment,
         deployType: type,
-        id: type === 'Transfer' ? transferId : undefined,
+        id: transferId,
         amount: amount,
-        target: type === 'Transfer' ? target : undefined,
-        validator,
-        delegator
+        target: target,
+        recipient: recipient,
+        validator: validator,
+        delegator: delegator
       };
     } else {
       throw new Error();

@@ -86,12 +86,20 @@ class SignMessagePage extends React.Component<
       this.createRow('Timestamp', deployData.timestamp),
       this.createRow('Chain Name', deployData.chainName),
       this.createRow('Gas Price', deployData.gasPrice),
+      // TODO: Payment data needs to be formatted in the background before being sent to UI here.
+      this.createRow('Payment', deployData.payment),
       this.createRow('Deploy Type', deployData.deployType)
     ];
     if (deployData.deployType === 'Transfer') {
+      console.log({ recipient: deployData.recipient });
       this.setState({
         rows: [
           ...baseRows,
+          this.createRow(
+            'Recipient (Key)',
+            truncateString(deployData.recipient!, 6, 6),
+            deployData.recipient
+          ),
           this.createRow(
             'Target',
             truncateString(deployData.target!, 6, 6),
