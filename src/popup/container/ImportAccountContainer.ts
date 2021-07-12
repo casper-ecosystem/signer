@@ -106,11 +106,11 @@ export class ImportAccountFormData implements SubmittableFormData {
           } else {
             // File is defined now check format by extension
             const fileExt = file[1];
-            if (fileExt !== 'pem') {
+            if (fileExt !== 'pem' && fileExt !== 'cer') {
               this.errors.capture(
                 Promise.reject(
                   new Error(
-                    `Invalid file format: .${fileExt}. Please upload a .pem file.`
+                    `Invalid file format: .${fileExt}. Please upload a .pem or .cer file.`
                   )
                 )
               );
