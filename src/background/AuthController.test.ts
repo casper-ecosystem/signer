@@ -161,7 +161,7 @@ describe('AuthController', () => {
         newAccount.signatureAlgorithm
       )
     ).resolves.toBeUndefined;
-    let activeAccount = authController.getSelectUserAccount();
+    let activeAccount = authController.getActiveUserAccount();
     expect(activeAccount.KeyPair).toStrictEqual(newAccount);
     expect(activeAccount.alias).toEqual('oldName');
     await authController.renameUserAccount('oldName', 'newName');
@@ -169,10 +169,10 @@ describe('AuthController', () => {
     await authController.lock();
     expect(appState.isUnlocked).toBeFalsy();
     await authController.unlock(password);
-    expect(authController.getSelectUserAccount().KeyPair).toStrictEqual(
+    expect(authController.getActiveUserAccount().KeyPair).toStrictEqual(
       newAccount
     );
-    expect(authController.getSelectUserAccount().alias).toEqual('newName');
+    expect(authController.getActiveUserAccount().alias).toEqual('newName');
   });
 
   describe('Handling ED25519 keys...', () => {
@@ -245,7 +245,7 @@ describe('AuthController', () => {
       expect(authController.isUnlocked).toBeFalsy();
       await authController.unlock(password);
       expect(authController.isUnlocked).toBeTruthy();
-      expect(authController.getSelectUserAccount().KeyPair).toStrictEqual(
+      expect(authController.getActiveUserAccount().KeyPair).toStrictEqual(
         keyPair
       );
     });
@@ -257,7 +257,7 @@ describe('AuthController', () => {
         encodeBase64(keyPair.privateKey),
         keyPair.signatureAlgorithm
       );
-      let account = authController.getSelectUserAccount();
+      let account = authController.getActiveUserAccount();
       expect(keyPair.publicKey.toHex()).toEqual(
         account.KeyPair.publicKey.toHex()
       );
@@ -349,7 +349,7 @@ describe('AuthController', () => {
       await authController.unlock(password);
       expect(authController.isUnlocked).toBeTruthy();
       expect(
-        authController.getSelectUserAccount().KeyPair.privateKey
+        authController.getActiveUserAccount().KeyPair.privateKey
       ).toStrictEqual(keyPair.privateKey);
     });
 
@@ -360,7 +360,7 @@ describe('AuthController', () => {
         encodeBase64(keyPair.privateKey),
         keyPair.signatureAlgorithm
       );
-      let account = authController.getSelectUserAccount();
+      let account = authController.getActiveUserAccount();
       expect(keyPair.publicKey.toHex()).toEqual(
         account.KeyPair.publicKey.toHex()
       );
