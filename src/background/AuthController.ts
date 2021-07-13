@@ -81,7 +81,7 @@ class AuthController {
       }
       port.onDisconnect.addListener(() => {
         this.timer = setTimeout(() => {
-          this.lock();
+          if (this.isUnlocked) this.lock();
         }, 1000 * 60);
       });
     });
