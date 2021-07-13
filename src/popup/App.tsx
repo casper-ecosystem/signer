@@ -76,6 +76,7 @@ const App = (props: AppProps) => {
               <AccountManagementPage
                 authContainer={props.authContainer}
                 connectionContainer={props.connectSignerContainer}
+                errorsContainer={props.errors}
               />
             )}
           />

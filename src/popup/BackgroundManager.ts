@@ -106,9 +106,9 @@ export class BackgroundManager {
     );
   }
 
-  public getSelectUserAccount() {
+  public getActiveUserAccount() {
     return this.errors.withCapture(
-      this.rpc.call<KeyPairWithAlias>('account.getSelectUserAccount')
+      this.rpc.call<KeyPairWithAlias>('account.getActiveUserAccount')
     );
   }
 
@@ -121,6 +121,18 @@ export class BackgroundManager {
   public getActiveAccountHash() {
     return this.errors.withCapture(
       this.rpc.call<string>('account.getActiveAccountHash')
+    );
+  }
+
+  public getPublicKeyHexByAlias(alias: string) {
+    return this.errors.withCapture(
+      this.rpc.call<string>('account.getPublicKeyHexByAlias', alias)
+    );
+  }
+
+  public getAccountHashByAlias(alias: string) {
+    return this.errors.withCapture(
+      this.rpc.call<string>('account.getAccountHashByAlias', alias)
     );
   }
 

@@ -122,7 +122,7 @@ class AuthController {
     updateStatusEvent(this.appState, 'activeKeyChanged');
   }
 
-  getSelectUserAccount(): KeyPairWithAlias {
+  getActiveUserAccount(): KeyPairWithAlias {
     if (!this.appState.selectedUserAccount) {
       throw new Error('There is no active key');
     }
@@ -143,6 +143,26 @@ class AuthController {
     }
     let account = this.appState.selectedUserAccount;
     return encodeBase16(account.KeyPair.publicKey.toAccountHash());
+  }
+
+  getAccountFromAlias(alias: string) {
+    if (!alias) throw new Error('Cannot find account for invalid alias');
+    let account = this.appState.userAccounts.find(storedAccount => {
+      return storedAccount.alias === alias;
+    });
+    return account?.KeyPair;
+  }
+
+  getPublicKeyHexByAlias(alias: string): string {
+    let account = this.getAccountFromAlias(alias);
+    if (!account) throw new Error('Retrieved account was undefined | null');
+    return account?.accountHex();
+  }
+
+  getAccountHashByAlias(alias: string): string {
+    let account = this.getAccountFromAlias(alias);
+    if (!account) throw new Error('Retrieved account was undefined | null');
+    return encodeBase16(account.accountHash());
   }
 
   @action
@@ -230,14 +250,6 @@ class AuthController {
           : null;
     }
     this.persistVault();
-  }
-
-  getAccountFromAlias(alias: string) {
-    if (!alias) throw new Error('Cannot find account for invalid alias');
-    let account = this.appState.userAccounts.find(storedAccount => {
-      return storedAccount.alias === alias;
-    });
-    return account?.KeyPair;
   }
 
   async downloadAccountKeys(accountAlias: string) {

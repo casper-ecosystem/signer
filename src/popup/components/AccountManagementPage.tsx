@@ -37,8 +37,8 @@ import { KeyPairWithAlias } from '../../@types/models';
 import { CLPublicKey } from 'casper-js-sdk';
 import { GetApp } from '@material-ui/icons';
 import { TextFieldWithFormState } from './Forms';
-import { RenameAccountFormData } from 'popup/container/ImportAccountContainer';
-import ErrorContainer from 'popup/container/ErrorContainer';
+import { RenameAccountFormData } from '../container/ImportAccountContainer';
+import ErrorContainer from '../container/ErrorContainer';
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
   // styles we need to apply on draggables
@@ -94,8 +94,14 @@ class AccountManagementPage extends React.Component<Props, State> {
   };
 
   handleViewKey = async (accountName: string) => {
-    let hexKey = await this.props.authContainer.getPublicKeyHex(accountName);
-    let hash = await this.props.authContainer.getAccountHash(accountName);
+    // let hexKey = await this.props.authContainer.getPublicKeyHex(accountName);
+    // let hash = await this.props.authContainer.getAccountHash(accountName);
+    let hexKey = await this.props.authContainer.getPublicKeyHexByAlias(
+      accountName
+    );
+    let hash = await this.props.authContainer.getAccountHashByAlias(
+      accountName
+    );
     this.setState({
       alias: accountName,
       publicKeyHex: hexKey,

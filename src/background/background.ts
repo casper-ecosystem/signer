@@ -62,8 +62,8 @@ async function setupPopupAPIServer() {
     accountController.reorderAccount.bind(accountController)
   );
   rpc.register(
-    'account.getSelectUserAccount',
-    accountController.getSelectUserAccount.bind(accountController)
+    'account.getActiveUserAccount',
+    accountController.getActiveUserAccount.bind(accountController)
   );
   rpc.register(
     'account.getActivePublicKeyHex',
@@ -72,6 +72,14 @@ async function setupPopupAPIServer() {
   rpc.register(
     'account.getActiveAccountHash',
     accountController.getActiveAccountHash.bind(accountController)
+  );
+  rpc.register(
+    'account.getPublicKeyHexByAlias',
+    accountController.getPublicKeyHexByAlias.bind(accountController)
+  );
+  rpc.register(
+    'account.getAccountHashByAlias',
+    accountController.getAccountHashByAlias.bind(accountController)
   );
   rpc.register(
     'account.downloadAccountKeys',

@@ -73,25 +73,25 @@ class AccountManager {
   }
 
   async downloadActiveKey() {
-    let userAccount = await this.backgroundManager.getSelectUserAccount();
+    let userAccount = await this.backgroundManager.getActiveUserAccount();
     // Save the secret and public keys to disk.
     this.downloadPemFiles(userAccount.alias);
   }
 
-  async getSelectedAccountKey(acctName: string) {
-    await this.backgroundManager.switchToAccount(acctName);
-    let account = await this.backgroundManager.getSelectUserAccount();
-    return account.KeyPair.publicKey;
+  async getActivePublicKeyHex() {
+    return await this.backgroundManager.getActivePublicKeyHex();
   }
 
-  async getPublicKeyHex(accountName: string) {
-    await this.backgroundManager.switchToAccount(accountName);
-    return this.backgroundManager.getActivePublicKeyHex();
+  async getActiveAccountHash() {
+    return await this.backgroundManager.getActiveAccountHash();
   }
 
-  async getAccountHash(accountName: string) {
-    await this.backgroundManager.switchToAccount(accountName);
-    return this.backgroundManager.getActiveAccountHash();
+  async getPublicKeyHexByAlias(alias: string) {
+    return await this.backgroundManager.getPublicKeyHexByAlias(alias);
+  }
+
+  async getAccountHashByAlias(alias: string) {
+    return await this.backgroundManager.getAccountHashByAlias(alias);
   }
 
   async lock() {
