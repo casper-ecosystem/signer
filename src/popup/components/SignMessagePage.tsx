@@ -19,7 +19,7 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import { deployWithID } from '../../background/SignMessageManager';
-import { truncateString, numberWithSpaces } from 'background/utils';
+import { truncateString, numberWithSpaces } from '../../background/utils';
 
 const styles = () => ({
   tooltip: {
@@ -91,7 +91,6 @@ class SignMessagePage extends React.Component<
       this.createRow('Deploy Type', deployData.deployType)
     ];
     if (deployData.deployType === 'Transfer') {
-      console.log({ recipient: deployData.recipient });
       this.setState({
         rows: [
           ...baseRows,

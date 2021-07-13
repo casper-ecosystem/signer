@@ -114,11 +114,12 @@ export default class SignMessageManager extends events.EventEmitter {
           )
         );
       }
-      if (!publicKey.isEd25519 && !publicKey.isSecp256K1())
+      if (!publicKey?.isEd25519 && !publicKey?.isSecp256K1())
         reject(new Error('Key was not of expected format!'));
-      return publicKey.toHex();
+      return resolve(publicKey!.toHex());
     });
   }
+
   /**
    * Adds the unsigned deploy to the app's queue.
    * @param {JSON} deployJson
@@ -180,11 +181,18 @@ export default class SignMessageManager extends events.EventEmitter {
       this.popupManager.openPopup('sign');
       // Await outcome of user interaction with popup.
       this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
+        if (!this.appState.isUnlocked) {
+          return reject(
+            new Error(
+              `Signer locked during signing process, please unlock and try again.`
+            )
+          );
+        }
         switch (processedDeploy.status) {
           case 'signed':
             if (processedDeploy.deploy) {
               this.appState.unsignedDeploys.clear();
-              return resolve(DeployUtil.deployToJson(processedDeploy.deploy)); // TODO: Return signed deploy JSON
+              return resolve(DeployUtil.deployToJson(processedDeploy.deploy));
             }
             this.appState.unsignedDeploys.remove(processedDeploy);
             return reject(new Error(processedDeploy.error?.message));
@@ -299,8 +307,7 @@ export default class SignMessageManager extends events.EventEmitter {
 
         const targetByteArray = deployWithID.deploy.session.transfer
           ?.getArgByName('target')!
-          .value()
-          .toString();
+          .value();
 
         target = encodeBase16(targetByteArray);
 
@@ -312,6 +319,7 @@ export default class SignMessageManager extends events.EventEmitter {
           .toString();
       }
 
+      // TODO: this is specific to Delegation/Undelegation - needs generalised
       if (deployWithID.deploy.session.storedContractByHash) {
         amount = deployWithID.deploy.session.storedContractByHash
           ?.getArgByName('amount')!
@@ -339,6 +347,9 @@ export default class SignMessageManager extends events.EventEmitter {
         .toString();
 
       const deployAccount = header.account.toHex();
+      // TODO: Handle non-standard payments
+      if (!deployWithID.deploy.isStandardPayment())
+        throw new Error('Could not parse non-standard payment');
       const payment = encodeBase16(
         deployWithID.deploy.payment.toBytes().unwrap()
       );
