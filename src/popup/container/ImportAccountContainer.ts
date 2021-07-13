@@ -190,3 +190,21 @@ export class CreateAccountFormData extends ImportAccountFormData {
     this.publicKey.reset();
   }
 }
+
+export class RenameAccountFormData implements SubmittableFormData {
+  name: FieldState<string> = new FieldState<string>('').validators(
+    valueRequired,
+    minNameLength,
+    humanReadable
+  );
+
+  @computed
+  get submitDisabled(): boolean {
+    return !fieldSubmittable(this.name);
+  }
+
+  @action
+  resetFields() {
+    this.name.reset();
+  }
+}
