@@ -353,8 +353,10 @@ export default class SignMessageManager extends events.EventEmitter {
       // const payment = encodeBase16(
       //   deployWithID.deploy.payment.toBytes().unwrap()
       // );
-      const payment = 
-        deployWithID.deploy.payment.moduleBytes?.getArgByName('amount')!.value().toString();
+      const payment = deployWithID.deploy.payment.moduleBytes
+        ?.getArgByName('amount')!
+        .value()
+        .toString();
 
       return {
         deployHash: encodeBase16(deployWithID.deploy.hash),
