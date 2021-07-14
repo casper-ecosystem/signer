@@ -350,9 +350,7 @@ export default class SignMessageManager extends events.EventEmitter {
       // TODO: Handle non-standard payments
       if (!deployWithID.deploy.isStandardPayment())
         throw new Error('Could not parse non-standard payment');
-      // const payment = encodeBase16(
-      //   deployWithID.deploy.payment.toBytes().unwrap()
-      // );
+
       const payment = deployWithID.deploy.payment.moduleBytes
         ?.getArgByName('amount')!
         .value()
