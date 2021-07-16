@@ -149,7 +149,10 @@ export default class ConnectionManager {
   }
 
   public isIntegratedSite(hostname: string) {
-    // if (!hostname) return;
+    if (!hostname)
+      throw new Error(
+        'Could not check for site integration: Hostname was undefined'
+      );
     // all sites injected with the the content script
     const injectedSites =
       chrome.runtime.getManifest().content_scripts![0].matches;
