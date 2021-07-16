@@ -59,6 +59,13 @@ export default class ConnectionManager {
         updateStatusEvent(appState, 'tabUpdated');
       }
     });
+
+    // Removes non-integrated sites that were saved from previous version of Signer (<1.3.0)
+    this.appState.connectedSites.forEach(previouslySavedSite => {
+      if (!this.isIntegratedSite(previouslySavedSite.url)) {
+        this.removeSite(previouslySavedSite.url);
+      }
+    });
   }
 
   public isConnected() {
