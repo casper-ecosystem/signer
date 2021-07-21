@@ -38,7 +38,12 @@ export default class ConnectionManager {
 
     this.store.get('connectedSites').then(({ connectedSites }) => {
       if (!connectedSites) return;
-      this.appState.connectedSites.replace(Object.values(connectedSites));
+      const filterIntegratedSites = connectedSites.filter(site =>
+        this.isIntegratedSite(site.url)
+      );
+      this.appState.connectedSites.replace(
+        Object.values(filterIntegratedSites)
+      );
     });
 
     // TODO: Might add this for chaning windows focus https://stackoverflow.com/questions/53397465/can-you-detect-moving-between-open-tabs-in-different-windows
@@ -57,13 +62,6 @@ export default class ConnectionManager {
         this.appState.currentTab = { tabId: activeInfo.tabId, url: currentUrl };
         this.appState.isIntegratedSite = this.isIntegratedSite(currentUrl);
         updateStatusEvent(appState, 'tabUpdated');
-      }
-    });
-
-    // Removes non-integrated sites that were saved from previous version of Signer (<1.3.0)
-    this.appState.connectedSites.forEach(previouslySavedSite => {
-      if (!this.isIntegratedSite(previouslySavedSite.url)) {
-        this.removeSite(previouslySavedSite.url);
       }
     });
   }
