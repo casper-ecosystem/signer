@@ -133,7 +133,7 @@ export default class SignMessageManager extends events.EventEmitter {
     const id: number = this.createId();
 
     try {
-      let innerDeploy = DeployUtil.deployFromJson(deployJson);
+      let innerDeploy = DeployUtil.deployFromJson(deployJson).unwrap();
       this.unsignedDeploys.push({
         id: id,
         status: 'unsigned',
