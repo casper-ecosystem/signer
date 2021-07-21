@@ -85,7 +85,6 @@ export default class ConnectionManager {
 
   public resetConnectionRequest() {
     this.appState.connectionRequested = false;
-    this.popupManager.closePopup();
   }
 
   public async connectToSite(site?: string) {
