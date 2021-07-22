@@ -53,9 +53,6 @@ class AuthController {
   private timer: any;
 
   constructor(private appState: AppState) {
-    if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
-      this.appState.hasCreatedVault = true;
-    }
     this.timerStore = getBucket<TimerStore>('timerStore');
     this.timerStore
       .get('lockedOutTimestampMillis')
@@ -91,6 +88,10 @@ class AuthController {
     const passwordSalt = await this.getStoredValueWithKey(this.saltKey);
     if (passwordSalt) {
       this.passwordSalt = passwordSalt;
+    }
+    const vault = await this.getStoredValueWithKey(this.encryptedVaultKey);
+    if (vault) {
+      this.appState.hasCreatedVault = true;
     }
   }
 
