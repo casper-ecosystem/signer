@@ -79,7 +79,7 @@ class SignMessagePage extends React.Component<
         deployData.account
       ),
       this.createRow(
-        'Hash',
+        'Deploy Hash',
         truncateString(deployData.deployHash, 6, 6),
         deployData.deployHash
       ),
