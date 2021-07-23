@@ -51,3 +51,7 @@ export function truncateString(
 export function numberWithSpaces(num: number) {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
+
+export function motesToCSPR(motes: number) {
+  return motes / 1000000000;
+}

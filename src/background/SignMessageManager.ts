@@ -22,13 +22,24 @@ export interface DeployData {
   chainName: string;
   deployType: string;
   gasPrice: number;
-  payment: string;
-  id?: any;
-  amount?: any;
-  target?: string;
-  recipient?: string;
-  validator?: string;
-  delegator?: string;
+  payment: number;
+}
+
+export interface TransferDeployData extends DeployData {
+  // public key of recipient
+  targetPublicKey: string;
+  // account hash of recipient
+  target: string;
+  amount: number;
+  id: number;
+}
+
+// Covers Delegating and Undelegating
+export interface StakingDeployData extends DeployData {
+  action: string;
+  validator: string;
+  delegator: string;
+  amount: number;
 }
 
 /**
@@ -208,7 +219,7 @@ export default class SignMessageManager extends events.EventEmitter {
           default:
             return reject(
               new Error(
-                `Signer: Unknown error occurred. Deploy data: ${processedDeploy.toString()}`
+                `Signer: Unknown error occurred. Deploy transferDeploy: ${processedDeploy.toString()}`
               )
             );
         }
@@ -266,7 +277,7 @@ export default class SignMessageManager extends events.EventEmitter {
    */
   private getDeployById(deployId: number): deployWithID {
     let deployWithId = this.appState.unsignedDeploys.find(
-      data => data.id === deployId
+      transferDeploy => transferDeploy.id === deployId
     );
     if (deployWithId === undefined) {
       throw new Error(`Could not find deploy with id: ${deployId}`);
@@ -274,10 +285,21 @@ export default class SignMessageManager extends events.EventEmitter {
     return deployWithId;
   }
 
-  public parseDeployData(deployId: number): DeployData {
+  public parseDeployData(
+    deployId: number
+  ): TransferDeployData | StakingDeployData {
     let deployWithID = this.getDeployById(deployId);
     if (deployWithID !== undefined && deployWithID.deploy !== undefined) {
       let header = deployWithID.deploy.header;
+      const deployAccount = header.account.toHex();
+      // TODO: Handle non-standard payments
+      if (!deployWithID.deploy.isStandardPayment())
+        throw new Error('Signer does not yet support non-standard payment');
+
+      const payment = deployWithID.deploy.payment.moduleBytes
+        ?.getArgByName('amount')!
+        .value()
+        .toString();
 
       // TODO: Double-check that this is correct way to determine deploy type.
       const type = deployWithID.deploy.isTransfer()
@@ -286,95 +308,119 @@ export default class SignMessageManager extends events.EventEmitter {
         ? 'Contract Call'
         : 'Contract Deployment';
 
-      let amount, target, recipient, validator, delegator;
-
       if (deployWithID.deploy.session.transfer) {
-        // First let's check if the provided targetPublicKey matches the one used in deploy
-        // We're doing it because its impossible to extract target in a form of PublicKey from Deploy
-        const providedTargetKeyHash = encodeBase16(
-          CLPublicKey.fromHex(deployWithID.targetKey).toAccountHash()
+        const transferData = this.parseTransferData(
+          deployWithID.deploy.session.transfer,
+          deployWithID.targetKey
         );
 
-        const deployTargetKeyHash = encodeBase16(
-          deployWithID.deploy.session.transfer?.getArgByName('target')!.value()
-        );
+        return {
+          deployHash: encodeBase16(deployWithID.deploy.hash),
+          signingKey: deployWithID.signingKey,
+          account: deployAccount,
+          chainName: header.chainName,
+          timestamp: new Date(header.timestamp).toLocaleString(),
+          gasPrice: header.gasPrice,
+          payment: payment,
+          deployType: type,
+          id: transferData.transferId,
+          amount: transferData.amount,
+          target: transferData.target,
+          targetPublicKey: transferData.recipient
+        };
+      } else if (deployWithID.deploy.session.storedContractByHash) {
+        // TODO: this is specific to Delegation/Undelegation - needs generalised
+        const action = deployWithID.deploy.session.storedContractByHash
+          .getArgByName('action')
+          ?.value()
+          .toString();
 
-        if (providedTargetKeyHash !== deployTargetKeyHash) {
+        if (action !== 'delegate' && action !== 'undelegate')
           throw new Error(
-            "Provided target public key doesn't match the one in deploy"
+            "Invalid value for action argument. Signer only supports 'delegate' and 'undelegate'"
           );
-        }
 
-        const targetByteArray = deployWithID.deploy.session.transfer
-          ?.getArgByName('target')!
-          .value();
-
-        target = encodeBase16(targetByteArray);
-
-        recipient = deployWithID.targetKey;
-
-        amount = deployWithID.deploy.session.transfer
-          ?.getArgByName('amount')!
-          .value()
-          .toString();
-      }
-
-      // TODO: this is specific to Delegation/Undelegation - needs generalised
-      if (deployWithID.deploy.session.storedContractByHash) {
-        amount = deployWithID.deploy.session.storedContractByHash
+        const amount = deployWithID.deploy.session.storedContractByHash
           ?.getArgByName('amount')!
           .value()
           .toString();
 
-        validator = (
+        const validator = (
           deployWithID.deploy.session.storedContractByHash?.getArgByName(
             'validator'
           )! as CLPublicKey
         ).toHex();
 
-        delegator = (
+        const delegator = (
           deployWithID.deploy.session.storedContractByHash?.getArgByName(
             'delegator'
           )! as CLPublicKey
         ).toHex();
+
+        return {
+          deployHash: encodeBase16(deployWithID.deploy.hash),
+          signingKey: deployWithID.signingKey,
+          account: deployAccount,
+          chainName: header.chainName,
+          timestamp: new Date(header.timestamp).toLocaleString(),
+          gasPrice: header.gasPrice,
+          payment: payment,
+          deployType: type,
+          action: action,
+          amount: amount,
+          validator: validator,
+          delegator: delegator
+        };
+      } else {
+        throw new Error(
+          'Signer only supports Transfers and Staking operations, i.e. delegating and undelegating.'
+        );
       }
-
-      const transferId = deployWithID.deploy.session.transfer
-        ?.getArgByName('id')!
-        .value()
-        .unwrap()
-        .value()
-        .toString();
-
-      const deployAccount = header.account.toHex();
-      // TODO: Handle non-standard payments
-      if (!deployWithID.deploy.isStandardPayment())
-        throw new Error('Could not parse non-standard payment');
-
-      const payment = deployWithID.deploy.payment.moduleBytes
-        ?.getArgByName('amount')!
-        .value()
-        .toString();
-
-      return {
-        deployHash: encodeBase16(deployWithID.deploy.hash),
-        signingKey: deployWithID.signingKey,
-        account: deployAccount,
-        chainName: header.chainName,
-        timestamp: new Date(header.timestamp).toLocaleString(),
-        gasPrice: header.gasPrice,
-        payment: payment,
-        deployType: type,
-        id: transferId,
-        amount: amount,
-        target: target,
-        recipient: recipient,
-        validator: validator,
-        delegator: delegator
-      };
     } else {
-      throw new Error();
+      throw new Error('Invalid Deploy');
     }
+  }
+
+  private verifyTargetAccountMatch(
+    publicKeyHex: string,
+    targetAccountHash: string
+  ) {
+    const providedTargetKeyHash = encodeBase16(
+      CLPublicKey.fromHex(publicKeyHex).toAccountHash()
+    );
+
+    if (providedTargetKeyHash !== targetAccountHash) {
+      throw new Error(
+        "Provided target public key doesn't match the one in deploy"
+      );
+    }
+  }
+
+  private parseTransferData(
+    transferDeploy: DeployUtil.Transfer,
+    providedPublicKeyHex: string
+  ) {
+    const targetByteArray = transferDeploy?.getArgByName('target')!.value();
+    const target = encodeBase16(targetByteArray);
+
+    // Confirm hash of provided public key matches target account hash from deploy
+    this.verifyTargetAccountMatch(providedPublicKeyHex, target);
+
+    const recipient = providedPublicKeyHex;
+    const amount = transferDeploy?.getArgByName('amount')!.value().toString();
+    const id = transferDeploy
+      ?.getArgByName('id')!
+      .value()
+      .unwrap()
+      .value()
+      .toString();
+
+    return {
+      target: target,
+      recipient: recipient,
+      amount: amount,
+      transferId: id
+    };
   }
 
   private saveAndEmitEventIfNeeded(deployWithId: deployWithID) {
