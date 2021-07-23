@@ -19,14 +19,28 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import { deployWithID } from '../../background/SignMessageManager';
-import { truncateString, numberWithSpaces } from '../../background/utils';
+import {
+  truncateString,
+  numberWithSpaces,
+  motesToCSPR
+} from '../../background/utils';
 
 const styles = () => ({
   tooltip: {
+    fontSize: '.8rem',
     width: '260px',
     margin: '10px 0 0 0'
   }
 });
+
+const CsprTooltip = withStyles({
+  tooltip: {
+    fontSize: '1rem',
+    width: 'fit-content',
+    margin: '10px 0 0 0',
+    textAlign: 'center'
+  }
+})(Tooltip);
 
 interface Props extends RouteComponentProps {
   signMessageContainer: SignMessageContainer;
@@ -86,18 +100,22 @@ class SignMessagePage extends React.Component<
       this.createRow('Timestamp', deployData.timestamp),
       this.createRow('Chain Name', deployData.chainName),
       this.createRow('Gas Price', deployData.gasPrice),
-      // TODO: Payment data needs to be formatted in the background before being sent to UI here.
-      this.createRow('Payment', deployData.payment),
+      this.createRow(
+        'Payment',
+        `${numberWithSpaces(deployData.payment)} motes`,
+        `${motesToCSPR(deployData.payment)} CSPR`
+      ),
       this.createRow('Deploy Type', deployData.deployType)
     ];
-    if (deployData.deployType === 'Transfer') {
+    if ('id' in deployData) {
+      // If transferID is present then deploy is a transfer
       this.setState({
         rows: [
           ...baseRows,
           this.createRow(
             'Recipient (Key)',
-            truncateString(deployData.recipient!, 6, 6),
-            deployData.recipient
+            truncateString(deployData.targetPublicKey!, 6, 6),
+            deployData.targetPublicKey
           ),
           this.createRow(
             'Target',
@@ -106,15 +124,23 @@ class SignMessagePage extends React.Component<
           ),
           this.createRow(
             'Amount',
-            `${numberWithSpaces(deployData.amount)} motes`
+            `${numberWithSpaces(deployData.amount)} motes`,
+            `${motesToCSPR(deployData.amount)} CSPR`
           ),
           this.createRow('Transfer ID', deployData.id)
         ]
       });
-    } else if (deployData.deployType === 'Contract Deployment') {
+    } else if ('validator' in deployData) {
+      // For now this is enough to be sure it's a staking deploy i.e. delegating / undelegating
       this.setState({
         rows: [
           ...baseRows,
+          this.createRow('Action', deployData.action),
+          this.createRow(
+            'Amount',
+            `${numberWithSpaces(deployData.amount)} motes`,
+            `${motesToCSPR(deployData.amount)} CSPR`
+          ),
           this.createRow(
             'Validator',
             truncateString(deployData.validator!, 6, 6),
@@ -128,12 +154,12 @@ class SignMessagePage extends React.Component<
         ]
       });
     } else {
-      this.setState({ rows: baseRows });
+      throw new Error('Failed to display deploy data, signing cancelled');
     }
   }
 
   render() {
-    if (this.state.deployToSign) {
+    if (this.state.deployToSign && this.props.authContainer.isUnLocked) {
       const deployId = this.props.signMessageContainer.deployToSign?.id;
       return (
         <div style={{ flexGrow: 1, marginTop: '-30px' }}>
@@ -143,25 +169,44 @@ class SignMessagePage extends React.Component<
           <TableContainer>
             <Table style={{ maxWidth: '100%' }}>
               <TableBody>
-                {this.state.rows.map((row: any) => (
-                  <Tooltip
-                    key={row.key}
-                    title={row.title ? row.title : ''}
-                    classes={{ tooltip: this.props.classes.tooltip }}
-                    placement="top"
-                  >
-                    <TableRow key={row.key}>
-                      <TableCell
-                        component="th"
-                        scope="row"
-                        style={{ fontWeight: 'bold' }}
-                      >
-                        {row.key}
-                      </TableCell>
-                      <TableCell align="right">{row.value}</TableCell>
-                    </TableRow>
-                  </Tooltip>
-                ))}
+                {this.state.rows.map((row: any) =>
+                  row.key === 'Amount' || row.key === 'Payment' ? (
+                    <CsprTooltip
+                      key={row.key}
+                      title={row.title ? row.title : ''}
+                      placement="top"
+                    >
+                      <TableRow key={row.key}>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ fontWeight: 'bold' }}
+                        >
+                          {row.key}
+                        </TableCell>
+                        <TableCell align="right">{row.value}</TableCell>
+                      </TableRow>
+                    </CsprTooltip>
+                  ) : (
+                    <Tooltip
+                      key={row.key}
+                      title={row.title ? row.title : ''}
+                      classes={{ tooltip: this.props.classes.tooltip }}
+                      placement="top"
+                    >
+                      <TableRow key={row.key}>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ fontWeight: 'bold' }}
+                        >
+                          {row.key}
+                        </TableCell>
+                        <TableCell align="right">{row.value}</TableCell>
+                      </TableRow>
+                    </Tooltip>
+                  )
+                )}
               </TableBody>
             </Table>
           </TableContainer>
