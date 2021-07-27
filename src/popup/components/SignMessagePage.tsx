@@ -7,17 +7,21 @@ import { browser } from 'webextension-polyfill-ts';
 import AccountManager from '../container/AccountManager';
 import { withStyles } from '@material-ui/core/styles';
 import {
+  Box,
   Button,
+  Collapse,
+  IconButton,
+  Grid,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableRow,
-  Tooltip
+  Tooltip,
+  Typography
 } from '@material-ui/core';
-import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
-import Box from '@material-ui/core/Box';
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { deployWithID } from '../../background/SignMessageManager';
 import {
   truncateString,
@@ -51,13 +55,28 @@ interface Props extends RouteComponentProps {
 @observer
 class SignMessagePage extends React.Component<
   Props,
-  { rows: any; deployToSign: deployWithID | null }
+  {
+    genericRows: {
+      key: string;
+      value: any;
+      title: any;
+    }[];
+    deploySpecificRows: {
+      key: string;
+      value: any;
+      title: any;
+    }[];
+    deployToSign: deployWithID | null;
+    argsExpanded: boolean;
+  }
 > {
   constructor(props: Props) {
     super(props);
     this.state = {
-      rows: [],
-      deployToSign: this.props.signMessageContainer.deployToSign
+      genericRows: [],
+      deploySpecificRows: [],
+      deployToSign: this.props.signMessageContainer.deployToSign,
+      argsExpanded: false
     };
   }
 
@@ -78,10 +97,10 @@ class SignMessagePage extends React.Component<
   }
 
   async generateDeployInfo(deployToSign: deployWithID) {
-    let deployData = await this.props.signMessageContainer.parseDeployData(
+    const deployData = await this.props.signMessageContainer.parseDeployData(
       deployToSign.id
     );
-    let baseRows = [
+    const baseRows = [
       this.createRow(
         'Signing Key',
         truncateString(deployData.signingKey, 6, 6),
@@ -107,55 +126,21 @@ class SignMessagePage extends React.Component<
       ),
       this.createRow('Deploy Type', deployData.deployType)
     ];
-    if ('id' in deployData) {
-      // If transferID is present then deploy is a transfer
-      this.setState({
-        rows: [
-          ...baseRows,
-          this.createRow(
-            'Recipient (Key)',
-            truncateString(deployData.targetPublicKey!, 6, 6),
-            deployData.targetPublicKey
-          ),
-          this.createRow(
-            'Target',
-            truncateString(deployData.target!, 6, 6),
-            deployData.target
-          ),
-          this.createRow(
-            'Amount',
-            `${numberWithSpaces(deployData.amount)} motes`,
-            `${motesToCSPR(deployData.amount)} CSPR`
-          ),
-          this.createRow('Transfer ID', deployData.id)
-        ]
-      });
-    } else if ('validator' in deployData) {
-      // For now this is enough to be sure it's a staking deploy i.e. delegating / undelegating
-      this.setState({
-        rows: [
-          ...baseRows,
-          this.createRow('Action', deployData.action),
-          this.createRow(
-            'Amount',
-            `${numberWithSpaces(deployData.amount)} motes`,
-            `${motesToCSPR(deployData.amount)} CSPR`
-          ),
-          this.createRow(
-            'Validator',
-            truncateString(deployData.validator!, 6, 6),
-            deployData.validator
-          ),
-          this.createRow(
-            'Delegator',
-            truncateString(deployData.delegator!, 6, 6),
-            deployData.delegator
-          )
-        ]
-      });
-    } else {
-      throw new Error('Failed to display deploy data, signing cancelled');
+    let argRows = [];
+    for (let [key, value] of Object.entries(deployData.deployArgs)) {
+      argRows.push(
+        this.createRow(
+          key,
+          value.length > 12 ? truncateString(value, 6, 6) : value,
+          value.length > 12 ? value : undefined
+        )
+      );
     }
+    this.setState({
+      genericRows: baseRows,
+      deploySpecificRows: argRows,
+      argsExpanded: argRows.length > 3 ? false : true
+    });
   }
 
   render() {
@@ -169,7 +154,7 @@ class SignMessagePage extends React.Component<
           <TableContainer>
             <Table style={{ maxWidth: '100%' }}>
               <TableBody>
-                {this.state.rows.map((row: any) =>
+                {this.state.genericRows.map((row: any) =>
                   row.key === 'Amount' || row.key === 'Payment' ? (
                     <CsprTooltip
                       key={row.key}
@@ -206,6 +191,148 @@ class SignMessagePage extends React.Component<
                       </TableRow>
                     </Tooltip>
                   )
+                )}
+                {this.state.genericRows.some(
+                  row => row.key === 'Deploy Type' && row.value === 'Transfer'
+                ) ? (
+                  <>
+                    <TableRow>
+                      <TableCell
+                        component="th"
+                        scope="row"
+                        style={{ fontWeight: 'bold' }}
+                        colSpan={2}
+                        align="center"
+                      >
+                        Transfer Data
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell
+                        style={{ paddingBottom: 0, paddingTop: 0 }}
+                        colSpan={2}
+                      >
+                        <Table size="small">
+                          <TableBody>
+                            {this.state.deploySpecificRows.map((row, index) => {
+                              return row.key === 'amount' ? (
+                                <CsprTooltip
+                                  key={index}
+                                  title={`${motesToCSPR(row.value)} CSPR`}
+                                  placement="top"
+                                >
+                                  <TableRow key={index}>
+                                    <TableCell
+                                      component="th"
+                                      scope="row"
+                                      style={{ fontWeight: 'bold' }}
+                                    >
+                                      {row.key}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {`${numberWithSpaces(row.value)} motes`}
+                                    </TableCell>
+                                  </TableRow>
+                                </CsprTooltip>
+                              ) : (
+                                <Tooltip
+                                  key={index}
+                                  title={row.title ? row.title : ''}
+                                  classes={{
+                                    tooltip: this.props.classes.tooltip
+                                  }}
+                                  placement="top"
+                                >
+                                  <TableRow>
+                                    <TableCell style={{ fontWeight: 'bold' }}>
+                                      {row.key}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {isNaN(+row.value)
+                                        ? row.value
+                                        : numberWithSpaces(row.value)}
+                                    </TableCell>
+                                  </TableRow>
+                                </Tooltip>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </TableCell>
+                    </TableRow>
+                  </>
+                ) : (
+                  <>
+                    <TableRow>
+                      <TableCell
+                        component="th"
+                        scope="row"
+                        style={{ fontWeight: 'bold' }}
+                      >
+                        Contract Arguments
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            this.setState({
+                              argsExpanded: !this.state.argsExpanded
+                            })
+                          }
+                        >
+                          {this.state.argsExpanded ? (
+                            <KeyboardArrowUpIcon />
+                          ) : (
+                            <KeyboardArrowDownIcon />
+                          )}
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell
+                        style={{ paddingBottom: 0, paddingTop: 0 }}
+                        colSpan={2}
+                      >
+                        <Collapse
+                          in={this.state.argsExpanded}
+                          timeout="auto"
+                          unmountOnExit
+                        >
+                          <Table size="small">
+                            <TableBody>
+                              {this.state.deploySpecificRows.map(
+                                (row, index) => {
+                                  return (
+                                    <Tooltip
+                                      key={index}
+                                      title={row.title ? row.title : ''}
+                                      classes={{
+                                        tooltip: this.props.classes.tooltip
+                                      }}
+                                      placement="top"
+                                    >
+                                      <TableRow>
+                                        <TableCell
+                                          style={{ fontWeight: 'bold' }}
+                                        >
+                                          {row.key}
+                                        </TableCell>
+                                        <TableCell align="right">
+                                          {isNaN(+row.value)
+                                            ? row.value
+                                            : numberWithSpaces(row.value)}
+                                        </TableCell>
+                                      </TableRow>
+                                    </Tooltip>
+                                  );
+                                }
+                              )}
+                            </TableBody>
+                          </Table>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </>
                 )}
               </TableBody>
             </Table>

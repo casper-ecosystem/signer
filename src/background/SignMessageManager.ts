@@ -1,9 +1,24 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
-import { DeployUtil, encodeBase16, CLPublicKey } from 'casper-js-sdk';
+import {
+  DeployUtil,
+  encodeBase16,
+  CLPublicKey,
+  CLPublicKeyType,
+  CLByteArrayType,
+  CLAccountHashType
+} from 'casper-js-sdk';
+import { JsonTypes } from 'typedjson';
+import {
+  StoredContractByHash,
+  StoredContractByName,
+  StoredVersionedContractByHash,
+  StoredVersionedContractByName
+} from '../../../../casper-js-sdk/dist/lib/DeployUtil';
 
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
+type argDict = { [key: string]: string };
 export interface deployWithID {
   id: number;
   status: deployStatus;
@@ -18,29 +33,16 @@ export interface DeployData {
   deployHash: string;
   signingKey: string;
   account: string;
+  bodyHash: string;
   timestamp: string;
   chainName: string;
   deployType: string;
   gasPrice: number;
   payment: number;
-}
-
-export interface TransferDeployData extends DeployData {
-  // public key of recipient
-  targetPublicKey: string;
-  // account hash of recipient
-  target: string;
-  amount: number;
-  id: number;
+  deployArgs: Object;
 }
 
 // Covers Delegating and Undelegating
-export interface StakingDeployData extends DeployData {
-  action: string;
-  validator: string;
-  delegator: string;
-  amount: number;
-}
 
 /**
  * Sign Message Manager
@@ -162,15 +164,15 @@ export default class SignMessageManager extends events.EventEmitter {
 
   /**
    * Signs unsigned deploys from the app's queue
-   * @param {DeployUtil.Deploy} deploy
+   * @param {any} deploy JSON representation of a deploy - can be constructed using the `DeployUtil.deployToJSON()` method.
    * @param {string} publicKey in hex format with algorithm prefix byte.
-   * @returns {JSON} Signed deploy in JSON format
+   * @returns {DeployJson} Signed JSON representation of the given deploy.
    */
   public signDeploy(
-    deploy: any,
+    deploy: { deploy: JsonTypes },
     sourcePublicKeyHex: string, // hex-encoded PublicKey bytes with algo prefix
     targetPublicKeyHex: string
-  ): Promise<any> {
+  ): Promise<{ deploy: JsonTypes }> {
     return new Promise((resolve, reject) => {
       // TODO: Need to abstract it to reusable method
       const { currentTab, connectedSites } = this.appState;
@@ -285,9 +287,7 @@ export default class SignMessageManager extends events.EventEmitter {
     return deployWithId;
   }
 
-  public parseDeployData(
-    deployId: number
-  ): TransferDeployData | StakingDeployData {
+  public parseDeployData(deployId: number): DeployData {
     let deployWithID = this.getDeployById(deployId);
     if (deployWithID !== undefined && deployWithID.deploy !== undefined) {
       let header = deployWithID.deploy.header;
@@ -305,77 +305,89 @@ export default class SignMessageManager extends events.EventEmitter {
       const type = deployWithID.deploy.isTransfer()
         ? 'Transfer'
         : deployWithID.deploy.session.isModuleBytes()
+        ? 'WASM-Based Deploy'
+        : deployWithID.deploy.session.isStoredContractByHash() ||
+          deployWithID.deploy.session.isStoredContractByName()
         ? 'Contract Call'
-        : 'Contract Deployment';
+        : // is Stored Versioned Contract
+          'Contract Package Call';
 
+      let deployArgs: argDict = {};
       if (deployWithID.deploy.session.transfer) {
-        const transferData = this.parseTransferData(
+        deployArgs = this.parseTransferData(
           deployWithID.deploy.session.transfer,
           deployWithID.targetKey
         );
-
-        return {
-          deployHash: encodeBase16(deployWithID.deploy.hash),
-          signingKey: deployWithID.signingKey,
-          account: deployAccount,
-          chainName: header.chainName,
-          timestamp: new Date(header.timestamp).toLocaleString(),
-          gasPrice: header.gasPrice,
-          payment: payment,
-          deployType: type,
-          id: transferData.transferId,
-          amount: transferData.amount,
-          target: transferData.target,
-          targetPublicKey: transferData.recipient
-        };
-      } else if (deployWithID.deploy.session.storedContractByHash) {
-        // TODO: this is specific to Delegation/Undelegation - needs generalised
-        const action = deployWithID.deploy.session.storedContractByHash
-          .getArgByName('action')
-          ?.value()
-          .toString();
-
-        if (action !== 'delegate' && action !== 'undelegate')
-          throw new Error(
-            "Invalid value for action argument. Signer only supports 'delegate' and 'undelegate'"
-          );
-
-        const amount = deployWithID.deploy.session.storedContractByHash
-          ?.getArgByName('amount')!
-          .value()
-          .toString();
-
-        const validator = (
-          deployWithID.deploy.session.storedContractByHash?.getArgByName(
-            'validator'
-          )! as CLPublicKey
-        ).toHex();
-
-        const delegator = (
-          deployWithID.deploy.session.storedContractByHash?.getArgByName(
-            'delegator'
-          )! as CLPublicKey
-        ).toHex();
-
-        return {
-          deployHash: encodeBase16(deployWithID.deploy.hash),
-          signingKey: deployWithID.signingKey,
-          account: deployAccount,
-          chainName: header.chainName,
-          timestamp: new Date(header.timestamp).toLocaleString(),
-          gasPrice: header.gasPrice,
-          payment: payment,
-          deployType: type,
-          action: action,
-          amount: amount,
-          validator: validator,
-          delegator: delegator
-        };
-      } else {
-        throw new Error(
-          'Signer only supports Transfers and Staking operations, i.e. delegating and undelegating.'
+      } else if (deployWithID.deploy.session.moduleBytes) {
+        deployWithID.deploy.session.moduleBytes.args.args.forEach(
+          (argument, key) => {
+            if (argument.clType() instanceof CLPublicKeyType) {
+              deployArgs[key] = (argument as CLPublicKey).toHex();
+            } else if (
+              argument.clType() instanceof CLByteArrayType ||
+              argument.clType() instanceof CLAccountHashType
+            ) {
+              deployArgs[key] = encodeBase16(argument.value());
+            } else {
+              // if not a PublicKey or ByteArray
+              deployArgs[key] = argument.value().toString();
+            }
+          }
         );
+        deployArgs['Module Bytes'] =
+          deployWithID.deploy.session.moduleBytes.moduleBytes.toString();
+      } else {
+        let storedContract:
+          | StoredContractByHash
+          | StoredContractByName
+          | StoredVersionedContractByHash
+          | StoredVersionedContractByName;
+        if (deployWithID.deploy.session.storedContractByHash) {
+          storedContract = deployWithID.deploy.session.storedContractByHash;
+        } else if (deployWithID.deploy.session.storedContractByName) {
+          storedContract = deployWithID.deploy.session.storedContractByName;
+        } else if (deployWithID.deploy.session.storedVersionedContractByHash) {
+          storedContract =
+            deployWithID.deploy.session.storedVersionedContractByHash;
+        } else if (deployWithID.deploy.session.storedVersionedContractByName) {
+          storedContract =
+            deployWithID.deploy.session.storedVersionedContractByName;
+        } else {
+          throw new Error(`Stored Contract could not be parsed.\n\
+          Provided session code: ${deployWithID.deploy.session}`);
+        }
+        try {
+          // Credit to Killian Hascoët (@KillianH on GH) for inspiring this initial implementation for arg parsing.
+          storedContract.args.args.forEach((argument, key) => {
+            if (argument.clType() instanceof CLPublicKeyType) {
+              deployArgs[key] = (argument as CLPublicKey).toHex();
+            } else if (
+              argument.clType() instanceof CLByteArrayType ||
+              argument.clType() instanceof CLAccountHashType
+            ) {
+              deployArgs[key] = encodeBase16(argument.value());
+            } else {
+              // if not a PublicKey or ByteArray
+              deployArgs[key] = argument.value().toString();
+            }
+          });
+          deployArgs['EntryPoint'] = storedContract.entryPoint;
+        } catch (err) {
+          throw new Error(err);
+        }
       }
+      return {
+        deployHash: encodeBase16(deployWithID.deploy.hash),
+        signingKey: deployWithID.signingKey,
+        account: deployAccount,
+        bodyHash: encodeBase16(header.bodyHash),
+        chainName: header.chainName,
+        timestamp: new Date(header.timestamp).toLocaleString(),
+        gasPrice: header.gasPrice,
+        payment: payment,
+        deployType: type,
+        deployArgs: deployArgs
+      };
     } else {
       throw new Error('Invalid Deploy');
     }
@@ -400,6 +412,8 @@ export default class SignMessageManager extends events.EventEmitter {
     transferDeploy: DeployUtil.Transfer,
     providedPublicKeyHex: string
   ) {
+    const transferArgs: argDict = {};
+
     const targetByteArray = transferDeploy?.getArgByName('target')!.value();
     const target = encodeBase16(targetByteArray);
 
@@ -415,12 +429,12 @@ export default class SignMessageManager extends events.EventEmitter {
       .value()
       .toString();
 
-    return {
-      target: target,
-      recipient: recipient,
-      amount: amount,
-      transferId: id
-    };
+    transferArgs['target'] = target;
+    transferArgs['recipient'] = recipient;
+    transferArgs['amount'] = amount;
+    transferArgs['id'] = id;
+
+    return transferArgs;
   }
 
   private saveAndEmitEventIfNeeded(deployWithId: deployWithID) {

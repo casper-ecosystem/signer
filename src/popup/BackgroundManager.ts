@@ -4,10 +4,7 @@ import { AppState } from '../lib/MemStore';
 import { action } from 'mobx';
 import ErrorContainer from './container/ErrorContainer';
 import { KeyPairWithAlias } from '../@types/models';
-import {
-  StakingDeployData,
-  TransferDeployData
-} from '../background/SignMessageManager';
+import { DeployData } from '../background/SignMessageManager';
 
 export class BackgroundManager {
   private rpc: Rpc;
@@ -99,10 +96,7 @@ export class BackgroundManager {
 
   public parseDeployData(deployId: number) {
     return this.errors.withCapture(
-      this.rpc.call<TransferDeployData | StakingDeployData>(
-        'sign.parseDeployData',
-        deployId
-      )
+      this.rpc.call<DeployData>('sign.parseDeployData', deployId)
     );
   }
 
