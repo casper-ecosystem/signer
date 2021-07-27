@@ -144,16 +144,22 @@ export default class SignMessageManager extends events.EventEmitter {
     targetPublicKey: string
   ): number {
     const id: number = this.createId();
-
     try {
-      let innerDeploy = DeployUtil.deployFromJson(deployJson).unwrap();
-      this.unsignedDeploys.push({
-        id: id,
-        status: 'unsigned',
-        deploy: innerDeploy,
-        signingKey: sourcePublicKey,
-        targetKey: targetPublicKey
-      });
+      let innerDeploy = DeployUtil.deployFromJson(deployJson);
+      if (innerDeploy.ok) {
+        this.unsignedDeploys.push({
+          id: id,
+          status: 'unsigned',
+          // Should be safe to unwrap here since Result was ok
+          deploy: innerDeploy.unwrap(),
+          signingKey: sourcePublicKey,
+          targetKey: targetPublicKey
+        });
+      } else {
+        innerDeploy.mapErr(err => {
+          throw new Error(err.message);
+        });
+      }
     } catch (err) {
       throw new Error(err);
     }
