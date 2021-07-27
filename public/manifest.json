@@ -24,7 +24,8 @@
         "*://localhost/*",
         "*://*.make.services/*",
         "*://cspr.live/*",
-        "*://*.cspr.live/*"
+        "*://*.cspr.live/*",
+        "*://george-cl-signer-demo.netlify.app/*"
       ],
       "js": ["./scripts/content/content.js"],
       "run_at": "document_start",
