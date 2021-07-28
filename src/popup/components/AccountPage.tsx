@@ -257,35 +257,6 @@ class AccountPage extends React.Component<Props, State> {
           id="create-public-key"
           value={formData.publicKey.$ ? formData.publicKey.$ : ''}
         />
-        <TextFieldWithFormState
-          fullWidth
-          InputProps={{ readOnly: true, disabled: true }}
-          label="Secret Key (Base64)"
-          placeholder="Base64 encoded secret key"
-          id="create-secret-key"
-          onClick={this.revealSecretKey}
-          value={
-            formData.secretKeyBase64.$
-              ? this.state.revealSecretKey
-                ? formData.secretKeyBase64.$
-                : 'Click to Reveal'
-              : ''
-          }
-        />
-        {/* 
-          Because the account is not yet saved it cannot be downloaded. 
-          This may be modified to allow this in future.
-        */}
-        {/* <FormControlLabel
-          control={
-            <Checkbox
-              checked={this.state.keyDownloadEnabled}
-              onChange={toggleDownloadKey}
-              name="keyDownloadToggle"
-            />
-          }
-          label="Download Key"
-        /> */}
         <FormControl fullWidth margin={'normal'}>
           <Button
             type="submit"
