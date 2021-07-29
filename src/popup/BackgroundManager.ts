@@ -36,7 +36,7 @@ export class BackgroundManager {
     this.appState.connectionRequested = appState.connectionRequested;
     this.appState.connectedSites = appState.connectedSites;
     this.appState.hasCreatedVault = appState.hasCreatedVault;
-    this.appState.activeUserAccount.replace(appState.activeUserAccount);
+    this.appState.activeUserAccount = appState.activeUserAccount;
     this.appState.userAccounts.replace(appState.userAccounts);
     this.appState.unsignedDeploys.replace(appState.unsignedDeploys);
   }

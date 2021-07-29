@@ -1,4 +1,4 @@
-import { IObservableArray, observable, computed, IObservable } from 'mobx';
+import { IObservableArray, observable, computed } from 'mobx';
 import { Tab, Site } from '../background/ConnectionManager';
 import { KeyPairWithAlias } from '../@types/models';
 import { deployWithID } from '../background/SignMessageManager';

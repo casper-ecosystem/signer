@@ -120,6 +120,7 @@ class AuthController {
       );
     }
     this.appState.activeUserAccount = this.appState.userAccounts[i];
+    this.persistVault();
     updateStatusEvent(this.appState, 'activeKeyChanged');
   }
 
@@ -419,9 +420,6 @@ class AuthController {
         ? this.serializeKeyPairWithAlias(this.appState.activeUserAccount)
         : null
     });
-    console.log(
-      `Selected Account: ${this.appState.activeUserAccount?.alias}`
-    );
     await this.saveKeyValuetoStore(this.encryptedVaultKey, encryptedVault);
     await this.saveKeyValuetoStore(this.saltKey, this.passwordSalt!);
     updateStatusEvent(this.appState, 'activeKeyChanged');
