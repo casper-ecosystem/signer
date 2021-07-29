@@ -1,4 +1,4 @@
-import { IObservableArray, observable, computed } from 'mobx';
+import { IObservableArray, observable, computed, IObservable } from 'mobx';
 import { Tab, Site } from '../background/ConnectionManager';
 import { KeyPairWithAlias } from '../@types/models';
 import { deployWithID } from '../background/SignMessageManager';
@@ -30,7 +30,7 @@ export class AppState {
     { deep: true }
   );
   @observable hasCreatedVault: boolean = false;
-  @observable selectedUserAccount: KeyPairWithAlias | null = null;
+  @observable activeUserAccount: KeyPairWithAlias | null = null;
   userAccounts: IObservableArray<KeyPairWithAlias> =
     observable.array<KeyPairWithAlias>([], { deep: true });
   @observable unsignedDeploys: IObservableArray<deployWithID> =

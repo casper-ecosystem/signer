@@ -19,7 +19,7 @@ export function updateStatusEvent(appState: AppState, msg: string) {
     s => s.url === appState.currentTab!.url
   );
   if (savedSite) {
-    const { selectedUserAccount, isUnlocked } = appState;
+    const { activeUserAccount, isUnlocked } = appState;
     const { isConnected } = savedSite;
     chrome.tabs.sendMessage(appState.currentTab!.tabId, {
       name: msg,
@@ -27,8 +27,8 @@ export function updateStatusEvent(appState: AppState, msg: string) {
         isUnlocked,
         isConnected: isUnlocked ? savedSite.isConnected : null,
         activeKey:
-          isConnected && isUnlocked && selectedUserAccount
-            ? selectedUserAccount.KeyPair.publicKey.toHex()
+          isConnected && isUnlocked && activeUserAccount
+            ? activeUserAccount.KeyPair.publicKey.toHex()
             : null
       }
     });

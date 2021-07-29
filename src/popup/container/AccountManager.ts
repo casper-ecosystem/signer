@@ -118,8 +118,8 @@ class AccountManager {
   }
 
   @computed
-  get selectedUserAccount() {
-    return this.appState.selectedUserAccount;
+  get activeUserAccount() {
+    return this.appState.activeUserAccount;
   }
 
   @computed

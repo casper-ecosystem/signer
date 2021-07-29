@@ -276,11 +276,11 @@ class Home extends React.Component<
                   account key
                 </Typography>
               )}
-              {this.props.authContainer.selectedUserAccount && (
+              {this.props.authContainer.activeUserAccount && (
                 <Typography variant={'h6'} align={'center'}>
                   Active key:{' '}
                   <span style={{ wordBreak: 'break-all' }}>
-                    {this.props.authContainer.selectedUserAccount.alias}
+                    {this.props.authContainer.activeUserAccount.alias}
                   </span>
                 </Typography>
               )}

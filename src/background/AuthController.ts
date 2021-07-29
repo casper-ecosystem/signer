@@ -30,7 +30,7 @@ export interface SerializedKeyPairWithAlias {
 
 interface PersistentVaultData {
   userAccounts: SerializedKeyPairWithAlias[];
-  selectedUserAccount: SerializedKeyPairWithAlias | null;
+  activeUserAccount: SerializedKeyPairWithAlias | null;
 }
 
 function saveToFile(content: string, filename: string) {
@@ -119,30 +119,30 @@ class AuthController {
         "Couldn't switch to this account because it doesn't exist"
       );
     }
-    this.appState.selectedUserAccount = this.appState.userAccounts[i];
+    this.appState.activeUserAccount = this.appState.userAccounts[i];
     updateStatusEvent(this.appState, 'activeKeyChanged');
   }
 
   getActiveUserAccount(): KeyPairWithAlias {
-    if (!this.appState.selectedUserAccount) {
+    if (!this.appState.activeUserAccount) {
       throw new Error('There is no active key');
     }
-    return this.appState.selectedUserAccount;
+    return this.appState.activeUserAccount;
   }
 
   getActivePublicKeyHex(): string {
-    if (!this.appState.selectedUserAccount) {
+    if (!this.appState.activeUserAccount) {
       throw new Error('There is no active key');
     }
-    let account = this.appState.selectedUserAccount;
+    let account = this.appState.activeUserAccount;
     return account.KeyPair.publicKey.toHex();
   }
 
   getActiveAccountHash(): string {
-    if (!this.appState.selectedUserAccount) {
+    if (!this.appState.activeUserAccount) {
       throw new Error('There is no active key');
     }
-    let account = this.appState.selectedUserAccount;
+    let account = this.appState.activeUserAccount;
     return encodeBase16(account.KeyPair.publicKey.toAccountHash());
   }
 
@@ -169,7 +169,7 @@ class AuthController {
   @action
   async resetVault() {
     await this.clearAccount();
-    this.appState.selectedUserAccount = null;
+    this.appState.activeUserAccount = null;
     this.appState.unsignedDeploys.clear();
     this.appState.hasCreatedVault = false;
     storage.local.remove(this.encryptedVaultKey);
@@ -223,7 +223,7 @@ class AuthController {
       alias: name,
       KeyPair: keyPair
     });
-    this.appState.selectedUserAccount =
+    this.appState.activeUserAccount =
       this.appState.userAccounts[this.appState.userAccounts.length - 1];
     this.persistVault();
   }
@@ -244,8 +244,8 @@ class AuthController {
 
     this.appState.userAccounts.remove(account);
 
-    if (this.appState.selectedUserAccount?.alias === account.alias) {
-      this.appState.selectedUserAccount =
+    if (this.appState.activeUserAccount?.alias === account.alias) {
+      this.appState.activeUserAccount =
         this.appState.userAccounts.length > 0
           ? this.appState.userAccounts[0]
           : null;
@@ -415,11 +415,13 @@ class AuthController {
       userAccounts: this.appState.userAccounts.map(
         this.serializeKeyPairWithAlias
       ),
-      selectedUserAccount: this.appState.selectedUserAccount
-        ? this.serializeKeyPairWithAlias(this.appState.selectedUserAccount)
+      activeUserAccount: this.appState.activeUserAccount
+        ? this.serializeKeyPairWithAlias(this.appState.activeUserAccount)
         : null
     });
-
+    console.log(
+      `Selected Account: ${this.appState.activeUserAccount?.alias}`
+    );
     await this.saveKeyValuetoStore(this.encryptedVaultKey, encryptedVault);
     await this.saveKeyValuetoStore(this.saltKey, this.passwordSalt!);
     updateStatusEvent(this.appState, 'activeKeyChanged');
@@ -542,8 +544,8 @@ class AuthController {
     this.appState.userAccounts.replace(
       vault.userAccounts.map(this.deserializeKeyPairWithAlias)
     );
-    this.appState.selectedUserAccount = vault.selectedUserAccount
-      ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
+    this.appState.activeUserAccount = vault.activeUserAccount
+      ? this.deserializeKeyPairWithAlias(vault.activeUserAccount)
       : null;
 
     updateStatusEvent(this.appState, 'unlocked');

@@ -113,7 +113,7 @@ export default class SignMessageManager extends events.EventEmitter {
    */
   public getActivePublicKey() {
     return new Promise<string>((resolve, reject) => {
-      let publicKey = this.appState.selectedUserAccount?.KeyPair.publicKey;
+      let publicKey = this.appState.activeUserAccount?.KeyPair.publicKey;
       if (!this.appState.connectionStatus) {
         return reject(new Error('Please connect to the Signer to read key'));
       }
@@ -251,10 +251,10 @@ export default class SignMessageManager extends events.EventEmitter {
   // Approve signature request
   public async approveSignDeploy(deployId: number) {
     const deployData = this.getDeployById(deployId);
-    if (!this.appState.selectedUserAccount) {
+    if (!this.appState.activeUserAccount) {
       throw new Error(`No Active Account!`);
     }
-    let activeKeyPair = this.appState.selectedUserAccount.KeyPair;
+    let activeKeyPair = this.appState.activeUserAccount.KeyPair;
     if (!deployData.deploy) {
       deployData.error = new Error('Cannot sign null deploy!');
       this.saveAndEmitEventIfNeeded(deployData);

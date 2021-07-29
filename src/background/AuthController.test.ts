@@ -130,8 +130,8 @@ describe('AuthController', () => {
 
     // jest.toEqual is deep equal
     expect(anotherState.userAccounts).toEqual(appState.userAccounts);
-    expect(anotherState.selectedUserAccount).toEqual(
-      appState.selectedUserAccount
+    expect(anotherState.activeUserAccount).toEqual(
+      appState.activeUserAccount
     );
   });
 
@@ -148,7 +148,7 @@ describe('AuthController', () => {
     authController.switchToAccount('newAccount');
     authController.lock();
     authController.unlock(password);
-    expect(appState.selectedUserAccount?.alias).toEqual('newAccount');
+    expect(appState.activeUserAccount?.alias).toEqual('newAccount');
   });
 
   it('should rename active key, lock and unlock again', async () => {
@@ -224,10 +224,10 @@ describe('AuthController', () => {
         switchAccount2.KeyPair.signatureAlgorithm
       );
 
-      expect(appState.selectedUserAccount).toStrictEqual(switchAccount2);
+      expect(appState.activeUserAccount).toStrictEqual(switchAccount2);
 
       authController.switchToAccount(switchAccount1.alias);
-      expect(appState.selectedUserAccount).toStrictEqual(switchAccount1);
+      expect(appState.activeUserAccount).toStrictEqual(switchAccount1);
 
       expect(() => {
         authController.switchToAccount('not_exist');
@@ -327,10 +327,10 @@ describe('AuthController', () => {
         switchAccount2.KeyPair.signatureAlgorithm
       );
 
-      expect(appState.selectedUserAccount).toStrictEqual(switchAccount2);
+      expect(appState.activeUserAccount).toStrictEqual(switchAccount2);
 
       authController.switchToAccount(switchAccount1.alias);
-      expect(appState.selectedUserAccount).toStrictEqual(switchAccount1);
+      expect(appState.activeUserAccount).toStrictEqual(switchAccount1);
 
       expect(() => {
         authController.switchToAccount('not_exist');
