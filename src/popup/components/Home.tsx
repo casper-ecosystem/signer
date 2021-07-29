@@ -196,7 +196,8 @@ class Home extends React.Component<
                       color: 'white'
                     }}
                   >
-                    Please include at least one of each of the following:
+                    For a password of min. length 10 please include at least one
+                    of each of the following:
                     <ul>
                       <li>lowercase letter</li>
                       <li>UPPERCASE letter</li>
