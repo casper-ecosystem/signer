@@ -116,11 +116,28 @@ class SignMessagePage extends React.Component<
         truncateString(deployData.deployHash, 6, 6),
         deployData.deployHash
       ),
+      this.createRow(
+        'Body Hash',
+        truncateString(deployData.bodyHash, 6, 6),
+        deployData.bodyHash
+      ),
       this.createRow('Timestamp', deployData.timestamp),
       this.createRow('Chain Name', deployData.chainName),
-      this.createRow('Gas Price', deployData.gasPrice),
+      /*
+        Gas Price refers to how much a caller is willing to pay per unit of gas.
+      
+        Currently there is no logic in place to prioritise those willing to pay more
+        meaning there is no reason to set it higher than 1.
+        
+        In cspr.live Gas Price is fixed at 1 and the user has no visibility of it.
+        
+        Until Gas Price impacts contract execution I will omit it from the deploy data
+        screen to reduce confusion for users.
+      
+      this.createRow('Gas Price', `${deployData.gasPrice} motes`),
+      */
       this.createRow(
-        'Payment',
+        'Transaction Fee',
         `${numberWithSpaces(deployData.payment)} motes`,
         `${motesToCSPR(deployData.payment)} CSPR`
       ),
@@ -215,7 +232,7 @@ class SignMessagePage extends React.Component<
                         <Table size="small">
                           <TableBody>
                             {this.state.deploySpecificRows.map((row, index) => {
-                              return row.key === 'amount' ? (
+                              return row.key === 'Amount' ? (
                                 <CsprTooltip
                                   key={index}
                                   title={`${motesToCSPR(row.value)} CSPR`}

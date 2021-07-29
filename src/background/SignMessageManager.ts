@@ -377,7 +377,7 @@ export default class SignMessageManager extends events.EventEmitter {
               deployArgs[key] = argument.value().toString();
             }
           });
-          deployArgs['EntryPoint'] = storedContract.entryPoint;
+          deployArgs['Entry Point'] = storedContract.entryPoint;
         } catch (err) {
           throw new Error(err);
         }
@@ -435,10 +435,10 @@ export default class SignMessageManager extends events.EventEmitter {
       .value()
       .toString();
 
-    transferArgs['target'] = target;
-    transferArgs['recipient'] = recipient;
-    transferArgs['amount'] = amount;
-    transferArgs['id'] = id;
+    transferArgs['Recipient (Hash)'] = target;
+    transferArgs['Recipient (Key)'] = recipient;
+    transferArgs['Amount'] = amount;
+    transferArgs['Transfer ID'] = id;
 
     return transferArgs;
   }
