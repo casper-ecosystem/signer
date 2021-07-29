@@ -86,6 +86,7 @@ const App = (props: AppProps) => {
             render={_ => (
               <ConnectedSitesPage
                 connectionContainer={props.connectSignerContainer}
+                authContainer={props.authContainer}
               />
             )}
           />
@@ -127,6 +128,7 @@ const App = (props: AppProps) => {
             render={_ => (
               <ConnectSignerPage
                 connectSignerContainer={props.connectSignerContainer}
+                authContainer={props.authContainer}
               />
             )}
           />

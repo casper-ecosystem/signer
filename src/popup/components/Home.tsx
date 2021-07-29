@@ -494,6 +494,32 @@ class Home extends React.Component<
       return this.renderCreateNewVault();
     }
   }
+  // Nicer way to handle the rendering however this currently breaks some flows
+  // leaving here for me to implement in next release.
+  // render() {
+  //   return this.props.authContainer.hasCreatedVault ? (
+  //     this.props.authContainer.isUnLocked ? (
+  //       !this.props.connectionContainer.connectionStatus &&
+  //       this.props.connectionContainer.connectionRequested ? (
+  //         this.props.authContainer.userAccounts.length > 1 ? (
+  //           this.renderAccountLists()
+  //         ) : (
+  //           <Redirect to={Pages.ConnectSigner} />
+  //         )
+  //       ) : this.props.authContainer.unsignedDeploys.length > 0 ? (
+  //         <Redirect to={Pages.SignMessage} />
+  //       ) : (
+  //         this.renderAccountLists()
+  //       )
+  //     ) : this.props.authContainer.isLockedOut ? (
+  //       this.renderLockedOut()
+  //     ) : (
+  //       this.renderUnlock()
+  //     )
+  //   ) : (
+  //     this.renderCreateNewVault()
+  //   );
+  // }
 }
 
 export default withStyles(styles, { withTheme: true })(withRouter(Home));

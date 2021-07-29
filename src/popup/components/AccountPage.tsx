@@ -161,7 +161,6 @@ class AccountPage extends React.Component<Props, State> {
             >
               Upload
               <input
-                // disabled={!form.algorithm.$}
                 type="file"
                 style={{ display: 'none' }}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -218,12 +217,6 @@ class AccountPage extends React.Component<Props, State> {
 
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
-    // const toggleDownloadKey = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //   this.setState({
-    //     ...this.state,
-    //     keyDownloadEnabled: event.target.checked
-    //   });
-    // };
     return (
       <form className={this.props.classes.root}>
         <Typography variant="h6" style={{ marginTop: '-1em' }}>

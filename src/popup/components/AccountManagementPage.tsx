@@ -1,5 +1,5 @@
 import React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { Redirect, RouteComponentProps, withRouter } from 'react-router-dom';
 import {
   List,
   ListItem,
@@ -39,6 +39,7 @@ import { GetApp } from '@material-ui/icons';
 import { TextFieldWithFormState } from './Forms';
 import { RenameAccountFormData } from '../container/ImportAccountContainer';
 import ErrorContainer from '../container/ErrorContainer';
+import Pages from './Pages';
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
   // styles we need to apply on draggables
@@ -167,13 +168,16 @@ class AccountManagementPage extends React.Component<Props, State> {
   };
 
   render() {
-    return (
+    return !this.props.authContainer.isUnLocked ? (
+      <Redirect to={Pages.Home} />
+    ) : (
       <React.Fragment>
         <DragDropContext onDragEnd={result => this.onDragEnd(result)}>
           <Droppable droppableId="droppable">
             {(provided, snapshot) => (
               <Observer>
                 {() => (
+                  // TODO: fix this (deprecated RootRef)
                   <RootRef rootRef={provided.innerRef}>
                     <List>
                       {this.props.authContainer.userAccounts.map(
