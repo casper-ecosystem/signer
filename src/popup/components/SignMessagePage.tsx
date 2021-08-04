@@ -116,11 +116,11 @@ class SignMessagePage extends React.Component<
         truncateString(deployData.deployHash, 6, 6),
         deployData.deployHash
       ),
-      this.createRow(
-        'Body Hash',
-        truncateString(deployData.bodyHash, 6, 6),
-        deployData.bodyHash
-      ),
+      // this.createRow(
+      //   'Body Hash',
+      //   truncateString(deployData.bodyHash, 6, 6),
+      //   deployData.bodyHash
+      // ),
       this.createRow('Timestamp', deployData.timestamp),
       this.createRow('Chain Name', deployData.chainName),
       /*
@@ -148,7 +148,7 @@ class SignMessagePage extends React.Component<
       argRows.push(
         this.createRow(
           key,
-          value.length > 12 ? truncateString(value, 6, 6) : value,
+          value.length > 15 ? truncateString(value, 6, 6) : value,
           value.length > 12 ? value : undefined
         )
       );
