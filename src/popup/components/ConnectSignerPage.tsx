@@ -4,11 +4,13 @@ import React from 'react';
 import { Redirect, RouteComponentProps, withRouter } from 'react-router-dom';
 import { browser } from 'webextension-polyfill-ts';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
+import AccountManager from '../container/AccountManager';
 import Pages from './Pages';
 import confirmConnect from './ConfirmConnect';
 
 interface Props extends RouteComponentProps {
   connectSignerContainer: ConnectSignerContainer;
+  authContainer: AccountManager;
 }
 
 @observer
@@ -24,7 +26,9 @@ class ConnectSignerPage extends React.Component<Props, {}> {
 
   render() {
     if (!this.props.connectSignerContainer.connectionStatus) {
-      return (
+      return !this.props.authContainer.isUnLocked ? (
+        <Redirect to={Pages.Home} />
+      ) : (
         <div style={{ flexGrow: 1 }}>
           <Typography
             align={'center'}

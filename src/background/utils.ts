@@ -19,7 +19,7 @@ export function updateStatusEvent(appState: AppState, msg: string) {
     s => s.url === appState.currentTab!.url
   );
   if (savedSite) {
-    const { selectedUserAccount, isUnlocked } = appState;
+    const { activeUserAccount, isUnlocked } = appState;
     const { isConnected } = savedSite;
     chrome.tabs.sendMessage(appState.currentTab!.tabId, {
       name: msg,
@@ -27,10 +27,31 @@ export function updateStatusEvent(appState: AppState, msg: string) {
         isUnlocked,
         isConnected: isUnlocked ? savedSite.isConnected : null,
         activeKey:
-          isConnected && isUnlocked && selectedUserAccount
-            ? selectedUserAccount.KeyPair.publicKey.toHex()
+          isConnected && isUnlocked && activeUserAccount
+            ? activeUserAccount.KeyPair.publicKey.toHex()
             : null
       }
     });
   }
+}
+
+export function truncateString(
+  longString: string,
+  startChunk: number,
+  endChunk: number
+): string {
+  if (!longString) throw new Error('Error parsing long string.');
+  return (
+    longString.substring(0, startChunk) +
+    '...' +
+    longString.substring(longString.length - endChunk)
+  );
+}
+
+export function numberWithSpaces(num: number) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+export function motesToCSPR(motes: number) {
+  return motes / 1000000000;
 }

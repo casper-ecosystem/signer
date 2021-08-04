@@ -12,11 +12,15 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
+import AccountManager from '../container/AccountManager';
 import { observer } from 'mobx-react';
 import { confirm } from './Confirmation';
+import { Redirect } from 'react-router-dom';
+import Pages from './Pages';
 
 interface Props {
   connectionContainer: ConnectSignerContainer;
+  authContainer: AccountManager;
 }
 
 export const ConnectedSitesPage = observer((props: Props) => {
@@ -27,7 +31,9 @@ export const ConnectedSitesPage = observer((props: Props) => {
     ).then(() => props.connectionContainer.removeSite(name));
   };
 
-  return props.connectionContainer.connectedSites[0] ? (
+  return !props.authContainer.isUnLocked ? (
+    <Redirect to={Pages.Home} />
+  ) : props.connectionContainer.connectedSites[0] ? (
     <List>
       {props.connectionContainer.connectedSites.map((item, index) => {
         return (

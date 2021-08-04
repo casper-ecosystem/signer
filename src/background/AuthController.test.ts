@@ -130,8 +130,8 @@ describe('AuthController', () => {
 
     // jest.toEqual is deep equal
     expect(anotherState.userAccounts).toEqual(appState.userAccounts);
-    expect(anotherState.selectedUserAccount).toEqual(
-      appState.selectedUserAccount
+    expect(anotherState.activeUserAccount).toEqual(
+      appState.activeUserAccount
     );
   });
 
@@ -148,7 +148,7 @@ describe('AuthController', () => {
     authController.switchToAccount('newAccount');
     authController.lock();
     authController.unlock(password);
-    expect(appState.selectedUserAccount?.alias).toEqual('newAccount');
+    expect(appState.activeUserAccount?.alias).toEqual('newAccount');
   });
 
   it('should rename active key, lock and unlock again', async () => {
@@ -161,7 +161,7 @@ describe('AuthController', () => {
         newAccount.signatureAlgorithm
       )
     ).resolves.toBeUndefined;
-    let activeAccount = authController.getSelectUserAccount();
+    let activeAccount = authController.getActiveUserAccount();
     expect(activeAccount.KeyPair).toStrictEqual(newAccount);
     expect(activeAccount.alias).toEqual('oldName');
     await authController.renameUserAccount('oldName', 'newName');
@@ -169,10 +169,10 @@ describe('AuthController', () => {
     await authController.lock();
     expect(appState.isUnlocked).toBeFalsy();
     await authController.unlock(password);
-    expect(authController.getSelectUserAccount().KeyPair).toStrictEqual(
+    expect(authController.getActiveUserAccount().KeyPair).toStrictEqual(
       newAccount
     );
-    expect(authController.getSelectUserAccount().alias).toEqual('newName');
+    expect(authController.getActiveUserAccount().alias).toEqual('newName');
   });
 
   describe('Handling ED25519 keys...', () => {
@@ -224,10 +224,10 @@ describe('AuthController', () => {
         switchAccount2.KeyPair.signatureAlgorithm
       );
 
-      expect(appState.selectedUserAccount).toStrictEqual(switchAccount2);
+      expect(appState.activeUserAccount).toStrictEqual(switchAccount2);
 
       authController.switchToAccount(switchAccount1.alias);
-      expect(appState.selectedUserAccount).toStrictEqual(switchAccount1);
+      expect(appState.activeUserAccount).toStrictEqual(switchAccount1);
 
       expect(() => {
         authController.switchToAccount('not_exist');
@@ -245,7 +245,7 @@ describe('AuthController', () => {
       expect(authController.isUnlocked).toBeFalsy();
       await authController.unlock(password);
       expect(authController.isUnlocked).toBeTruthy();
-      expect(authController.getSelectUserAccount().KeyPair).toStrictEqual(
+      expect(authController.getActiveUserAccount().KeyPair).toStrictEqual(
         keyPair
       );
     });
@@ -257,7 +257,7 @@ describe('AuthController', () => {
         encodeBase64(keyPair.privateKey),
         keyPair.signatureAlgorithm
       );
-      let account = authController.getSelectUserAccount();
+      let account = authController.getActiveUserAccount();
       expect(keyPair.publicKey.toHex()).toEqual(
         account.KeyPair.publicKey.toHex()
       );
@@ -327,10 +327,10 @@ describe('AuthController', () => {
         switchAccount2.KeyPair.signatureAlgorithm
       );
 
-      expect(appState.selectedUserAccount).toStrictEqual(switchAccount2);
+      expect(appState.activeUserAccount).toStrictEqual(switchAccount2);
 
       authController.switchToAccount(switchAccount1.alias);
-      expect(appState.selectedUserAccount).toStrictEqual(switchAccount1);
+      expect(appState.activeUserAccount).toStrictEqual(switchAccount1);
 
       expect(() => {
         authController.switchToAccount('not_exist');
@@ -349,7 +349,7 @@ describe('AuthController', () => {
       await authController.unlock(password);
       expect(authController.isUnlocked).toBeTruthy();
       expect(
-        authController.getSelectUserAccount().KeyPair.privateKey
+        authController.getActiveUserAccount().KeyPair.privateKey
       ).toStrictEqual(keyPair.privateKey);
     });
 
@@ -360,7 +360,7 @@ describe('AuthController', () => {
         encodeBase64(keyPair.privateKey),
         keyPair.signatureAlgorithm
       );
-      let account = authController.getSelectUserAccount();
+      let account = authController.getActiveUserAccount();
       expect(keyPair.publicKey.toHex()).toEqual(
         account.KeyPair.publicKey.toHex()
       );

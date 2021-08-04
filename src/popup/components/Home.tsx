@@ -196,7 +196,8 @@ class Home extends React.Component<
                       color: 'white'
                     }}
                   >
-                    Please include at least one of each of the following:
+                    For a password of min. length 10 please include at least one
+                    of each of the following:
                     <ul>
                       <li>lowercase letter</li>
                       <li>UPPERCASE letter</li>
@@ -275,11 +276,11 @@ class Home extends React.Component<
                   account key
                 </Typography>
               )}
-              {this.props.authContainer.selectedUserAccount && (
+              {this.props.authContainer.activeUserAccount && (
                 <Typography variant={'h6'} align={'center'}>
                   Active key:{' '}
                   <span style={{ wordBreak: 'break-all' }}>
-                    {this.props.authContainer.selectedUserAccount.alias}
+                    {this.props.authContainer.activeUserAccount.alias}
                   </span>
                 </Typography>
               )}
@@ -470,7 +471,12 @@ class Home extends React.Component<
           this.props.connectionContainer.connectionRequested
         ) {
           // Not connected and there is a request to connect
-          return <Redirect to={Pages.ConnectSigner} />;
+          if (this.props.authContainer.userAccounts.length < 1) {
+            // Don't prompt for connection if there are no accounts
+            return this.renderAccountLists();
+          } else {
+            return <Redirect to={Pages.ConnectSigner} />;
+          }
         } else {
           if (this.props.authContainer.unsignedDeploys.length > 0) {
             return <Redirect to={Pages.SignMessage} />;
@@ -489,6 +495,32 @@ class Home extends React.Component<
       return this.renderCreateNewVault();
     }
   }
+  // Nicer way to handle the rendering however this currently breaks some flows
+  // leaving here for me to implement in next release.
+  // render() {
+  //   return this.props.authContainer.hasCreatedVault ? (
+  //     this.props.authContainer.isUnLocked ? (
+  //       !this.props.connectionContainer.connectionStatus &&
+  //       this.props.connectionContainer.connectionRequested ? (
+  //         this.props.authContainer.userAccounts.length > 1 ? (
+  //           this.renderAccountLists()
+  //         ) : (
+  //           <Redirect to={Pages.ConnectSigner} />
+  //         )
+  //       ) : this.props.authContainer.unsignedDeploys.length > 0 ? (
+  //         <Redirect to={Pages.SignMessage} />
+  //       ) : (
+  //         this.renderAccountLists()
+  //       )
+  //     ) : this.props.authContainer.isLockedOut ? (
+  //       this.renderLockedOut()
+  //     ) : (
+  //       this.renderUnlock()
+  //     )
+  //   ) : (
+  //     this.renderCreateNewVault()
+  //   );
+  // }
 }
 
 export default withStyles(styles, { withTheme: true })(withRouter(Home));

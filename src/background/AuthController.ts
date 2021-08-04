@@ -30,7 +30,7 @@ export interface SerializedKeyPairWithAlias {
 
 interface PersistentVaultData {
   userAccounts: SerializedKeyPairWithAlias[];
-  selectedUserAccount: SerializedKeyPairWithAlias | null;
+  activeUserAccount: SerializedKeyPairWithAlias | null;
 }
 
 function saveToFile(content: string, filename: string) {
@@ -53,9 +53,6 @@ class AuthController {
   private timer: any;
 
   constructor(private appState: AppState) {
-    if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
-      this.appState.hasCreatedVault = true;
-    }
     this.timerStore = getBucket<TimerStore>('timerStore');
     this.timerStore
       .get('lockedOutTimestampMillis')
@@ -81,7 +78,7 @@ class AuthController {
       }
       port.onDisconnect.addListener(() => {
         this.timer = setTimeout(() => {
-          this.lock();
+          if (this.isUnlocked) this.lock();
         }, 1000 * 60);
       });
     });
@@ -91,6 +88,10 @@ class AuthController {
     const passwordSalt = await this.getStoredValueWithKey(this.saltKey);
     if (passwordSalt) {
       this.passwordSalt = passwordSalt;
+    }
+    const vault = await this.getStoredValueWithKey(this.encryptedVaultKey);
+    if (vault) {
+      this.appState.hasCreatedVault = true;
     }
   }
 
@@ -118,37 +119,58 @@ class AuthController {
         "Couldn't switch to this account because it doesn't exist"
       );
     }
-    this.appState.selectedUserAccount = this.appState.userAccounts[i];
+    this.appState.activeUserAccount = this.appState.userAccounts[i];
+    this.persistVault();
     updateStatusEvent(this.appState, 'activeKeyChanged');
   }
 
-  getSelectUserAccount(): KeyPairWithAlias {
-    if (!this.appState.selectedUserAccount) {
+  getActiveUserAccount(): KeyPairWithAlias {
+    if (!this.appState.activeUserAccount) {
       throw new Error('There is no active key');
     }
-    return this.appState.selectedUserAccount;
+    return this.appState.activeUserAccount;
   }
 
   getActivePublicKeyHex(): string {
-    if (!this.appState.selectedUserAccount) {
+    if (!this.appState.activeUserAccount) {
       throw new Error('There is no active key');
     }
-    let account = this.appState.selectedUserAccount;
+    let account = this.appState.activeUserAccount;
     return account.KeyPair.publicKey.toHex();
   }
 
   getActiveAccountHash(): string {
-    if (!this.appState.selectedUserAccount) {
+    if (!this.appState.activeUserAccount) {
       throw new Error('There is no active key');
     }
-    let account = this.appState.selectedUserAccount;
+    let account = this.appState.activeUserAccount;
     return encodeBase16(account.KeyPair.publicKey.toAccountHash());
+  }
+
+  getAccountFromAlias(alias: string) {
+    if (!alias) throw new Error('Cannot find account for invalid alias');
+    let account = this.appState.userAccounts.find(storedAccount => {
+      return storedAccount.alias === alias;
+    });
+    return account?.KeyPair;
+  }
+
+  getPublicKeyHexByAlias(alias: string): string {
+    let account = this.getAccountFromAlias(alias);
+    if (!account) throw new Error('Retrieved account was undefined | null');
+    return account?.accountHex();
+  }
+
+  getAccountHashByAlias(alias: string): string {
+    let account = this.getAccountFromAlias(alias);
+    if (!account) throw new Error('Retrieved account was undefined | null');
+    return encodeBase16(account.accountHash());
   }
 
   @action
   async resetVault() {
     await this.clearAccount();
-    this.appState.selectedUserAccount = null;
+    this.appState.activeUserAccount = null;
     this.appState.unsignedDeploys.clear();
     this.appState.hasCreatedVault = false;
     storage.local.remove(this.encryptedVaultKey);
@@ -202,7 +224,7 @@ class AuthController {
       alias: name,
       KeyPair: keyPair
     });
-    this.appState.selectedUserAccount =
+    this.appState.activeUserAccount =
       this.appState.userAccounts[this.appState.userAccounts.length - 1];
     this.persistVault();
   }
@@ -223,21 +245,13 @@ class AuthController {
 
     this.appState.userAccounts.remove(account);
 
-    if (this.appState.selectedUserAccount?.alias === account.alias) {
-      this.appState.selectedUserAccount =
+    if (this.appState.activeUserAccount?.alias === account.alias) {
+      this.appState.activeUserAccount =
         this.appState.userAccounts.length > 0
           ? this.appState.userAccounts[0]
           : null;
     }
     this.persistVault();
-  }
-
-  getAccountFromAlias(alias: string) {
-    if (!alias) throw new Error('Cannot find account for invalid alias');
-    let account = this.appState.userAccounts.find(storedAccount => {
-      return storedAccount.alias === alias;
-    });
-    return account?.KeyPair;
   }
 
   async downloadAccountKeys(accountAlias: string) {
@@ -402,11 +416,10 @@ class AuthController {
       userAccounts: this.appState.userAccounts.map(
         this.serializeKeyPairWithAlias
       ),
-      selectedUserAccount: this.appState.selectedUserAccount
-        ? this.serializeKeyPairWithAlias(this.appState.selectedUserAccount)
+      activeUserAccount: this.appState.activeUserAccount
+        ? this.serializeKeyPairWithAlias(this.appState.activeUserAccount)
         : null
     });
-
     await this.saveKeyValuetoStore(this.encryptedVaultKey, encryptedVault);
     await this.saveKeyValuetoStore(this.saltKey, this.passwordSalt!);
     updateStatusEvent(this.appState, 'activeKeyChanged');
@@ -529,8 +542,8 @@ class AuthController {
     this.appState.userAccounts.replace(
       vault.userAccounts.map(this.deserializeKeyPairWithAlias)
     );
-    this.appState.selectedUserAccount = vault.selectedUserAccount
-      ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
+    this.appState.activeUserAccount = vault.activeUserAccount
+      ? this.deserializeKeyPairWithAlias(vault.activeUserAccount)
       : null;
 
     updateStatusEvent(this.appState, 'unlocked');

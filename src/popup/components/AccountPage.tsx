@@ -161,7 +161,6 @@ class AccountPage extends React.Component<Props, State> {
             >
               Upload
               <input
-                // disabled={!form.algorithm.$}
                 type="file"
                 style={{ display: 'none' }}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -218,12 +217,6 @@ class AccountPage extends React.Component<Props, State> {
 
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
-    // const toggleDownloadKey = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //   this.setState({
-    //     ...this.state,
-    //     keyDownloadEnabled: event.target.checked
-    //   });
-    // };
     return (
       <form className={this.props.classes.root}>
         <Typography variant="h6" style={{ marginTop: '-1em' }}>
@@ -257,35 +250,6 @@ class AccountPage extends React.Component<Props, State> {
           id="create-public-key"
           value={formData.publicKey.$ ? formData.publicKey.$ : ''}
         />
-        <TextFieldWithFormState
-          fullWidth
-          InputProps={{ readOnly: true, disabled: true }}
-          label="Secret Key (Base64)"
-          placeholder="Base64 encoded secret key"
-          id="create-secret-key"
-          onClick={this.revealSecretKey}
-          value={
-            formData.secretKeyBase64.$
-              ? this.state.revealSecretKey
-                ? formData.secretKeyBase64.$
-                : 'Click to Reveal'
-              : ''
-          }
-        />
-        {/* 
-          Because the account is not yet saved it cannot be downloaded. 
-          This may be modified to allow this in future.
-        */}
-        {/* <FormControlLabel
-          control={
-            <Checkbox
-              checked={this.state.keyDownloadEnabled}
-              onChange={toggleDownloadKey}
-              name="keyDownloadToggle"
-            />
-          }
-          label="Download Key"
-        /> */}
         <FormControl fullWidth margin={'normal'}>
           <Button
             type="submit"
