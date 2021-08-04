@@ -10,13 +10,6 @@ import {
   CLAccountHashType
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
-import {
-  StoredContractByHash,
-  StoredContractByName,
-  StoredVersionedContractByHash,
-  StoredVersionedContractByName
-} from '../../../../casper-js-sdk/dist/lib/DeployUtil';
-
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 type argDict = { [key: string]: string };
 export interface deployWithID {
@@ -344,10 +337,10 @@ export default class SignMessageManager extends events.EventEmitter {
           deployWithID.deploy.session.moduleBytes.moduleBytes.toString();
       } else {
         let storedContract:
-          | StoredContractByHash
-          | StoredContractByName
-          | StoredVersionedContractByHash
-          | StoredVersionedContractByName;
+          | DeployUtil.StoredContractByHash
+          | DeployUtil.StoredContractByName
+          | DeployUtil.StoredVersionedContractByHash
+          | DeployUtil.StoredVersionedContractByName;
         if (deployWithID.deploy.session.storedContractByHash) {
           storedContract = deployWithID.deploy.session.storedContractByHash;
         } else if (deployWithID.deploy.session.storedContractByName) {
