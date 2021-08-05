@@ -33,4 +33,4 @@ jobs:
     - run: npm install
     #- run: npm audit --audit-level=low
     - run: npm run build
-    - run: npm run test_ci
+    # - run: npm run test_ci
