@@ -27,12 +27,16 @@ export class BackgroundManager {
 
   @action.bound
   private onStateUpdate(appState: AppState) {
+    this.appState.isIntegratedSite = appState.isIntegratedSite;
     this.appState.isUnlocked = appState.isUnlocked;
+    this.appState.unlockAttempts = appState.unlockAttempts;
+    this.appState.lockoutTimerStarted = appState.lockoutTimerStarted;
+    this.appState.remainingMins = appState.remainingMins;
     this.appState.currentTab = appState.currentTab;
     this.appState.connectionRequested = appState.connectionRequested;
     this.appState.connectedSites = appState.connectedSites;
     this.appState.hasCreatedVault = appState.hasCreatedVault;
-    this.appState.selectedUserAccount = appState.selectedUserAccount;
+    this.appState.activeUserAccount = appState.activeUserAccount;
     this.appState.userAccounts.replace(appState.userAccounts);
     this.appState.unsignedDeploys.replace(appState.unsignedDeploys);
   }
@@ -102,9 +106,9 @@ export class BackgroundManager {
     );
   }
 
-  public getSelectUserAccount() {
+  public getActiveUserAccount() {
     return this.errors.withCapture(
-      this.rpc.call<KeyPairWithAlias>('account.getSelectUserAccount')
+      this.rpc.call<KeyPairWithAlias>('account.getActiveUserAccount')
     );
   }
 
@@ -120,8 +124,36 @@ export class BackgroundManager {
     );
   }
 
+  public getPublicKeyHexByAlias(alias: string) {
+    return this.errors.withCapture(
+      this.rpc.call<string>('account.getPublicKeyHexByAlias', alias)
+    );
+  }
+
+  public getAccountHashByAlias(alias: string) {
+    return this.errors.withCapture(
+      this.rpc.call<string>('account.getAccountHashByAlias', alias)
+    );
+  }
+
   public resetVault() {
     return this.errors.withCapture(this.rpc.call<void>('account.resetVault'));
+  }
+
+  public resetLockout() {
+    return this.errors.withCapture(this.rpc.call<void>('account.resetLockout'));
+  }
+
+  public startLockoutTimer(timeInMinutes: number) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.startLockoutTimer', timeInMinutes)
+    );
+  }
+
+  public resetLockoutTimer() {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.resetLockoutTimer')
+    );
   }
 
   public renameUserAccount(oldName: string, newName: string) {
@@ -156,6 +188,18 @@ export class BackgroundManager {
   public resetConnectionRequest() {
     return this.errors.withCapture(
       this.rpc.call<void>('connection.resetConnectionRequest')
+    );
+  }
+
+  public confirmPassword(password: string) {
+    return this.errors.withCapture(
+      this.rpc.call<boolean>('account.confirmPassword', password)
+    );
+  }
+
+  public isIntegratedSite(hostname: string) {
+    return this.errors.withCapture(
+      this.rpc.call<boolean>('connection.isIntegratedSite', hostname)
     );
   }
 }

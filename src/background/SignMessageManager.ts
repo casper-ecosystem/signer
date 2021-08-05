@@ -1,9 +1,17 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
-import { DeployUtil, encodeBase16, PublicKey } from 'casper-client-sdk';
-
+import {
+  DeployUtil,
+  encodeBase16,
+  CLPublicKey,
+  CLPublicKeyType,
+  CLByteArrayType,
+  CLAccountHashType
+} from 'casper-js-sdk';
+import { JsonTypes } from 'typedjson';
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
+type argDict = { [key: string]: string };
 export interface deployWithID {
   id: number;
   status: deployStatus;
@@ -18,17 +26,16 @@ export interface DeployData {
   deployHash: string;
   signingKey: string;
   account: string;
+  bodyHash: string;
   timestamp: string;
   chainName: string;
   deployType: string;
   gasPrice: number;
-  payment: string;
-  id?: any;
-  amount?: any;
-  target?: string;
-  validator?: string;
-  delegator?: string;
+  payment: number;
+  deployArgs: Object;
 }
+
+// Covers Delegating and Undelegating
 
 /**
  * Sign Message Manager
@@ -41,7 +48,7 @@ export interface DeployData {
  *       and both methods will fire a event `${msgId}:finished`, which is listened by step 1.
  *
  * Important to Note:
- *    Any mention of PublicKey below will refer to the hex-encoded bytes of the Public Key prefixed with 01 or 02
+ *    Any mention of CLPublicKey below will refer to the hex-encoded bytes of the Public Key prefixed with 01 or 02
  *    to denote the algorithm used to generate the key.
  *          01 - ed25519
  *          02 - secp256k1
@@ -99,21 +106,26 @@ export default class SignMessageManager extends events.EventEmitter {
    */
   public getActivePublicKey() {
     return new Promise<string>((resolve, reject) => {
-      let publicKey = this.appState.selectedUserAccount?.KeyPair.publicKey;
+      let publicKey = this.appState.activeUserAccount?.KeyPair.publicKey;
       if (!this.appState.connectionStatus) {
-        return reject(new Error('Please connect to the Signer first.'));
-      } else if (publicKey === undefined) {
-        return reject(new Error('Please create an account first.'));
+        return reject(new Error('Please connect to the Signer to read key'));
       }
-      if (publicKey.isEd25519()) {
-        return resolve(publicKey.toAccountHex());
-      } else if (publicKey.isSecp256K1()) {
-        return resolve(publicKey.toAccountHex());
-      } else {
-        return reject(new Error('Key was not of expected format!'));
+      if (!this.appState.isUnlocked || this.appState.lockedOut) {
+        return reject(new Error('Please unlock the Signer to read key'));
       }
+      if (!publicKey) {
+        return reject(
+          new Error(
+            'Please create an account first before attempting to read key'
+          )
+        );
+      }
+      if (!publicKey?.isEd25519 && !publicKey?.isSecp256K1())
+        reject(new Error('Key was not of expected format!'));
+      return resolve(publicKey!.toHex());
     });
   }
+
   /**
    * Adds the unsigned deploy to the app's queue.
    * @param {JSON} deployJson
@@ -125,24 +137,24 @@ export default class SignMessageManager extends events.EventEmitter {
     targetPublicKey: string
   ): number {
     const id: number = this.createId();
-
     try {
-      this.unsignedDeploys.push({
-        id: id,
-        status: 'unsigned',
-        deploy: DeployUtil.deployFromJson(deployJson),
-        signingKey: sourcePublicKey,
-        targetKey: targetPublicKey
-      });
+      let innerDeploy = DeployUtil.deployFromJson(deployJson);
+      if (innerDeploy.ok) {
+        this.unsignedDeploys.push({
+          id: id,
+          status: 'unsigned',
+          // Should be safe to unwrap here since Result was ok
+          deploy: innerDeploy.unwrap(),
+          signingKey: sourcePublicKey,
+          targetKey: targetPublicKey
+        });
+      } else {
+        innerDeploy.mapErr(err => {
+          throw new Error(err.message);
+        });
+      }
     } catch (err) {
-      this.unsignedDeploys.push({
-        id: id,
-        status: 'failed',
-        deploy: undefined,
-        signingKey: sourcePublicKey,
-        targetKey: targetPublicKey,
-        error: err
-      });
+      throw new Error(err);
     }
 
     this.updateAppState();
@@ -151,15 +163,15 @@ export default class SignMessageManager extends events.EventEmitter {
 
   /**
    * Signs unsigned deploys from the app's queue
-   * @param {DeployUtil.Deploy} deploy
+   * @param {any} deploy JSON representation of a deploy - can be constructed using the `DeployUtil.deployToJSON()` method.
    * @param {string} publicKey in hex format with algorithm prefix byte.
-   * @returns {JSON} Signed deploy in JSON format
+   * @returns {DeployJson} Signed JSON representation of the given deploy.
    */
   public signDeploy(
-    deploy: any,
+    deploy: { deploy: JsonTypes },
     sourcePublicKeyHex: string, // hex-encoded PublicKey bytes with algo prefix
     targetPublicKeyHex: string
-  ): Promise<any> {
+  ): Promise<{ deploy: JsonTypes }> {
     return new Promise((resolve, reject) => {
       // TODO: Need to abstract it to reusable method
       const { currentTab, connectedSites } = this.appState;
@@ -181,11 +193,18 @@ export default class SignMessageManager extends events.EventEmitter {
       this.popupManager.openPopup('sign');
       // Await outcome of user interaction with popup.
       this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
+        if (!this.appState.isUnlocked) {
+          return reject(
+            new Error(
+              `Signer locked during signing process, please unlock and try again.`
+            )
+          );
+        }
         switch (processedDeploy.status) {
           case 'signed':
             if (processedDeploy.deploy) {
               this.appState.unsignedDeploys.clear();
-              return resolve(DeployUtil.deployToJson(processedDeploy.deploy)); // TODO: Return signed deploy JSON
+              return resolve(DeployUtil.deployToJson(processedDeploy.deploy));
             }
             this.appState.unsignedDeploys.remove(processedDeploy);
             return reject(new Error(processedDeploy.error?.message));
@@ -201,7 +220,7 @@ export default class SignMessageManager extends events.EventEmitter {
           default:
             return reject(
               new Error(
-                `Signer: Unknown error occurred. Deploy data: ${processedDeploy.toString()}`
+                `Signer: Unknown error occurred. Deploy transferDeploy: ${processedDeploy.toString()}`
               )
             );
         }
@@ -225,10 +244,10 @@ export default class SignMessageManager extends events.EventEmitter {
   // Approve signature request
   public async approveSignDeploy(deployId: number) {
     const deployData = this.getDeployById(deployId);
-    if (!this.appState.selectedUserAccount) {
+    if (!this.appState.activeUserAccount) {
       throw new Error(`No Active Account!`);
     }
-    let activeKeyPair = this.appState.selectedUserAccount.KeyPair;
+    let activeKeyPair = this.appState.activeUserAccount.KeyPair;
     if (!deployData.deploy) {
       deployData.error = new Error('Cannot sign null deploy!');
       this.saveAndEmitEventIfNeeded(deployData);
@@ -238,7 +257,7 @@ export default class SignMessageManager extends events.EventEmitter {
     // Reject if user switches keys during signing process
     if (
       deployData.signingKey &&
-      activeKeyPair.publicKey.toAccountHex() !== deployData.signingKey
+      activeKeyPair.publicKey.toHex() !== deployData.signingKey
     ) {
       deployData.status = 'failed';
       deployData.error = new Error('Active key changed during signing');
@@ -259,7 +278,7 @@ export default class SignMessageManager extends events.EventEmitter {
    */
   private getDeployById(deployId: number): deployWithID {
     let deployWithId = this.appState.unsignedDeploys.find(
-      data => data.id === deployId
+      transferDeploy => transferDeploy.id === deployId
     );
     if (deployWithId === undefined) {
       throw new Error(`Could not find deploy with id: ${deployId}`);
@@ -268,91 +287,153 @@ export default class SignMessageManager extends events.EventEmitter {
   }
 
   public parseDeployData(deployId: number): DeployData {
-    let deploy = this.getDeployById(deployId);
-    if (deploy !== undefined && deploy.deploy !== undefined) {
-      let header = deploy.deploy.header;
+    let deployWithID = this.getDeployById(deployId);
+    if (deployWithID !== undefined && deployWithID.deploy !== undefined) {
+      let header = deployWithID.deploy.header;
+      const deployAccount = header.account.toHex();
+      // TODO: Handle non-standard payments
+      if (!deployWithID.deploy.isStandardPayment())
+        throw new Error('Signer does not yet support non-standard payment');
 
-      // TODO: Double-check that this is correct way to determine deploy type.
-      const type = deploy.deploy.isTransfer()
-        ? 'Transfer'
-        : deploy.deploy.session.isModuleBytes()
-        ? 'Contract Call'
-        : 'Contract Deployment';
-
-      let amount;
-      let target;
-      let validator;
-      let delegator;
-
-      if (deploy.deploy.session.transfer) {
-        // First let's check if the provided targetPublicKey matches the one used in deploy
-        // We're doing it because its impossible to extract target in a form of PublicKey from Deploy
-        const providedTargetKeyHash = encodeBase16(
-          PublicKey.fromHex(deploy.targetKey).toAccountHash()
-        );
-
-        const deployTargetKeyHash = encodeBase16(
-          deploy.deploy.session.transfer
-            ?.getArgByName('target')!
-            .asBytesArray()!
-        );
-
-        if (providedTargetKeyHash !== deployTargetKeyHash) {
-          throw new Error(
-            "Provided target public key doesn't match the one in deploy"
-          );
-        }
-
-        target = deploy.targetKey;
-
-        amount = deploy.deploy.session.transfer
-          ?.getArgByName('amount')!
-          .asBigNumber()
-          .toString();
-      }
-
-      if (deploy.deploy.session.storedContractByHash) {
-        amount = deploy.deploy.session.storedContractByHash
-          ?.getArgByName('amount')!
-          .asBigNumber()
-          .toString();
-
-        validator = deploy.deploy.session.storedContractByHash
-          ?.getArgByName('validator')!
-          .asPublicKey()
-          .toAccountHex();
-
-        delegator = deploy.deploy.session.storedContractByHash
-          ?.getArgByName('delegator')!
-          .asPublicKey()
-          .toAccountHex();
-      }
-
-      const transferId = deploy.deploy.session.transfer
-        ?.getArgByName('id')!
-        .asOption()
-        .getSome()
-        .asBigNumber()
+      const payment = deployWithID.deploy.payment.moduleBytes
+        ?.getArgByName('amount')!
+        .value()
         .toString();
 
+      // TODO: Double-check that this is correct way to determine deploy type.
+      const type = deployWithID.deploy.isTransfer()
+        ? 'Transfer'
+        : deployWithID.deploy.session.isModuleBytes()
+        ? 'WASM-Based Deploy'
+        : deployWithID.deploy.session.isStoredContractByHash() ||
+          deployWithID.deploy.session.isStoredContractByName()
+        ? 'Contract Call'
+        : // is Stored Versioned Contract
+          'Contract Package Call';
+
+      let deployArgs: argDict = {};
+      if (deployWithID.deploy.session.transfer) {
+        deployArgs = this.parseTransferData(
+          deployWithID.deploy.session.transfer,
+          deployWithID.targetKey
+        );
+      } else if (deployWithID.deploy.session.moduleBytes) {
+        deployWithID.deploy.session.moduleBytes.args.args.forEach(
+          (argument, key) => {
+            if (argument.clType() instanceof CLPublicKeyType) {
+              deployArgs[key] = (argument as CLPublicKey).toHex();
+            } else if (
+              argument.clType() instanceof CLByteArrayType ||
+              argument.clType() instanceof CLAccountHashType
+            ) {
+              deployArgs[key] = encodeBase16(argument.value());
+            } else {
+              // if not a PublicKey or ByteArray
+              deployArgs[key] = argument.value().toString();
+            }
+          }
+        );
+        deployArgs['Module Bytes'] =
+          deployWithID.deploy.session.moduleBytes.moduleBytes.toString();
+      } else {
+        let storedContract:
+          | DeployUtil.StoredContractByHash
+          | DeployUtil.StoredContractByName
+          | DeployUtil.StoredVersionedContractByHash
+          | DeployUtil.StoredVersionedContractByName;
+        if (deployWithID.deploy.session.storedContractByHash) {
+          storedContract = deployWithID.deploy.session.storedContractByHash;
+        } else if (deployWithID.deploy.session.storedContractByName) {
+          storedContract = deployWithID.deploy.session.storedContractByName;
+        } else if (deployWithID.deploy.session.storedVersionedContractByHash) {
+          storedContract =
+            deployWithID.deploy.session.storedVersionedContractByHash;
+        } else if (deployWithID.deploy.session.storedVersionedContractByName) {
+          storedContract =
+            deployWithID.deploy.session.storedVersionedContractByName;
+        } else {
+          throw new Error(`Stored Contract could not be parsed.\n\
+          Provided session code: ${deployWithID.deploy.session}`);
+        }
+        try {
+          // Credit to Killian Hascoët (@KillianH on GH) for inspiring this initial implementation for arg parsing.
+          storedContract.args.args.forEach((argument, key) => {
+            if (argument.clType() instanceof CLPublicKeyType) {
+              deployArgs[key] = (argument as CLPublicKey).toHex();
+            } else if (
+              argument.clType() instanceof CLByteArrayType ||
+              argument.clType() instanceof CLAccountHashType
+            ) {
+              deployArgs[key] = encodeBase16(argument.value());
+            } else {
+              // if not a PublicKey or ByteArray
+              deployArgs[key] = argument.value().toString();
+            }
+          });
+          deployArgs['Entry Point'] = storedContract.entryPoint;
+        } catch (err) {
+          throw new Error(err);
+        }
+      }
       return {
-        deployHash: encodeBase16(deploy.deploy.hash),
-        signingKey: deploy.signingKey,
-        account: header.account.toAccountHex(),
+        deployHash: encodeBase16(deployWithID.deploy.hash),
+        signingKey: deployWithID.signingKey,
+        account: deployAccount,
+        bodyHash: encodeBase16(header.bodyHash),
         chainName: header.chainName,
         timestamp: new Date(header.timestamp).toLocaleString(),
         gasPrice: header.gasPrice,
-        payment: encodeBase16(deploy.deploy.payment.toBytes()),
+        payment: payment,
         deployType: type,
-        id: type === 'Transfer' ? transferId : undefined,
-        amount: amount,
-        target: type === 'Transfer' ? target : undefined,
-        validator,
-        delegator
+        deployArgs: deployArgs
       };
     } else {
-      throw new Error('Deploy undefined!');
+      throw new Error('Invalid Deploy');
     }
+  }
+
+  private verifyTargetAccountMatch(
+    publicKeyHex: string,
+    targetAccountHash: string
+  ) {
+    const providedTargetKeyHash = encodeBase16(
+      CLPublicKey.fromHex(publicKeyHex).toAccountHash()
+    );
+
+    if (providedTargetKeyHash !== targetAccountHash) {
+      throw new Error(
+        "Provided target public key doesn't match the one in deploy"
+      );
+    }
+  }
+
+  private parseTransferData(
+    transferDeploy: DeployUtil.Transfer,
+    providedPublicKeyHex: string
+  ) {
+    const transferArgs: argDict = {};
+
+    const targetByteArray = transferDeploy?.getArgByName('target')!.value();
+    const target = encodeBase16(targetByteArray);
+
+    // Confirm hash of provided public key matches target account hash from deploy
+    this.verifyTargetAccountMatch(providedPublicKeyHex, target);
+
+    const recipient = providedPublicKeyHex;
+    const amount = transferDeploy?.getArgByName('amount')!.value().toString();
+    const id = transferDeploy
+      ?.getArgByName('id')!
+      .value()
+      .unwrap()
+      .value()
+      .toString();
+
+    transferArgs['Recipient (Hash)'] = target;
+    transferArgs['Recipient (Key)'] = recipient;
+    transferArgs['Amount'] = amount;
+    transferArgs['Transfer ID'] = id;
+
+    return transferArgs;
   }
 
   private saveAndEmitEventIfNeeded(deployWithId: deployWithID) {

@@ -3,6 +3,8 @@ import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
 import { AppState } from '../../lib/MemStore';
 import { KeyPairWithAlias } from '../../@types/models';
+import { FieldState, FormState } from 'formstate';
+import { valueRequired } from '../../lib/FormValidator';
 
 class AccountManager {
   constructor(
@@ -71,25 +73,25 @@ class AccountManager {
   }
 
   async downloadActiveKey() {
-    let userAccount = await this.backgroundManager.getSelectUserAccount();
+    let userAccount = await this.backgroundManager.getActiveUserAccount();
     // Save the secret and public keys to disk.
     this.downloadPemFiles(userAccount.alias);
   }
 
-  async getSelectedAccountKey(acctName: string) {
-    await this.backgroundManager.switchToAccount(acctName);
-    let account = await this.backgroundManager.getSelectUserAccount();
-    return account.KeyPair.publicKey;
+  async getActivePublicKeyHex() {
+    return await this.backgroundManager.getActivePublicKeyHex();
   }
 
-  async getPublicKeyHex(accountName: string) {
-    await this.backgroundManager.switchToAccount(accountName);
-    return this.backgroundManager.getActivePublicKeyHex();
+  async getActiveAccountHash() {
+    return await this.backgroundManager.getActiveAccountHash();
   }
 
-  async getAccountHash(accountName: string) {
-    await this.backgroundManager.switchToAccount(accountName);
-    return this.backgroundManager.getActiveAccountHash();
+  async getPublicKeyHexByAlias(alias: string) {
+    return await this.backgroundManager.getPublicKeyHexByAlias(alias);
+  }
+
+  async getAccountHashByAlias(alias: string) {
+    return await this.backgroundManager.getAccountHashByAlias(alias);
   }
 
   async lock() {
@@ -116,8 +118,8 @@ class AccountManager {
   }
 
   @computed
-  get selectedUserAccount() {
-    return this.appState.selectedUserAccount;
+  get activeUserAccount() {
+    return this.appState.activeUserAccount;
   }
 
   @computed
@@ -125,8 +127,70 @@ class AccountManager {
     return this.appState.unsignedDeploys;
   }
 
+  @computed
+  get remainingUnlockAttempts() {
+    return this.appState.unlockAttempts;
+  }
+
+  @computed
+  get isLockedOut() {
+    return this.appState.lockedOut;
+  }
+
+  @action
+  async resetLockout() {
+    return this.backgroundManager.resetLockout();
+  }
+
+  @action
+  async startLockoutTimer(timeInMinutes: number) {
+    return this.backgroundManager.startLockoutTimer(timeInMinutes);
+  }
+
+  @computed
+  get lockoutTimerStarted() {
+    return this.appState.lockoutTimerStarted;
+  }
+
+  @computed
+  get timerDuration() {
+    return this.appState.timerDurationMins;
+  }
+
+  @computed
+  get remainingMins() {
+    return this.appState.remainingMins;
+  }
+
+  @action
+  async resetLockoutTimer() {
+    return this.backgroundManager.resetLockoutTimer();
+  }
+
   async renameUserAccount(oldName: string, newName: string) {
     return this.backgroundManager.renameUserAccount(oldName, newName);
+  }
+
+  async confirmPassword(password: string) {
+    return this.backgroundManager.confirmPassword(password);
+  }
+
+  confirmPasswordForm = new FormState({
+    confirmPasswordField: new FieldState<string>('').validators(valueRequired)
+  });
+
+  @computed
+  get confirmPasswordDisabled(): boolean {
+    let disabled =
+      !this.confirmPasswordForm.$.confirmPasswordField.hasBeenValidated ||
+      (this.confirmPasswordForm.$.confirmPasswordField.hasBeenValidated &&
+        this.confirmPasswordForm.$.confirmPasswordField.hasError);
+    return disabled;
+  }
+
+  @computed
+  get idleTimeoutMins(): number {
+    return this.appState.idleTimeoutMins;
   }
 }
 

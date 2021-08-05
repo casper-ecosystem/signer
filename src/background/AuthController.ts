@@ -1,19 +1,24 @@
 import { action, computed } from 'mobx';
 import passworder from 'browser-passworder';
-import { storage } from '@extend-chrome/storage';
+import { Bucket, getBucket, storage } from '@extend-chrome/storage';
 import * as nacl from 'tweetnacl';
 import {
   encodeBase16,
   decodeBase16,
   Keys,
-  PublicKey,
+  CLPublicKey,
   encodeBase64,
   decodeBase64
-} from 'casper-client-sdk';
+} from 'casper-js-sdk';
 import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
 import { saveAs } from 'file-saver';
+import { updateStatusEvent } from './utils';
 // import KeyEncoder from 'key-encoder';
+
+interface TimerStore {
+  lockedOutTimestampMillis: number;
+}
 
 export interface SerializedKeyPairWithAlias {
   name: string;
@@ -25,7 +30,7 @@ export interface SerializedKeyPairWithAlias {
 
 interface PersistentVaultData {
   userAccounts: SerializedKeyPairWithAlias[];
-  selectedUserAccount: SerializedKeyPairWithAlias | null;
+  activeUserAccount: SerializedKeyPairWithAlias | null;
 }
 
 function saveToFile(content: string, filename: string) {
@@ -44,18 +49,49 @@ class AuthController {
   private encryptedVaultKey = 'encryptedVault';
   private saltKey = 'passwordSalt';
 
-  constructor(private appState: AppState) {
-    if (this.getStoredValueWithKey(this.encryptedVaultKey) !== null) {
-      this.appState.hasCreatedVault = true;
-    }
+  private timerStore: Bucket<TimerStore>;
+  private timer: any;
 
+  constructor(private appState: AppState) {
+    this.timerStore = getBucket<TimerStore>('timerStore');
+    this.timerStore
+      .get('lockedOutTimestampMillis')
+      .then(({ lockedOutTimestampMillis }) => {
+        if (!lockedOutTimestampMillis) return;
+        let currentTimeMillis = new Date().getTime();
+        let timeElapsedMins =
+          (currentTimeMillis - lockedOutTimestampMillis) / 1000 / 60;
+        if (timeElapsedMins < this.appState.timerDurationMins) {
+          let remainingMins = this.appState.timerDurationMins - timeElapsedMins;
+          this.appState.remainingMins = remainingMins;
+          this.appState.unlockAttempts = 0;
+          this.startLockoutTimer(remainingMins, false);
+        }
+      });
     this.initStore();
+
+    this.timer = null;
+
+    chrome.runtime.onConnect.addListener(port => {
+      if (this.timer) {
+        clearTimeout(this.timer);
+      }
+      port.onDisconnect.addListener(() => {
+        this.timer = setTimeout(() => {
+          if (this.isUnlocked) this.lock();
+        }, 1000 * 60);
+      });
+    });
   }
 
   async initStore() {
     const passwordSalt = await this.getStoredValueWithKey(this.saltKey);
     if (passwordSalt) {
       this.passwordSalt = passwordSalt;
+    }
+    const vault = await this.getStoredValueWithKey(this.encryptedVaultKey);
+    if (vault) {
+      this.appState.hasCreatedVault = true;
     }
   }
 
@@ -83,36 +119,58 @@ class AuthController {
         "Couldn't switch to this account because it doesn't exist"
       );
     }
-    this.appState.selectedUserAccount = this.appState.userAccounts[i];
+    this.appState.activeUserAccount = this.appState.userAccounts[i];
+    this.persistVault();
+    updateStatusEvent(this.appState, 'activeKeyChanged');
   }
 
-  getSelectUserAccount(): KeyPairWithAlias {
-    if (!this.appState.selectedUserAccount) {
+  getActiveUserAccount(): KeyPairWithAlias {
+    if (!this.appState.activeUserAccount) {
       throw new Error('There is no active key');
     }
-    return this.appState.selectedUserAccount;
+    return this.appState.activeUserAccount;
   }
 
   getActivePublicKeyHex(): string {
-    if (!this.appState.selectedUserAccount) {
+    if (!this.appState.activeUserAccount) {
       throw new Error('There is no active key');
     }
-    let account = this.appState.selectedUserAccount;
-    return account.KeyPair.publicKey.toAccountHex();
+    let account = this.appState.activeUserAccount;
+    return account.KeyPair.publicKey.toHex();
   }
 
   getActiveAccountHash(): string {
-    if (!this.appState.selectedUserAccount) {
+    if (!this.appState.activeUserAccount) {
       throw new Error('There is no active key');
     }
-    let account = this.appState.selectedUserAccount;
+    let account = this.appState.activeUserAccount;
     return encodeBase16(account.KeyPair.publicKey.toAccountHash());
+  }
+
+  getAccountFromAlias(alias: string) {
+    if (!alias) throw new Error('Cannot find account for invalid alias');
+    let account = this.appState.userAccounts.find(storedAccount => {
+      return storedAccount.alias === alias;
+    });
+    return account?.KeyPair;
+  }
+
+  getPublicKeyHexByAlias(alias: string): string {
+    let account = this.getAccountFromAlias(alias);
+    if (!account) throw new Error('Retrieved account was undefined | null');
+    return account?.accountHex();
+  }
+
+  getAccountHashByAlias(alias: string): string {
+    let account = this.getAccountFromAlias(alias);
+    if (!account) throw new Error('Retrieved account was undefined | null');
+    return encodeBase16(account.accountHash());
   }
 
   @action
   async resetVault() {
     await this.clearAccount();
-    this.appState.selectedUserAccount = null;
+    this.appState.activeUserAccount = null;
     this.appState.unsignedDeploys.clear();
     this.appState.hasCreatedVault = false;
     storage.local.remove(this.encryptedVaultKey);
@@ -166,7 +224,7 @@ class AuthController {
       alias: name,
       KeyPair: keyPair
     });
-    this.appState.selectedUserAccount =
+    this.appState.activeUserAccount =
       this.appState.userAccounts[this.appState.userAccounts.length - 1];
     this.persistVault();
   }
@@ -187,21 +245,13 @@ class AuthController {
 
     this.appState.userAccounts.remove(account);
 
-    if (this.appState.selectedUserAccount?.alias === account.alias) {
-      this.appState.selectedUserAccount =
+    if (this.appState.activeUserAccount?.alias === account.alias) {
+      this.appState.activeUserAccount =
         this.appState.userAccounts.length > 0
           ? this.appState.userAccounts[0]
           : null;
     }
     this.persistVault();
-  }
-
-  getAccountFromAlias(alias: string) {
-    if (!alias) throw new Error('Cannot find account for invalid alias');
-    let account = this.appState.userAccounts.find(storedAccount => {
-      return storedAccount.alias === alias;
-    });
-    return account?.KeyPair;
   }
 
   async downloadAccountKeys(accountAlias: string) {
@@ -219,7 +269,7 @@ class AuthController {
         `${accountAlias}_public_key.pem`
       );
       saveToFile(
-        accountKeys.publicKey.toAccountHex(),
+        accountKeys.publicKey.toHex(),
         `${accountAlias}_public_key_hex.txt`
       );
     }
@@ -307,7 +357,7 @@ class AuthController {
     return {
       name: KeyPairWithAlias.alias,
       keyPair: {
-        publicKey: KeyPairWithAlias.KeyPair.publicKey.toAccountHex(),
+        publicKey: KeyPairWithAlias.KeyPair.publicKey.toHex(),
         secretKey: encodeBase64(KeyPairWithAlias.KeyPair.privateKey)
       }
     };
@@ -324,11 +374,11 @@ class AuthController {
         deserializedPublicKeyBytes = Keys.Ed25519.parsePublicKey(
           decodeBase16(serializedPublicKey.substring(2))
         );
-        deserializedPublicKey = PublicKey.fromEd25519(
+        deserializedPublicKey = CLPublicKey.fromEd25519(
           deserializedPublicKeyBytes
         );
         deserializedKeyPair = Keys.Ed25519.parseKeyPair(
-          deserializedPublicKey.rawPublicKey,
+          deserializedPublicKey.value(),
           decodeBase64(serializedKeyPairWithAlias.keyPair.secretKey)
         );
         break;
@@ -337,11 +387,11 @@ class AuthController {
           decodeBase16(serializedPublicKey.substring(2)),
           'raw'
         );
-        deserializedPublicKey = PublicKey.fromSecp256K1(
+        deserializedPublicKey = CLPublicKey.fromSecp256K1(
           deserializedPublicKeyBytes
         );
         deserializedKeyPair = Keys.Secp256K1.parseKeyPair(
-          deserializedPublicKey.rawPublicKey,
+          deserializedPublicKey.value(),
           decodeBase64(serializedKeyPairWithAlias.keyPair.secretKey),
           'raw'
         );
@@ -366,13 +416,13 @@ class AuthController {
       userAccounts: this.appState.userAccounts.map(
         this.serializeKeyPairWithAlias
       ),
-      selectedUserAccount: this.appState.selectedUserAccount
-        ? this.serializeKeyPairWithAlias(this.appState.selectedUserAccount)
+      activeUserAccount: this.appState.activeUserAccount
+        ? this.serializeKeyPairWithAlias(this.appState.activeUserAccount)
         : null
     });
-
     await this.saveKeyValuetoStore(this.encryptedVaultKey, encryptedVault);
     await this.saveKeyValuetoStore(this.saltKey, this.passwordSalt!);
+    updateStatusEvent(this.appState, 'activeKeyChanged');
   }
 
   /**
@@ -466,6 +516,7 @@ class AuthController {
     this.passwordHash = null;
     this.appState.isUnlocked = false;
     await this.clearAccount();
+    updateStatusEvent(this.appState, 'locked');
   }
 
   /**
@@ -474,21 +525,91 @@ class AuthController {
    */
   @action.bound
   async unlock(password: string) {
-    let vaultResponse = await this.restoreVault(password);
+    if (this.appState.lockedOut) {
+      throw new Error('Locked out please wait');
+    }
+    let vaultResponse;
+    try {
+      vaultResponse = await this.restoreVault(password);
+    } catch (e) {
+      this.appState.unlockAttempts -= 1;
+      throw new Error(e);
+    }
     let vault = vaultResponse[0];
     this.passwordHash = vaultResponse[1];
+    this.resetLockout();
     this.appState.isUnlocked = true;
     this.appState.userAccounts.replace(
       vault.userAccounts.map(this.deserializeKeyPairWithAlias)
     );
-    this.appState.selectedUserAccount = vault.selectedUserAccount
-      ? this.deserializeKeyPairWithAlias(vault.selectedUserAccount)
+    this.appState.activeUserAccount = vault.activeUserAccount
+      ? this.deserializeKeyPairWithAlias(vault.activeUserAccount)
       : null;
+
+    updateStatusEvent(this.appState, 'unlocked');
+  }
+
+  @action
+  refreshRemainingTime(minutesLeft: number) {
+    if (minutesLeft <= 1) {
+      this.appState.remainingMins = 1;
+      return;
+    }
+    this.appState.remainingMins = minutesLeft;
+    setTimeout(() => {
+      this.refreshRemainingTime(minutesLeft - 1);
+    }, 1000 * 60);
+  }
+
+  @action
+  async startLockoutTimer(
+    timeInMinutes: number,
+    resetTimestamp: boolean = true
+  ) {
+    this.appState.lockoutTimerStarted = true;
+    if (resetTimestamp) {
+      let currentTimeMillis = new Date().getTime();
+      this.timerStore.set({ lockedOutTimestampMillis: currentTimeMillis });
+    }
+    setTimeout(() => {
+      this.resetLockout();
+      this.resetLockoutTimer();
+    }, timeInMinutes * 1000 * 60);
+    this.refreshRemainingTime(timeInMinutes);
+  }
+
+  @action.bound
+  async resetLockout() {
+    this.timerStore.set({ lockedOutTimestampMillis: 0 });
+    this.appState.unlockAttempts = 5;
+  }
+
+  @action.bound
+  async resetLockoutTimer() {
+    this.appState.lockoutTimerStarted = false;
   }
 
   @computed
   get isUnlocked(): boolean {
     return this.appState.isUnlocked;
+  }
+
+  async confirmPassword(password: string) {
+    let encryptedVault = await this.getStoredValueWithKey(
+      this.encryptedVaultKey
+    );
+    if (!encryptedVault) {
+      throw new Error('There is no vault');
+    }
+    let storedSalt = await this.getStoredValueWithKey(this.saltKey);
+    let [, saltedPassword] = this.saltPassword(password, storedSalt);
+    let saltedPasswordHash = this.hash(saltedPassword);
+    try {
+      await passworder.decrypt(saltedPasswordHash, encryptedVault);
+      return true;
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 
   @action.bound

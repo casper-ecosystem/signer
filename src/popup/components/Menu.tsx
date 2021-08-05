@@ -81,7 +81,7 @@ const MoreMenu = observer((props: Props) => {
                 }}
               >
                 {account.alias ===
-                props.authContainer.selectedUserAccount?.alias ? (
+                props.authContainer.activeUserAccount?.alias ? (
                   <CheckIcon fontSize={'small'} />
                 ) : (
                   <Icon className={'fa fa-fw'} fontSize={'small'} />
@@ -113,7 +113,7 @@ const MoreMenu = observer((props: Props) => {
             <WebIcon className={classes.menuIcon} />
             <ListItemText primary="Connected Sites" />
           </ListItem>
-          {props.authContainer.selectedUserAccount && (
+          {props.authContainer.activeUserAccount && (
             <ListItem
               dense={true}
               button

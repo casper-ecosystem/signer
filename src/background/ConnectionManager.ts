@@ -1,6 +1,7 @@
 import { getBucket, Bucket } from '@extend-chrome/storage';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
+import { updateStatusEvent } from './utils';
 
 export interface Tab {
   tabId: number;
@@ -37,7 +38,12 @@ export default class ConnectionManager {
 
     this.store.get('connectedSites').then(({ connectedSites }) => {
       if (!connectedSites) return;
-      this.appState.connectedSites.replace(Object.values(connectedSites));
+      const filterIntegratedSites = connectedSites.filter(site =>
+        this.isIntegratedSite(site.url)
+      );
+      this.appState.connectedSites.replace(
+        Object.values(filterIntegratedSites)
+      );
     });
 
     // TODO: Might add this for chaning windows focus https://stackoverflow.com/questions/53397465/can-you-detect-moving-between-open-tabs-in-different-windows
@@ -54,6 +60,8 @@ export default class ConnectionManager {
       const currentUrl = await this.getActiveTab();
       if (currentUrl) {
         this.appState.currentTab = { tabId: activeInfo.tabId, url: currentUrl };
+        this.appState.isIntegratedSite = this.isIntegratedSite(currentUrl);
+        updateStatusEvent(appState, 'tabUpdated');
       }
     });
   }
@@ -69,17 +77,12 @@ export default class ConnectionManager {
   }
 
   public requestConnection() {
-    if (this.appState.userAccounts.length === 0) {
-      this.popupManager.openPopup('noAccount');
-      return;
-    }
     this.appState.connectionRequested = true;
     this.popupManager.openPopup('connect');
   }
 
   public resetConnectionRequest() {
     this.appState.connectionRequested = false;
-    this.popupManager.closePopup();
   }
 
   public async connectToSite(site?: string) {
@@ -98,6 +101,10 @@ export default class ConnectionManager {
 
       this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
 
+      if (tab && tab.tabId) {
+        updateStatusEvent(this.appState, 'connected');
+      }
+
       this.popupManager.closePopup();
     }
   }
@@ -110,6 +117,10 @@ export default class ConnectionManager {
         if (d.url === url) d.isConnected = false;
       });
       this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
+
+      if (tab && tab.tabId) {
+        updateStatusEvent(this.appState, 'disconnected');
+      }
     }
   }
 
@@ -135,5 +146,31 @@ export default class ConnectionManager {
         resolve(null);
       });
     });
+  }
+
+  public isIntegratedSite(hostname: string) {
+    if (!hostname)
+      throw new Error(
+        'Could not check for site integration: Hostname was undefined'
+      );
+    // all sites injected with the the content script
+    const injectedSites =
+      chrome.runtime.getManifest().content_scripts![0].matches;
+    if (!injectedSites)
+      throw new Error('Could not retrieve sites from manifest');
+    for (let site of injectedSites) {
+      let sanitised = site
+        .replaceAll('/', '')
+        .replace(':', '')
+        .replaceAll('*', '');
+      if (sanitised.startsWith('.', 0)) {
+        sanitised = sanitised.replace('.', '');
+      }
+      const sanitisedRegex = new RegExp(sanitised);
+      if (hostname.match(sanitisedRegex)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

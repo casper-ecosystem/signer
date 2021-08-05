@@ -62,8 +62,8 @@ async function setupPopupAPIServer() {
     accountController.reorderAccount.bind(accountController)
   );
   rpc.register(
-    'account.getSelectUserAccount',
-    accountController.getSelectUserAccount.bind(accountController)
+    'account.getActiveUserAccount',
+    accountController.getActiveUserAccount.bind(accountController)
   );
   rpc.register(
     'account.getActivePublicKeyHex',
@@ -74,12 +74,32 @@ async function setupPopupAPIServer() {
     accountController.getActiveAccountHash.bind(accountController)
   );
   rpc.register(
+    'account.getPublicKeyHexByAlias',
+    accountController.getPublicKeyHexByAlias.bind(accountController)
+  );
+  rpc.register(
+    'account.getAccountHashByAlias',
+    accountController.getAccountHashByAlias.bind(accountController)
+  );
+  rpc.register(
     'account.downloadAccountKeys',
     accountController.downloadAccountKeys.bind(accountController)
   );
   rpc.register(
     'account.resetVault',
     accountController.resetVault.bind(accountController)
+  );
+  rpc.register(
+    'account.resetLockout',
+    accountController.resetLockout.bind(accountController)
+  );
+  rpc.register(
+    'account.startLockoutTimer',
+    accountController.startLockoutTimer.bind(accountController)
+  );
+  rpc.register(
+    'account.resetLockoutTimer',
+    accountController.resetLockoutTimer.bind(accountController)
   );
   rpc.register(
     'account.switchToAccount',
@@ -119,5 +139,17 @@ async function setupPopupAPIServer() {
   rpc.register(
     'connection.removeSite',
     connectionManager.removeSite.bind(connectionManager)
+  );
+  rpc.register(
+    'eventBus',
+    connectionManager.removeSite.bind(connectionManager)
+  );
+  rpc.register(
+    'account.confirmPassword',
+    accountController.confirmPassword.bind(accountController)
+  );
+  rpc.register(
+    'connection.isIntegratedSite',
+    connectionManager.isIntegratedSite.bind(connectionManager)
   );
 }

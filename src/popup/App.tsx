@@ -21,6 +21,7 @@ import { MainAppBar } from './components/MainAppBar';
 import AnalyticsProvider from './components/AnalyticsProvider';
 import AccountManagementPage from './components/AccountManagementPage';
 import { ConnectedSitesPage } from './components/ConnectedSitesPage';
+import IdleTimer from 'react-idle-timer';
 
 export interface AppProps {
   errors: ErrorContainer;
@@ -32,8 +33,21 @@ export interface AppProps {
 }
 
 const App = (props: AppProps) => {
+  const lockOnIdle = () => {
+    if (props.authContainer.isUnLocked) props.authContainer.lock();
+  };
+
   return (
     <div>
+      {/* TODO
+      Lockout time is hardcoded in the appState but this could
+      be made configurable to allow users to set convenient timeouts.
+      */}
+      <IdleTimer
+        timeout={60 * 1000 * props.authContainer.idleTimeoutMins}
+        onIdle={lockOnIdle}
+        debounce={250}
+      />
       <AnalyticsProvider />
       <MainAppBar
         authContainer={props.authContainer}
@@ -62,6 +76,7 @@ const App = (props: AppProps) => {
               <AccountManagementPage
                 authContainer={props.authContainer}
                 connectionContainer={props.connectSignerContainer}
+                errorsContainer={props.errors}
               />
             )}
           />
@@ -71,6 +86,7 @@ const App = (props: AppProps) => {
             render={_ => (
               <ConnectedSitesPage
                 connectionContainer={props.connectSignerContainer}
+                authContainer={props.authContainer}
               />
             )}
           />
@@ -112,6 +128,7 @@ const App = (props: AppProps) => {
             render={_ => (
               <ConnectSignerPage
                 connectSignerContainer={props.connectSignerContainer}
+                authContainer={props.authContainer}
               />
             )}
           />

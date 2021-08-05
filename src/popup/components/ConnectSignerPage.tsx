@@ -4,11 +4,13 @@ import React from 'react';
 import { Redirect, RouteComponentProps, withRouter } from 'react-router-dom';
 import { browser } from 'webextension-polyfill-ts';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
+import AccountManager from '../container/AccountManager';
 import Pages from './Pages';
 import confirmConnect from './ConfirmConnect';
 
 interface Props extends RouteComponentProps {
   connectSignerContainer: ConnectSignerContainer;
+  authContainer: AccountManager;
 }
 
 @observer
@@ -24,12 +26,22 @@ class ConnectSignerPage extends React.Component<Props, {}> {
 
   render() {
     if (!this.props.connectSignerContainer.connectionStatus) {
-      return (
+      return !this.props.authContainer.isUnLocked ? (
+        <Redirect to={Pages.Home} />
+      ) : (
         <div style={{ flexGrow: 1 }}>
-          <Typography align={'center'} variant={'h5'}>
-            Connect Signer to site?
+          <Typography
+            align={'center'}
+            variant={'h5'}
+            style={{ marginBottom: '1rem' }}
+          >
+            Connection Request
           </Typography>
-
+          <Typography align={'center'} variant={'body1'}>
+            Would you like to allow{' '}
+            <b>{this.props.connectSignerContainer.currentTab?.url}</b> to
+            connect?
+          </Typography>
           <Box mt={8}>
             <Grid
               container

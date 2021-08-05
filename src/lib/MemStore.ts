@@ -4,7 +4,16 @@ import { KeyPairWithAlias } from '../@types/models';
 import { deployWithID } from '../background/SignMessageManager';
 
 export class AppState {
+  @observable isIntegratedSite: boolean = false;
   @observable isUnlocked: boolean = false;
+  @observable unlockAttempts: number = 5;
+  @computed get lockedOut(): boolean {
+    return this.unlockAttempts === 0;
+  }
+  @observable lockoutTimerStarted: boolean = false;
+  timerDurationMins: number = 5;
+  @observable remainingMins: number = this.timerDurationMins;
+  @observable idleTimeoutMins: number = 1;
   @observable currentTab: Tab | null = null;
   @computed get connectionStatus(): boolean {
     const url = this.currentTab && this.currentTab.url;
@@ -21,7 +30,7 @@ export class AppState {
     { deep: true }
   );
   @observable hasCreatedVault: boolean = false;
-  @observable selectedUserAccount: KeyPairWithAlias | null = null;
+  @observable activeUserAccount: KeyPairWithAlias | null = null;
   userAccounts: IObservableArray<KeyPairWithAlias> =
     observable.array<KeyPairWithAlias>([], { deep: true });
   @observable unsignedDeploys: IObservableArray<deployWithID> =

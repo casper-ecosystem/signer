@@ -1,5 +1,5 @@
 import React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { Redirect, RouteComponentProps, withRouter } from 'react-router-dom';
 import {
   List,
   ListItem,
@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Input,
   Snackbar,
   ListSubheader,
   Typography,
@@ -30,12 +29,17 @@ import FilterNoneIcon from '@material-ui/icons/FilterNone'; // Used for Copy
 import AccountManager from '../container/AccountManager';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import { observer, Observer } from 'mobx-react';
+import { observable } from 'mobx';
 import Dialog from '@material-ui/core/Dialog';
 import { confirm } from './Confirmation';
 import copy from 'copy-to-clipboard';
 import { KeyPairWithAlias } from '../../@types/models';
-import { PublicKey } from 'casper-client-sdk';
+import { CLPublicKey } from 'casper-js-sdk';
 import { GetApp } from '@material-ui/icons';
+import { TextFieldWithFormState } from './Forms';
+import { RenameAccountFormData } from '../container/ImportAccountContainer';
+import ErrorContainer from '../container/ErrorContainer';
+import Pages from './Pages';
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
   // styles we need to apply on draggables
@@ -49,6 +53,7 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
 interface Props extends RouteComponentProps {
   authContainer: AccountManager;
   connectionContainer: ConnectSignerContainer;
+  errorsContainer: ErrorContainer;
 }
 
 interface State {
@@ -56,7 +61,7 @@ interface State {
   openKeyDialog: boolean;
   selectedAccount: KeyPairWithAlias | null;
   alias: string | null;
-  publicKey: PublicKey | null;
+  publicKey: CLPublicKey | null;
   publicKeyHex: string | null;
   accountHash: string | null;
   copyStatus: boolean;
@@ -64,8 +69,11 @@ interface State {
 
 @observer
 class AccountManagementPage extends React.Component<Props, State> {
+  @observable renameAccountForm: RenameAccountFormData;
+
   constructor(props: Props) {
     super(props);
+    this.renameAccountForm = new RenameAccountFormData();
     this.state = {
       openDialog: false,
       openKeyDialog: false,
@@ -87,8 +95,14 @@ class AccountManagementPage extends React.Component<Props, State> {
   };
 
   handleViewKey = async (accountName: string) => {
-    let hexKey = await this.props.authContainer.getPublicKeyHex(accountName);
-    let hash = await this.props.authContainer.getAccountHash(accountName);
+    // let hexKey = await this.props.authContainer.getPublicKeyHex(accountName);
+    // let hash = await this.props.authContainer.getAccountHash(accountName);
+    let hexKey = await this.props.authContainer.getPublicKeyHexByAlias(
+      accountName
+    );
+    let hash = await this.props.authContainer.getAccountHashByAlias(
+      accountName
+    );
     this.setState({
       alias: accountName,
       publicKeyHex: hexKey,
@@ -109,6 +123,7 @@ class AccountManagementPage extends React.Component<Props, State> {
   };
 
   handleClose = () => {
+    this.renameAccountForm.resetFields();
     this.setState({
       openDialog: false,
       openKeyDialog: false,
@@ -118,10 +133,11 @@ class AccountManagementPage extends React.Component<Props, State> {
 
   handleUpdateName = () => {
     let account = this.state.selectedAccount;
-    let alias = this.state.alias;
+    let alias = this.renameAccountForm.name.$;
     if (account && alias) {
-      this.props.authContainer.renameUserAccount(account.alias, alias);
-      this.props.authContainer.switchToAccount(alias);
+      this.props.errorsContainer.capture(
+        this.props.authContainer.renameUserAccount(account.alias, alias)
+      );
       this.handleClose();
     }
   };
@@ -141,18 +157,27 @@ class AccountManagementPage extends React.Component<Props, State> {
   handleClickRemove = (name: string) => {
     confirm(
       <div className="text-danger">Remove account</div>,
-      'Are you sure you want to remove this account?'
+      <span>
+        This account will be permanently deleted. Confirm password to remove
+        account: <b>{name}</b>
+      </span>,
+      'Remove',
+      'Cancel',
+      { requirePassword: true }
     ).then(() => this.props.authContainer.removeUserAccount(name));
   };
 
   render() {
-    return (
+    return !this.props.authContainer.isUnLocked ? (
+      <Redirect to={Pages.Home} />
+    ) : (
       <React.Fragment>
         <DragDropContext onDragEnd={result => this.onDragEnd(result)}>
           <Droppable droppableId="droppable">
             {(provided, snapshot) => (
               <Observer>
                 {() => (
+                  // TODO: fix this (deprecated RootRef)
                   <RootRef rootRef={provided.innerRef}>
                     <List>
                       {this.props.authContainer.userAccounts.map(
@@ -251,23 +276,23 @@ class AccountManagementPage extends React.Component<Props, State> {
         >
           <DialogTitle id="form-dialog-title">Rename</DialogTitle>
           <DialogContent>
-            <Input
-              autoFocus
-              margin="dense"
-              id="name"
-              type="text"
+            <TextFieldWithFormState
               fullWidth
-              value={this.state.alias}
-              onChange={e => {
-                this.setState({ alias: e.target.value });
-              }}
+              label="Rename account"
+              placeholder="Account alias"
+              id="rename-account"
+              fieldState={this.renameAccountForm.name}
             />
           </DialogContent>
           <DialogActions>
             <Button onClick={this.handleClose} color="primary">
               Cancel
             </Button>
-            <Button onClick={this.handleUpdateName} color="primary">
+            <Button
+              onClick={this.handleUpdateName}
+              color="primary"
+              disabled={this.renameAccountForm.submitDisabled}
+            >
               Update
             </Button>
           </DialogActions>
