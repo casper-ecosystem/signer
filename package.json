@@ -111,6 +111,7 @@
     "browserify": "^16.5.0",
     "browserify-transform-tools": "^1.7.0",
     "colors": "latest",
+    "cypress": "^8.2.0",
     "del": "^5.1.0",
     "end-of-stream": "^1.4.4",
     "envify": "^4.1.0",
