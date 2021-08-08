@@ -68,7 +68,8 @@
     "test_ci": "react-scripts test --watchAll=false --env=./custom-test-env.js",
     "lint": "eslint .",
     "lint_fix": "eslint . --fix",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "cypress:open": "./node_modules/.bin/cypress open"
   },
   "eslintConfig": {
     "extends": "react-app"
