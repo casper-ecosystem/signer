@@ -3,8 +3,13 @@ import { browser } from 'webextension-polyfill-ts';
 
 export function updateBadge(appState: AppState) {
   let label = '';
-  let count = appState.unsignedDeploys.length;
-  if (appState.connectionRequested) {
+  let count =
+    appState.unsignedDeploys.length > 0
+      ? appState.unsignedDeploys.length
+      : appState.unsignedMessages.length > 0
+      ? appState.unsignedMessages.length
+      : undefined;
+  if (appState.connectionRequested && !appState.connectionStatus) {
     label = '1';
   } else if (count) {
     label = String(count);

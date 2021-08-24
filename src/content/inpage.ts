@@ -31,6 +31,25 @@ class CasperLabsPluginHelper {
     return this.call<string>('sign', deploy, sourcePublicKey, targetPublicKey);
   }
 
+  async signRawMessage(rawMessage: string, signingPublicKey: string) {
+    return this.call<Uint8Array>(
+      'signRawMessage',
+      rawMessage,
+      signingPublicKey
+    );
+  }
+
+  async signFormattedMessage(
+    formattedMessageBytes: Uint8Array,
+    signingPublicKey: string
+  ) {
+    return this.call<Uint8Array>(
+      'signFormattedMessage',
+      formattedMessageBytes,
+      signingPublicKey
+    );
+  }
+
   async getActivePublicKey() {
     return this.call<string>('getActivePublicKey');
   }
