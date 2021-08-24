@@ -470,7 +470,6 @@ export default class SigningManager extends events.EventEmitter {
         } catch (err) {
           throw new Error(err);
         }
-        console.log(`SM :: State:`, this.appState.unsignedMessages);
       } else if (message instanceof Uint8Array) {
         const casperHeader = `Casper Message:\n`;
         const messageStringWithHeaders = new TextDecoder().decode(message);
@@ -495,7 +494,6 @@ export default class SigningManager extends events.EventEmitter {
       }
 
       this.updateAppState();
-      console.log('SM :: Updated State: ', this.appState);
       this.popupManager.openPopup('signMessage');
       this.once(`${messageId}:finished`, (processedMessage: messageWithID) => {
         if (!this.appState.isUnlocked) {

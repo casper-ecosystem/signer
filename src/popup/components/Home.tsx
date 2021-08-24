@@ -483,7 +483,6 @@ class Home extends React.Component<
           if (this.props.signingContainer.deployToSign) {
             return <Redirect to={Pages.SignDeploy} />;
           } else if (this.props.signingContainer.messageToSign) {
-            console.log('Was a message to sign');
             return <Redirect to={Pages.SignMessage} />;
           } else {
             return this.renderAccountLists();

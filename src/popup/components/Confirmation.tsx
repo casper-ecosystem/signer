@@ -165,7 +165,6 @@ export function confirm(
     unmountAfter: 10000
   }
 ) {
-  console.log(options.unmountAfter);
   return createConfirmation(
     confirmable(Confirmation),
     options.unmountAfter

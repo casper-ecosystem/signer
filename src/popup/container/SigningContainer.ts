@@ -11,8 +11,6 @@ class SigningContainer {
 
   @computed
   get deployToSign() {
-    console.log('SC :: Checking for deploys...');
-    console.dir(this.appState.unsignedDeploys);
     if (this.appState.unsignedDeploys.length > 0) {
       return this.appState.unsignedDeploys[0];
     }
@@ -21,8 +19,6 @@ class SigningContainer {
 
   @computed
   get messageToSign() {
-    console.log('SC :: Checking for messages...');
-    console.dir(this.appState.unsignedMessages);
     if (this.appState.unsignedMessages.length > 0) {
       return this.appState.unsignedMessages[0];
     }
