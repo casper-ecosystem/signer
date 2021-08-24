@@ -13,7 +13,7 @@ import { BackgroundManager } from './popup/BackgroundManager';
 import ErrorContainer from './popup/container/ErrorContainer';
 import './popup/styles/custom.scss';
 import { AppState } from './lib/MemStore';
-import SignMessageContainer from './popup/container/SignMessageContainer';
+import SigningContainer from './popup/container/SigningContainer';
 import ConnectSignerContainer from './popup/container/ConnectSignerContainer';
 import { signerTheme } from './popup/components/Theme';
 import { ThemeProvider } from '@material-ui/core';
@@ -26,10 +26,7 @@ const authContainer = new AccountManager(
   backgroundManager,
   appState
 );
-const signMessageContainer = new SignMessageContainer(
-  backgroundManager,
-  appState
-);
+const signingContainer = new SigningContainer(backgroundManager, appState);
 const connectSignerContainer = new ConnectSignerContainer(
   backgroundManager,
   appState
@@ -44,7 +41,7 @@ ReactDOM.render(
         errors={errorsContainer}
         authContainer={authContainer}
         homeContainer={homeContainer}
-        signMessageContainer={signMessageContainer}
+        signingContainer={signingContainer}
         connectSignerContainer={connectSignerContainer}
         popupManager={popupManager}
       />

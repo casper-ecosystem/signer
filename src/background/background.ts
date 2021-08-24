@@ -3,14 +3,14 @@ import { browser } from 'webextension-polyfill-ts';
 import { Rpc } from '../lib/rpc/rpc';
 import { AppState } from '../lib/MemStore';
 import { autorun } from 'mobx';
-import SignMessageManager from './SignMessageManager';
+import SigningManager from './SigningManager';
 import ConnectionManager from './ConnectionManager';
 import { updateBadge } from './utils';
 import { setupInjectPageAPIServer } from '../lib/rpc/Provider';
 
 const appState = new AppState();
 const accountController = new AccountController(appState);
-const signMessageManager = new SignMessageManager(appState);
+const signingManager = new SigningManager(appState);
 const connectionManager = new ConnectionManager(appState);
 
 initialize().catch(console.log);
@@ -18,7 +18,7 @@ initialize().catch(console.log);
 async function initialize() {
   await setupPopupAPIServer();
   // Setup RPC server for inject page
-  setupInjectPageAPIServer(signMessageManager, connectionManager);
+  setupInjectPageAPIServer(signingManager, connectionManager);
 }
 
 // Setup RPC server for Popup
@@ -110,15 +110,15 @@ async function setupPopupAPIServer() {
   });
   rpc.register(
     'sign.signDeploy',
-    signMessageManager.approveSignDeploy.bind(signMessageManager)
+    signingManager.approveSignDeploy.bind(signingManager)
   );
   rpc.register(
     'sign.rejectSignDeploy',
-    signMessageManager.rejectSignDeploy.bind(signMessageManager)
+    signingManager.rejectSignDeploy.bind(signingManager)
   );
   rpc.register(
     'sign.parseDeployData',
-    signMessageManager.parseDeployData.bind(signMessageManager)
+    signingManager.parseDeployData.bind(signingManager)
   );
   rpc.register(
     'connection.requestConnection',

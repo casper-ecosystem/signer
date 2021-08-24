@@ -3,7 +3,7 @@ import { AppState } from '../../lib/MemStore';
 import { browser } from 'webextension-polyfill-ts';
 import { computed } from 'mobx';
 
-class SignMessageContainer {
+class SigningContainer {
   constructor(
     private backgroundManager: BackgroundManager,
     private appState: AppState
@@ -11,8 +11,20 @@ class SignMessageContainer {
 
   @computed
   get deployToSign() {
+    console.log('SC :: Checking for deploys...');
+    console.dir(this.appState.unsignedDeploys);
     if (this.appState.unsignedDeploys.length > 0) {
       return this.appState.unsignedDeploys[0];
+    }
+    return null;
+  }
+
+  @computed
+  get messageToSign() {
+    console.log('SC :: Checking for messages...');
+    console.dir(this.appState.unsignedMessages);
+    if (this.appState.unsignedMessages.length > 0) {
+      return this.appState.unsignedMessages[0];
     }
     return null;
   }
@@ -38,4 +50,4 @@ class SignMessageContainer {
   }
 }
 
-export default SignMessageContainer;
+export default SigningContainer;

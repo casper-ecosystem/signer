@@ -2,7 +2,12 @@
 
 import { browser } from 'webextension-polyfill-ts';
 
-export type openPurpose = 'connect' | 'sign' | 'importAccount' | 'noAccount';
+export type openPurpose =
+  | 'connect'
+  | 'signDeploy'
+  | 'signMessage'
+  | 'importAccount'
+  | 'noAccount';
 
 /**
  * A Class to manager Popup
@@ -26,7 +31,7 @@ export default class PopupManager {
               ? 'index.html?#/import'
               : 'index.html?#/',
           type: 'popup',
-          height: openFor === 'sign' ? 820 : 480,
+          height: openFor === 'signDeploy' ? 820 : 480,
           width: 300,
           left: windowWidth + xOffset - popupWidth - bufferRight,
           top: yOffset + bufferTop
@@ -37,7 +42,7 @@ export default class PopupManager {
         if (openFor === 'connect') {
           title = 'Connection Request';
           message = 'Open Signer to Approve or Reject Connection';
-        } else if (openFor === 'sign') {
+        } else if (openFor === 'signDeploy' || openFor === 'signMessage') {
           title = 'Signature Request';
           message = 'Open Signer to Approve or Cancel Signing';
         } else {

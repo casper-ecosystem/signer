@@ -26,6 +26,7 @@ import Pages from './Pages';
 import { confirm } from './Confirmation';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
+import SigningContainer from '../container/SigningContainer';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -73,6 +74,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   authContainer: AccountManager;
   homeContainer: HomeContainer;
   connectionContainer: ConnectSignerContainer;
+  signingContainer: SigningContainer;
   popupManager: PopupManager;
   errors: ErrorContainer;
 }
@@ -478,7 +480,10 @@ class Home extends React.Component<
             return <Redirect to={Pages.ConnectSigner} />;
           }
         } else {
-          if (this.props.authContainer.unsignedDeploys.length > 0) {
+          if (this.props.signingContainer.deployToSign) {
+            return <Redirect to={Pages.SignDeploy} />;
+          } else if (this.props.signingContainer.messageToSign) {
+            console.log('Was a message to sign');
             return <Redirect to={Pages.SignMessage} />;
           } else {
             return this.renderAccountLists();
