@@ -45,14 +45,7 @@ export function setupInjectPageAPIServer(
     source: 'background'
   });
   rpc.register('sign', signingManager.signDeploy.bind(signingManager));
-  rpc.register(
-    'signRawMessage',
-    signingManager.signRawMessage.bind(signingManager)
-  );
-  rpc.register(
-    'signFormattedMessage',
-    signingManager.signFormattedMessage.bind(signingManager)
-  );
+  rpc.register('signMessage', signingManager.signMessage.bind(signingManager));
   rpc.register(
     'getActivePublicKey',
     signingManager.getActivePublicKey.bind(signingManager)

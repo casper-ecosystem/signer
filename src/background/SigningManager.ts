@@ -19,6 +19,8 @@ export interface messageWithID {
   id: number;
   messageBytes: Uint8Array;
   messageString: string;
+  signingKey: string;
+  signature?: Uint8Array;
   status: deployStatus;
   error?: Error;
   pushed?: boolean;
@@ -307,6 +309,15 @@ export default class SigningManager extends events.EventEmitter {
     return deployWithId;
   }
 
+  private getMessageById(messageId: number): messageWithID {
+    const messageWithId = this.appState.unsignedMessages.find(
+      msgWithId => msgWithId.id === messageId
+    );
+    if (!messageWithId)
+      throw new Error(`Could not find message with id: ${messageId}`);
+    return messageWithId;
+  }
+
   public parseDeployData(deployId: number): DeployData {
     let deployWithID = this.getDeployById(deployId);
     if (deployWithID !== undefined && deployWithID.deploy !== undefined) {
@@ -413,25 +424,39 @@ export default class SigningManager extends events.EventEmitter {
     }
   }
 
-  public signRawMessage(rawMessage: string, signingPubicKey: string) {
-    this.signMessage(rawMessage, signingPubicKey);
-  }
+  // public async signRawMessage(rawMessage: string, signingPubicKey: string) {
+  //   // const signature = await this.signMessage(rawMessage, signingPubicKey);
+  //   // console.assert(
+  //   //   signature instanceof Uint8Array,
+  //   //   'Signature should be a Uint8Array'
+  //   // );
+  //   // return signature;
+  //   return new Promise<Uint8Array>((resolve, reject) => {
+  //     this.signMessage(rawMessage, signingPubicKey)
+  //       .then(signature => {
+  //         return resolve(signature);
+  //       })
+  //       .catch(err => {
+  //         return reject(new Error(err));
+  //       });
+  //   });
+  // }
 
-  public signFormattedMessage(
-    formattedMessageBytes: Uint8Array,
-    signingPublicKey: string
-  ) {
-    this.signMessage(formattedMessageBytes, signingPublicKey);
-  }
+  // public async signFormattedMessage(
+  //   formattedMessageBytes: Uint8Array,
+  //   signingPublicKey: string
+  // ) {
+  //   return await this.signMessage(formattedMessageBytes, signingPublicKey);
+  // }
 
   /**
    * Sign a message.
-   * @param message The message to be signed; in either raw (`string` - no headers) or formatted (`Uint8Array` - with headers) form.
+   * @param message The string message to be signed.
    * @param signingPublicKey The key for signing (in hex format).
-   * @returns signature as `Uint8Array`
+   * @returns `Base16` encoded signature.
    */
-  public signMessage(message: string | Uint8Array, signingPublicKey: string) {
-    return new Promise((resolve, reject) => {
+  public signMessage(message: string, signingPublicKey: string) {
+    return new Promise<string>((resolve, reject) => {
       // TODO: Need to abstract it to reusable method
       const { currentTab, connectedSites } = this.appState;
       const connected =
@@ -457,40 +482,22 @@ export default class SigningManager extends events.EventEmitter {
         );
 
       const messageId = this.createId();
-      if (typeof message === 'string') {
-        const messageBytes = formatMessageWithHeaders(message);
-        // message is fine and generates bytes fine
-        try {
-          this.unsignedMessages.push({
-            id: messageId,
-            messageBytes: messageBytes,
-            messageString: message,
-            status: 'unsigned'
-          });
-        } catch (err) {
-          throw new Error(err);
-        }
-      } else if (message instanceof Uint8Array) {
-        const casperHeader = `Casper Message:\n`;
-        const messageStringWithHeaders = new TextDecoder().decode(message);
-        const messageHeader = messageStringWithHeaders.substring(
-          0,
-          casperHeader.length + 1
-        );
-        if (messageHeader !== `Casper Message:\n`) {
-          throw new Error(`Incorrect message header: ${messageHeader}`);
-        }
-        const messageContents = messageStringWithHeaders.substring(
-          casperHeader.length - 1
-        );
-        this.appState.unsignedMessages.push({
+      let messageBytes;
+      try {
+        messageBytes = formatMessageWithHeaders(message);
+      } catch (err) {
+        throw new Error('Could not format message: ' + err);
+      }
+      try {
+        this.unsignedMessages.push({
           id: messageId,
-          messageBytes: message,
-          messageString: messageContents,
+          messageBytes: messageBytes,
+          messageString: message,
+          signingKey: signingPublicKey,
           status: 'unsigned'
         });
-      } else {
-        throw new Error('Invalid Message type: requires String or Uint8Array');
+      } catch (err) {
+        throw new Error(err);
       }
 
       this.updateAppState();
@@ -506,18 +513,18 @@ export default class SigningManager extends events.EventEmitter {
         switch (processedMessage.status) {
           case 'signed':
             if (processedMessage.messageBytes) {
-              // this.appState.unsignedMessages.clear();
+              this.appState.unsignedMessages.remove(processedMessage);
               if (activeKeyPair !== this.appState.activeUserAccount?.KeyPair)
                 throw new Error('Active account changed during signing.');
-              return resolve(
-                signFormattedMessage(
-                  activeKeyPair,
-                  processedMessage.messageBytes
-                )
+              const signature = signFormattedMessage(
+                activeKeyPair,
+                processedMessage.messageBytes
               );
+              return resolve(encodeBase16(signature));
+            } else {
+              this.appState.unsignedMessages.remove(processedMessage);
+              return reject(new Error(processedMessage.error?.message));
             }
-            this.appState.unsignedMessages.remove(processedMessage);
-            return reject(new Error(processedMessage.error?.message));
           case 'failed':
             this.unsignedMessages = this.unsignedMessages.filter(
               d => d.id !== processedMessage.id
@@ -532,6 +539,54 @@ export default class SigningManager extends events.EventEmitter {
         }
       });
     });
+  }
+
+  public async approveSigningMessage(messageId: number) {
+    const messageWithId = this.getMessageById(messageId);
+    if (!this.appState.activeUserAccount) {
+      throw new Error(`No Active Account!`);
+    }
+    let activeKeyPair = this.appState.activeUserAccount.KeyPair;
+    if (!messageWithId.messageBytes || !messageWithId.messageString) {
+      messageWithId.error = new Error(
+        `Cannot sign message: ${
+          !messageWithId.messageBytes
+            ? 'message bytes were null'
+            : !messageWithId.messageString
+            ? 'message string was null'
+            : ''
+        }`
+      );
+      this.saveAndEmitEventIfNeeded(messageWithId);
+      return;
+    }
+
+    // Reject if user switches keys during signing process
+    if (
+      messageWithId.signingKey &&
+      activeKeyPair.publicKey.toHex() !== messageWithId.signingKey
+    ) {
+      messageWithId.status = 'failed';
+      messageWithId.error = new Error('Active key changed during signing');
+      this.saveAndEmitEventIfNeeded(messageWithId);
+      return;
+    }
+
+    messageWithId.signature = signFormattedMessage(
+      activeKeyPair,
+      messageWithId.messageBytes
+    );
+
+    messageWithId.status = 'signed';
+    this.saveAndEmitEventIfNeeded(messageWithId);
+  }
+
+  public async cancelSigningMessage(messageId: number) {
+    const messageWithId = this.getMessageById(messageId);
+    messageWithId.status = 'failed';
+    messageWithId.error = new Error('User Cancelled Signing');
+    this.appState.unsignedMessages.clear();
+    this.saveAndEmitEventIfNeeded(messageWithId);
   }
 
   private verifyTargetAccountMatch(
@@ -578,12 +633,27 @@ export default class SigningManager extends events.EventEmitter {
     return transferArgs;
   }
 
-  private saveAndEmitEventIfNeeded(deployWithId: deployWithID) {
-    let status = deployWithId.status;
-    this.updateDeployWithId(deployWithId);
+  private saveAndEmitEventIfNeeded(itemWithId: deployWithID | messageWithID) {
+    let status = itemWithId.status;
+    const isDeployWithId = (
+      object: deployWithID | messageWithID
+    ): object is deployWithID => {
+      return (object as deployWithID).deploy !== undefined;
+    };
+    const isMessageWithId = (
+      object: deployWithID | messageWithID
+    ): object is messageWithID => {
+      return (object as messageWithID).messageBytes !== undefined;
+    };
+
+    if (isDeployWithId(itemWithId)) {
+      this.updateDeployWithId(itemWithId);
+    } else if (isMessageWithId(itemWithId)) {
+      this.updateMessageWithId(itemWithId);
+    }
     if (status === 'failed' || status === 'signed') {
       // fire finished event, so that the Promise can resolve and return result to RPC caller
-      this.emit(`${deployWithId.id}:finished`, deployWithId);
+      this.emit(`${itemWithId.id}:finished`, itemWithId);
     }
   }
 
