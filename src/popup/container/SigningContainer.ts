@@ -39,6 +39,14 @@ class SigningContainer {
     // this.closeWindow();
   }
 
+  async approveSigningMessage(messageId: number) {
+    await this.backgroundManager.approveSigningMessage(messageId);
+  }
+
+  async cancelSigningMessage(messageId: number) {
+    await this.backgroundManager.cancelSigningMessage(messageId);
+  }
+
   private async closeWindow() {
     let views = await browser.extension.getViews();
     let popup = views[1].window;

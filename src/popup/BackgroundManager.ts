@@ -101,6 +101,18 @@ export class BackgroundManager {
     );
   }
 
+  public approveSigningMessage(messageId: number) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('sign.approveSigningMessage', messageId)
+    );
+  }
+
+  public cancelSigningMessage(messageId: number) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('sign.cancelSigningMessage', messageId)
+    );
+  }
+
   public switchToAccount(accountName: string) {
     return this.errors.withCapture(
       this.rpc.call<void>('account.switchToAccount', accountName)

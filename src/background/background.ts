@@ -121,6 +121,14 @@ async function setupPopupAPIServer() {
     signingManager.parseDeployData.bind(signingManager)
   );
   rpc.register(
+    'sign.approveSigningMessage',
+    signingManager.approveSigningMessage.bind(signingManager)
+  );
+  rpc.register(
+    'sign.cancelSigningMessage',
+    signingManager.cancelSigningMessage.bind(signingManager)
+  );
+  rpc.register(
     'connection.requestConnection',
     connectionManager.requestConnection.bind(connectionManager)
   );
