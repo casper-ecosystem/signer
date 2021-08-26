@@ -27,6 +27,7 @@ import { confirm } from './Confirmation';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
 import SigningContainer from '../container/SigningContainer';
+import { SignMessagePage } from './SignMessagePage';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -483,7 +484,7 @@ class Home extends React.Component<
           if (this.props.signingContainer.deployToSign) {
             return <Redirect to={Pages.SignDeploy} />;
           } else if (this.props.signingContainer.messageToSign) {
-            return <Redirect to={Pages.SignMessage} />;
+            return SignMessagePage(this.props.signingContainer);
           } else {
             return this.renderAccountLists();
           }
