@@ -4,6 +4,7 @@ import { Redirect } from 'react-router-dom';
 import Pages from './Pages';
 import { browser } from 'webextension-polyfill-ts';
 import { Button, withStyles } from '@material-ui/core';
+import { truncateString } from 'background/utils';
 
 const ApproveButton = withStyles(() => ({
   root: {
@@ -24,7 +25,7 @@ const CancelButton = withStyles(() => ({
 }))(Button);
 
 export const SignMessagePage = (signingContainer: SigningContainer) => {
-  const messageWithID = signingContainer.messageToSign;
+  const messageWithID = signingContainer.messageToSign; // useState(signingContainer.messageToSign);
   browser.windows.getCurrent().then(w => {
     if (w.type === 'popup' && messageWithID?.id) {
       window.addEventListener('beforeunload', e => {
@@ -34,54 +35,68 @@ export const SignMessagePage = (signingContainer: SigningContainer) => {
     }
   });
 
-  if (messageWithID) {
-    return (
-      <div>
-        <h2>Do you want to sign the message?</h2>
-        <br />
-        <b>
-          <code>Casper Message:</code>
-        </b>
-        <div
-          style={{
-            padding: '.5rem',
-            backgroundColor: 'rgba(0, 0, 0, 0.1)',
-            borderRadius: '15px'
-          }}
-        >
-          <p>{messageWithID.messageString}</p>
-        </div>
-        <div
-          style={{
-            marginTop: '1rem',
-            display: 'flex',
-            justifyContent: 'space-evenly'
-          }}
-        >
-          <ApproveButton
-            variant="outlined"
-            onClick={() =>
-              signingContainer
-                .approveSigningMessage(messageWithID.id)
-                .then(() => {
-                  window.close();
-                })
-            }
-          >
-            Approve
-          </ApproveButton>
-          <CancelButton
-            variant="outlined"
-            onClick={() =>
-              signingContainer.cancelSigningMessage(messageWithID.id)
-            }
-          >
-            Cancel
-          </CancelButton>
-        </div>
+  // console.log(messageWithID);
+  return messageWithID ? (
+    <div>
+      <h2>Do you want to sign the message?</h2>
+      <br />
+      <b>
+        <code>Casper Message:</code>
+      </b>
+      <div
+        style={{
+          padding: '.1rem .5rem',
+          backgroundColor: 'rgba(0, 0, 0, 0.1)',
+          borderRadius: '10px',
+          fontSize: '1rem'
+        }}
+      >
+        <p>{messageWithID.messageString}</p>
       </div>
-    );
-  } else {
-    return <Redirect to={Pages.Home} />;
-  }
+      <br />
+      <b>
+        <code>Signing Key:</code>
+      </b>
+      <div
+        style={{
+          padding: '.1rem .5rem',
+          backgroundColor: 'rgba(0, 0, 0, 0.1)',
+          borderRadius: '10px',
+          fontSize: '0.9rem'
+        }}
+      >
+        <p>{truncateString(messageWithID.signingKey, 15, 15)}</p>
+      </div>
+      <div
+        style={{
+          marginTop: '1.5rem',
+          display: 'flex',
+          justifyContent: 'space-evenly'
+        }}
+      >
+        <ApproveButton
+          variant="outlined"
+          onClick={() =>
+            signingContainer
+              .approveSigningMessage(messageWithID.id)
+              .then(() => window.close())
+          }
+        >
+          Approve
+        </ApproveButton>
+        <CancelButton
+          variant="outlined"
+          onClick={() =>
+            signingContainer
+              .cancelSigningMessage(messageWithID.id)
+              .then(() => window.close())
+          }
+        >
+          Cancel
+        </CancelButton>
+      </div>
+    </div>
+  ) : (
+    <Redirect to={Pages.Home} />
+  );
 };
