@@ -585,7 +585,7 @@ export default class SigningManager extends events.EventEmitter {
     const messageWithId = this.getMessageById(messageId);
     messageWithId.status = 'failed';
     messageWithId.error = new Error('User Cancelled Signing');
-    this.appState.unsignedMessages.clear();
+    this.appState.unsignedMessages.remove(messageWithId);
     this.saveAndEmitEventIfNeeded(messageWithId);
   }
 
