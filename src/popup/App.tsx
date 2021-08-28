@@ -22,6 +22,7 @@ import AnalyticsProvider from './components/AnalyticsProvider';
 import AccountManagementPage from './components/AccountManagementPage';
 import { ConnectedSitesPage } from './components/ConnectedSitesPage';
 import IdleTimer from 'react-idle-timer';
+import { ConfigureTimeoutPage } from './components/ConfigureTimeout';
 
 export interface AppProps {
   errors: ErrorContainer;
@@ -39,10 +40,6 @@ const App = (props: AppProps) => {
 
   return (
     <div>
-      {/* TODO
-      Lockout time is hardcoded in the appState but this could
-      be made configurable to allow users to set convenient timeouts.
-      */}
       <IdleTimer
         timeout={60 * 1000 * props.authContainer.idleTimeoutMins}
         onIdle={lockOnIdle}
@@ -130,6 +127,13 @@ const App = (props: AppProps) => {
                 connectSignerContainer={props.connectSignerContainer}
                 authContainer={props.authContainer}
               />
+            )}
+          />
+          <Route
+            path={Pages.ConfigureTimeout}
+            exact
+            render={_ => (
+              <ConfigureTimeoutPage accountManager={props.authContainer} />
             )}
           />
         </Switch>

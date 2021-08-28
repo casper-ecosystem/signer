@@ -1,19 +1,28 @@
 import React from 'react';
-import AccountManager from '../container/AccountManager';
 import { observer } from 'mobx-react';
-import SettingsIcon from '@material-ui/icons/Settings';
-import CheckIcon from '@material-ui/icons/Check';
-import Icon from '@material-ui/core/Icon';
-import Menu from '@material-ui/core/Menu';
-import LockIcon from '@material-ui/icons/Lock';
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import WebIcon from '@material-ui/icons/Web';
 import Pages from './Pages';
-import MenuIcon from '@material-ui/icons/Menu';
-import IconButton from '@material-ui/core/IconButton';
-import { List, ListItem, ListItemText, ListSubheader } from '@material-ui/core';
-import Divider from '@material-ui/core/Divider';
 import { Link } from 'react-router-dom';
+import AccountManager from '../container/AccountManager';
+import {
+  Settings as SettingsIcon,
+  Check as CheckIcon,
+  Lock as LockIcon,
+  CloudDownload as CloudDownloadIcon,
+  Web as WebIcon,
+  Menu as MenuIcon,
+  Timer as TimerIcon
+} from '@material-ui/icons';
+import {
+  Icon,
+  IconButton,
+  Menu,
+  List,
+  ListItem,
+  ListItemText,
+  ListSubheader,
+  Divider,
+  Typography
+} from '@material-ui/core';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
 interface Props {
@@ -126,6 +135,20 @@ const MoreMenu = observer((props: Props) => {
               <ListItemText primary="Download Active Key" />
             </ListItem>
           )}
+          <ListItem
+            dense={true}
+            component={Link}
+            to={Pages.ConfigureTimeout}
+            button
+            onClick={handleClose}
+          >
+            <TimerIcon className={classes.menuIcon} />
+            <ListItemText primary="Timeout" />
+            <Typography variant="overline">
+              {props.authContainer.idleTimeoutMins} min
+              {props.authContainer.idleTimeoutMins === 1 ? '' : 's'}
+            </Typography>
+          </ListItem>
           <ListItem
             dense={true}
             button
