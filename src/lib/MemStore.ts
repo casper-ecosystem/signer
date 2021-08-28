@@ -13,7 +13,7 @@ export class AppState {
   @observable lockoutTimerStarted: boolean = false;
   timerDurationMins: number = 5;
   @observable remainingMins: number = this.timerDurationMins;
-  @observable idleTimeoutMins: number = 1;
+  @observable idleTimeoutMins: number = 2;
   @observable currentTab: Tab | null = null;
   @computed get connectionStatus(): boolean {
     const url = this.currentTab && this.currentTab.url;
