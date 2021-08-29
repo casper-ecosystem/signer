@@ -1,7 +1,13 @@
 import React from 'react';
 import AccountManager from '../container/AccountManager';
 import Pages from '../components/Pages';
-import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
+import {
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Typography
+} from '@material-ui/core';
 import { Brightness1 as ActiveIcon } from '@material-ui/icons';
 import { observer } from 'mobx-react';
 import { Redirect } from 'react-router-dom';
@@ -10,8 +16,10 @@ export const ConfigureTimeoutPage = observer(
   (props: { accountManager: AccountManager }) => {
     return props.accountManager.isUnLocked ? (
       <div>
-        <h2>Set Inactivty Timeout</h2>
-        <p>Select the duration until the Signer locks.</p>
+        <h2>Set Idle Timeout</h2>
+        <Typography>
+          Select how long you'd like before the Signer locks due to inactivity.
+        </Typography>
         <List>
           <ListItem
             button={true}
