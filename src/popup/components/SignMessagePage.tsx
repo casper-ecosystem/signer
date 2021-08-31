@@ -4,7 +4,7 @@ import { Redirect } from 'react-router-dom';
 import Pages from './Pages';
 import { browser } from 'webextension-polyfill-ts';
 import { Button, withStyles } from '@material-ui/core';
-import { truncateString } from 'background/utils';
+import { truncateString } from '../../background/utils';
 
 const ApproveButton = withStyles(() => ({
   root: {
