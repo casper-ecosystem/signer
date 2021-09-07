@@ -9,6 +9,14 @@ export type openPurpose =
   | 'importAccount'
   | 'noAccount';
 
+const normalPopupWidth = 300;
+const normalPopupHeight = 480;
+const expandedPopupHeight = 820;
+// Pads around popup window
+const popupBuffer = {
+  right: 20,
+  top: 40
+};
 /**
  * A Class to manager Popup
  * Provide inject and background a way to show popup.
@@ -18,11 +26,8 @@ export default class PopupManager {
     browser.windows
       .getCurrent()
       .then(window => {
-        let popupWidth = 300;
-        let bufferRight = 20;
-        let bufferTop = 40;
         let windowWidth =
-          window.width === undefined || null ? 300 : window.width;
+          window.width === undefined || null ? normalPopupWidth : window.width;
         let xOffset = window.left === undefined || null ? 0 : window.left;
         let yOffset = window.top === undefined || null ? 0 : window.top;
         browser.windows.create({
@@ -31,10 +36,11 @@ export default class PopupManager {
               ? 'index.html?#/import'
               : 'index.html?#/',
           type: 'popup',
-          height: openFor === 'signDeploy' ? 820 : 480,
-          width: 300,
-          left: windowWidth + xOffset - popupWidth - bufferRight,
-          top: yOffset + bufferTop
+          height:
+            openFor === 'signDeploy' ? expandedPopupHeight : normalPopupHeight,
+          width: normalPopupWidth,
+          left: windowWidth + xOffset - normalPopupWidth - popupBuffer.right,
+          top: yOffset + popupBuffer.top
         });
       })
       .catch(() => {
