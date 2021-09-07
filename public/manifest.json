@@ -28,7 +28,9 @@
         "*://casperholders.io/*",
         "*://*.casperholders.io/*",
         "*://casperholders.com/*",
-        "*://*.casperholders.com/*"
+        "*://*.casperholders.com/*",
+        "*://*.casperstats.io/*",
+        "*://casperstats.io/*"
       ],
       "js": ["./scripts/content/content.js"],
       "run_at": "document_start",
