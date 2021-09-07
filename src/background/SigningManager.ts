@@ -405,31 +405,6 @@ export default class SigningManager extends events.EventEmitter {
     }
   }
 
-  // public async signRawMessage(rawMessage: string, signingPubicKey: string) {
-  //   // const signature = await this.signMessage(rawMessage, signingPubicKey);
-  //   // console.assert(
-  //   //   signature instanceof Uint8Array,
-  //   //   'Signature should be a Uint8Array'
-  //   // );
-  //   // return signature;
-  //   return new Promise<Uint8Array>((resolve, reject) => {
-  //     this.signMessage(rawMessage, signingPubicKey)
-  //       .then(signature => {
-  //         return resolve(signature);
-  //       })
-  //       .catch(err => {
-  //         return reject(new Error(err));
-  //       });
-  //   });
-  // }
-
-  // public async signFormattedMessage(
-  //   formattedMessageBytes: Uint8Array,
-  //   signingPublicKey: string
-  // ) {
-  //   return await this.signMessage(formattedMessageBytes, signingPublicKey);
-  // }
-
   /**
    * Sign a message.
    * @param message The string message to be signed.
