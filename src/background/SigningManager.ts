@@ -49,25 +49,6 @@ export interface DeployData {
   deployArgs: Object;
 }
 
-// Covers Delegating and Undelegating
-
-/**
- * Sign Message Manager
- *                      TODO: Update these docs
- * Algorithm:
- *    1. Injected script call `signingManager.addUnsignedMessageAsync`, we return a Promise, inside the Promise, we will
- *       construct a messageBytes and assign it a unique id msgId and then we set up a event listen for `${msgId}:finished`.
- *       Resolve or reject when the event emits.
- *    2. Popup call `signingManager.{rejectMsg|approveMsg}` either to reject or commit the signature request,
- *       and both methods will fire a event `${msgId}:finished`, which is listened by step 1.
- *
- * Important to Note:
- *    Any mention of CLPublicKey below will refer to the hex-encoded bytes of the Public Key prefixed with 01 or 02
- *    to denote the algorithm used to generate the key.
- *          01 - ed25519
- *          02 - secp256k1
- *
- */
 export default class SigningManager extends events.EventEmitter {
   private unsignedDeploys: deployWithID[];
   private unsignedMessages: messageWithID[];
