@@ -21,7 +21,7 @@
     "@types/react-dom": "^16.9.14",
     "axios": "^0.21.1",
     "browser-passworder": "^2.0.3",
-    "casper-js-sdk": "^2.5.0",
+    "casper-js-sdk": "^2.5.1",
     "copy-to-clipboard": "^3.3.1",
     "download": "^8.0.0",
     "eslint-config-react-app": "^6.0.0",
