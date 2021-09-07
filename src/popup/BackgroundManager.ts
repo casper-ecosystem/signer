@@ -4,7 +4,7 @@ import { AppState } from '../lib/MemStore';
 import { action } from 'mobx';
 import ErrorContainer from './container/ErrorContainer';
 import { KeyPairWithAlias } from '../@types/models';
-import { DeployData } from '../background/SignMessageManager';
+import { DeployData } from '../background/SigningManager';
 
 export class BackgroundManager {
   private rpc: Rpc;
@@ -39,6 +39,7 @@ export class BackgroundManager {
     this.appState.activeUserAccount = appState.activeUserAccount;
     this.appState.userAccounts.replace(appState.userAccounts);
     this.appState.unsignedDeploys.replace(appState.unsignedDeploys);
+    this.appState.unsignedMessages.replace(appState.unsignedMessages);
     this.appState.idleTimeoutMins = appState.idleTimeoutMins;
   }
 
@@ -98,6 +99,18 @@ export class BackgroundManager {
   public parseDeployData(deployId: number) {
     return this.errors.withCapture(
       this.rpc.call<DeployData>('sign.parseDeployData', deployId)
+    );
+  }
+
+  public approveSigningMessage(messageId: number) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('sign.approveSigningMessage', messageId)
+    );
+  }
+
+  public cancelSigningMessage(messageId: number) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('sign.cancelSigningMessage', messageId)
     );
   }
 

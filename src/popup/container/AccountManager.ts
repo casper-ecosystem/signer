@@ -123,11 +123,6 @@ class AccountManager {
   }
 
   @computed
-  get unsignedDeploys() {
-    return this.appState.unsignedDeploys;
-  }
-
-  @computed
   get remainingUnlockAttempts() {
     return this.appState.unlockAttempts;
   }
