@@ -8,4 +8,5 @@ export default class Pages {
   static readonly AccountManagement = '/account-management';
   static readonly ConnectedSites = '/connected-sites';
   static readonly ConnectSigner = '/connect-signer';
+  static readonly ConfigureTimeout = '/configure-timeout';
 }

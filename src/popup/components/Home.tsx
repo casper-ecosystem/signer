@@ -157,8 +157,9 @@ class Home extends React.Component<
 
           <Grid item container>
             <form style={{ textAlign: 'center', width: '100%' }}>
-              <FormControl style={{ width: '80%' }}>
+              <FormControl style={{ width: '80%', float: 'left' }}>
                 <TextFieldWithFormState
+                  autoFocus
                   fieldState={
                     this.props.homeContainer.homeForm.$.setPasswordField
                   }
@@ -216,7 +217,7 @@ class Home extends React.Component<
                 .hasBeenValidated &&
                 !this.props.homeContainer.homeForm.$.setPasswordField
                   .hasError && (
-                  <FormControl fullWidth>
+                  <FormControl style={{ width: '80%', float: 'left' }}>
                     <TextFieldWithFormState
                       fieldState={
                         this.props.homeContainer.homeForm.$.confirmPasswordField
