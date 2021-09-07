@@ -152,4 +152,8 @@ async function setupPopupAPIServer() {
     'connection.isIntegratedSite',
     connectionManager.isIntegratedSite.bind(connectionManager)
   );
+  rpc.register(
+    'account.configureTimeout',
+    accountController.configureTimeout.bind(accountController)
+  );
 }

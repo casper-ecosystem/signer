@@ -616,6 +616,11 @@ class AuthController {
   async clearAccount() {
     this.appState.userAccounts.clear();
   }
+
+  @action.bound
+  configureTimeout(durationMins: number) {
+    this.appState.idleTimeoutMins = durationMins;
+  }
 }
 
 export default AuthController;

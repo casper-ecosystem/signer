@@ -192,6 +192,11 @@ class AccountManager {
   get idleTimeoutMins(): number {
     return this.appState.idleTimeoutMins;
   }
+
+  async configureTimeout(durationMins: number) {
+    if (durationMins === this.idleTimeoutMins) return;
+    await this.backgroundManager.configureTimeout(durationMins);
+  }
 }
 
 export default AccountManager;

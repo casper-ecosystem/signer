@@ -39,6 +39,7 @@ export class BackgroundManager {
     this.appState.activeUserAccount = appState.activeUserAccount;
     this.appState.userAccounts.replace(appState.userAccounts);
     this.appState.unsignedDeploys.replace(appState.unsignedDeploys);
+    this.appState.idleTimeoutMins = appState.idleTimeoutMins;
   }
 
   public unlock(password: string) {
@@ -200,6 +201,12 @@ export class BackgroundManager {
   public isIntegratedSite(hostname: string) {
     return this.errors.withCapture(
       this.rpc.call<boolean>('connection.isIntegratedSite', hostname)
+    );
+  }
+
+  public configureTimeout(durationMins: number) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.configureTimeout', durationMins)
     );
   }
 }
