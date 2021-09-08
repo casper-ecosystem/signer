@@ -3,7 +3,7 @@ import { AppState } from '../../lib/MemStore';
 import { browser } from 'webextension-polyfill-ts';
 import { computed } from 'mobx';
 
-class SignMessageContainer {
+class SigningContainer {
   constructor(
     private backgroundManager: BackgroundManager,
     private appState: AppState
@@ -13,6 +13,14 @@ class SignMessageContainer {
   get deployToSign() {
     if (this.appState.unsignedDeploys.length > 0) {
       return this.appState.unsignedDeploys[0];
+    }
+    return null;
+  }
+
+  @computed
+  get messageToSign() {
+    if (this.appState.unsignedMessages.length > 0) {
+      return this.appState.unsignedMessages[0];
     }
     return null;
   }
@@ -31,6 +39,14 @@ class SignMessageContainer {
     // this.closeWindow();
   }
 
+  async approveSigningMessage(messageId: number) {
+    await this.backgroundManager.approveSigningMessage(messageId);
+  }
+
+  async cancelSigningMessage(messageId: number) {
+    await this.backgroundManager.cancelSigningMessage(messageId);
+  }
+
   private async closeWindow() {
     let views = await browser.extension.getViews();
     let popup = views[1].window;
@@ -38,4 +54,4 @@ class SignMessageContainer {
   }
 }
 
-export default SignMessageContainer;
+export default SigningContainer;

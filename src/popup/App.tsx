@@ -10,8 +10,8 @@ import PopupManager from '../background/PopupManager';
 import { HomeContainer } from './container/HomeContainer';
 import { observer } from 'mobx-react';
 import ErrorContainer from './container/ErrorContainer';
-import SignMessagePage from './components/SignMessagePage';
-import SignMessageContainer from './container/SignMessageContainer';
+import SignDeployPage from './components/SignDeployPage';
+import SigningContainer from './container/SigningContainer';
 import ConnectSignerPage from './components/ConnectSignerPage';
 import ConnectSignerContainer from './container/ConnectSignerContainer';
 import AccountPage from './components/AccountPage';
@@ -22,13 +22,15 @@ import AnalyticsProvider from './components/AnalyticsProvider';
 import AccountManagementPage from './components/AccountManagementPage';
 import { ConnectedSitesPage } from './components/ConnectedSitesPage';
 import IdleTimer from 'react-idle-timer';
+import { SignMessagePage } from './components/SignMessagePage';
+import { ConfigureTimeoutPage } from './components/ConfigureTimeout';
 
 export interface AppProps {
   errors: ErrorContainer;
   authContainer: AccountManager;
   popupManager: PopupManager;
   homeContainer: HomeContainer;
-  signMessageContainer: SignMessageContainer;
+  signingContainer: SigningContainer;
   connectSignerContainer: ConnectSignerContainer;
 }
 
@@ -39,10 +41,6 @@ const App = (props: AppProps) => {
 
   return (
     <div>
-      {/* TODO
-      Lockout time is hardcoded in the appState but this could
-      be made configurable to allow users to set convenient timeouts.
-      */}
       <IdleTimer
         timeout={60 * 1000 * props.authContainer.idleTimeoutMins}
         onIdle={lockOnIdle}
@@ -64,6 +62,7 @@ const App = (props: AppProps) => {
                 authContainer={props.authContainer}
                 homeContainer={props.homeContainer}
                 connectionContainer={props.connectSignerContainer}
+                signingContainer={props.signingContainer}
                 popupManager={props.popupManager}
                 errors={props.errors}
               />
@@ -113,14 +112,19 @@ const App = (props: AppProps) => {
             )}
           />
           <Route
-            path={Pages.SignMessage}
+            path={Pages.SignDeploy}
             exact
             render={_ => (
-              <SignMessagePage
-                signMessageContainer={props.signMessageContainer}
+              <SignDeployPage
+                signingContainer={props.signingContainer}
                 authContainer={props.authContainer}
               />
             )}
+          />
+          <Route
+            path={Pages.SignMessage}
+            exact
+            render={_ => SignMessagePage(props.signingContainer)}
           />
           <Route
             path={Pages.ConnectSigner}
@@ -130,6 +134,13 @@ const App = (props: AppProps) => {
                 connectSignerContainer={props.connectSignerContainer}
                 authContainer={props.authContainer}
               />
+            )}
+          />
+          <Route
+            path={Pages.ConfigureTimeout}
+            exact
+            render={_ => (
+              <ConfigureTimeoutPage accountManager={props.authContainer} />
             )}
           />
         </Switch>

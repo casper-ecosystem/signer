@@ -1,17 +1,31 @@
 import * as events from 'events';
 import { AppState } from '../lib/MemStore';
-import PopupManager from '../background/PopupManager';
+import PopupManager from './PopupManager';
 import {
   DeployUtil,
   encodeBase16,
   CLPublicKey,
   CLPublicKeyType,
   CLByteArrayType,
-  CLAccountHashType
+  CLAccountHashType,
+  formatMessageWithHeaders,
+  signFormattedMessage
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 type argDict = { [key: string]: string };
+
+export interface messageWithID {
+  id: number;
+  messageBytes: Uint8Array;
+  messageString: string;
+  signingKey: string;
+  signature?: Uint8Array;
+  status: deployStatus;
+  error?: Error;
+  pushed?: boolean;
+}
+
 export interface deployWithID {
   id: number;
   status: deployStatus;
@@ -35,33 +49,16 @@ export interface DeployData {
   deployArgs: Object;
 }
 
-// Covers Delegating and Undelegating
-
-/**
- * Sign Message Manager
- *                      TODO: Update these docs
- * Algorithm:
- *    1. Injected script call `SignMessageManager.addUnsignedMessageAsync`, we return a Promise, inside the Promise, we will
- *       construct a message and assign it a unique id msgId and then we set up a event listen for `${msgId}:finished`.
- *       Resolve or reject when the event emits.
- *    2. Popup call `SignMessageManager.{rejectMsg|approveMsg}` either to reject or commit the signature request,
- *       and both methods will fire a event `${msgId}:finished`, which is listened by step 1.
- *
- * Important to Note:
- *    Any mention of CLPublicKey below will refer to the hex-encoded bytes of the Public Key prefixed with 01 or 02
- *    to denote the algorithm used to generate the key.
- *          01 - ed25519
- *          02 - secp256k1
- *
- */
-export default class SignMessageManager extends events.EventEmitter {
+export default class SigningManager extends events.EventEmitter {
   private unsignedDeploys: deployWithID[];
+  private unsignedMessages: messageWithID[];
   private nextId: number;
   private popupManager: PopupManager;
 
   constructor(private appState: AppState) {
     super();
     this.unsignedDeploys = [];
+    this.unsignedMessages = [];
     this.nextId = Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
     this.popupManager = new PopupManager();
   }
@@ -92,6 +89,13 @@ export default class SignMessageManager extends events.EventEmitter {
       this.unsignedDeploys.filter(d => !d.pushed)
     );
     this.unsignedDeploys = this.unsignedDeploys.map(d => ({
+      ...d,
+      pushed: true
+    }));
+    this.appState.unsignedMessages.replace(
+      this.unsignedMessages.filter(d => !d.pushed)
+    );
+    this.unsignedMessages = this.unsignedMessages.map(d => ({
       ...d,
       pushed: true
     }));
@@ -190,7 +194,7 @@ export default class SignMessageManager extends events.EventEmitter {
         sourcePublicKeyHex,
         targetPublicKeyHex
       );
-      this.popupManager.openPopup('sign');
+      this.popupManager.openPopup('signDeploy');
       // Await outcome of user interaction with popup.
       this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
         if (!this.appState.isUnlocked) {
@@ -284,6 +288,15 @@ export default class SignMessageManager extends events.EventEmitter {
       throw new Error(`Could not find deploy with id: ${deployId}`);
     }
     return deployWithId;
+  }
+
+  private getMessageById(messageId: number): messageWithID {
+    const messageWithId = this.appState.unsignedMessages.find(
+      msgWithId => msgWithId.id === messageId
+    );
+    if (!messageWithId)
+      throw new Error(`Could not find message with id: ${messageId}`);
+    return messageWithId;
   }
 
   public parseDeployData(deployId: number): DeployData {
@@ -392,6 +405,146 @@ export default class SignMessageManager extends events.EventEmitter {
     }
   }
 
+  /**
+   * Sign a message.
+   * @param message The string message to be signed.
+   * @param signingPublicKey The key for signing (in hex format).
+   * @returns `Base16` encoded signature.
+   */
+  public signMessage(message: string, signingPublicKey: string) {
+    return new Promise<string>((resolve, reject) => {
+      // TODO: Need to abstract it to reusable method
+      const { currentTab, connectedSites } = this.appState;
+      const connected =
+        currentTab &&
+        connectedSites.some(
+          site => site.url === currentTab.url && site.isConnected
+        );
+      if (!connected) return reject('This site is not connected');
+
+      if (!message || !signingPublicKey)
+        throw new Error('Message or public key was null/undefined');
+      if (
+        this.appState.userAccounts.some(
+          account => account.KeyPair.publicKey.toHex() !== signingPublicKey
+        )
+      )
+        throw new Error('Provided key is not present in vault.');
+      const activeKeyPair = this.appState.activeUserAccount?.KeyPair;
+      if (!activeKeyPair) throw new Error('No active account');
+      if (activeKeyPair.publicKey.toHex() !== signingPublicKey)
+        throw new Error(
+          'Provided key is not set as Active Key - please set it and try again.'
+        );
+
+      const messageId = this.createId();
+      let messageBytes;
+      try {
+        messageBytes = formatMessageWithHeaders(message);
+      } catch (err) {
+        throw new Error('Could not format message: ' + err);
+      }
+      try {
+        this.unsignedMessages.push({
+          id: messageId,
+          messageBytes: messageBytes,
+          messageString: message,
+          signingKey: signingPublicKey,
+          status: 'unsigned'
+        });
+      } catch (err) {
+        throw new Error(err);
+      }
+
+      this.updateAppState();
+      this.popupManager.openPopup('signMessage');
+      this.once(`${messageId}:finished`, (processedMessage: messageWithID) => {
+        if (!this.appState.isUnlocked) {
+          return reject(
+            new Error(
+              `Signer locked during signing process, please unlock and try again.`
+            )
+          );
+        }
+        switch (processedMessage.status) {
+          case 'signed':
+            if (processedMessage.messageBytes) {
+              this.appState.unsignedMessages.remove(processedMessage);
+              if (activeKeyPair !== this.appState.activeUserAccount?.KeyPair)
+                throw new Error('Active account changed during signing.');
+              const signature = signFormattedMessage(
+                activeKeyPair,
+                processedMessage.messageBytes
+              );
+              return resolve(encodeBase16(signature));
+            } else {
+              this.appState.unsignedMessages.remove(processedMessage);
+              return reject(new Error(processedMessage.error?.message));
+            }
+          case 'failed':
+            this.unsignedMessages = this.unsignedMessages.filter(
+              d => d.id !== processedMessage.id
+            );
+            return reject(
+              new Error(
+                processedMessage.error?.message! ?? 'User Cancelled Signing'
+              )
+            );
+          default:
+            return reject(new Error(`Signer: Unknown error occurred`));
+        }
+      });
+    });
+  }
+
+  public async approveSigningMessage(messageId: number) {
+    const messageWithId = this.getMessageById(messageId);
+    if (!this.appState.activeUserAccount) {
+      throw new Error(`No Active Account!`);
+    }
+    let activeKeyPair = this.appState.activeUserAccount.KeyPair;
+    if (!messageWithId.messageBytes || !messageWithId.messageString) {
+      messageWithId.error = new Error(
+        `Cannot sign message: ${
+          !messageWithId.messageBytes
+            ? 'message bytes were null'
+            : !messageWithId.messageString
+            ? 'message string was null'
+            : ''
+        }`
+      );
+      this.saveAndEmitEventIfNeeded(messageWithId);
+      return;
+    }
+
+    // Reject if user switches keys during signing process
+    if (
+      messageWithId.signingKey &&
+      activeKeyPair.publicKey.toHex() !== messageWithId.signingKey
+    ) {
+      messageWithId.status = 'failed';
+      messageWithId.error = new Error('Active key changed during signing');
+      this.saveAndEmitEventIfNeeded(messageWithId);
+      return;
+    }
+
+    messageWithId.signature = signFormattedMessage(
+      activeKeyPair,
+      messageWithId.messageBytes
+    );
+
+    messageWithId.status = 'signed';
+    this.saveAndEmitEventIfNeeded(messageWithId);
+  }
+
+  public async cancelSigningMessage(messageId: number) {
+    const messageWithId = this.getMessageById(messageId);
+    messageWithId.status = 'failed';
+    messageWithId.error = new Error('User Cancelled Signing');
+    this.appState.unsignedMessages.remove(messageWithId);
+    this.saveAndEmitEventIfNeeded(messageWithId);
+  }
+
   private verifyTargetAccountMatch(
     publicKeyHex: string,
     targetAccountHash: string
@@ -436,12 +589,27 @@ export default class SignMessageManager extends events.EventEmitter {
     return transferArgs;
   }
 
-  private saveAndEmitEventIfNeeded(deployWithId: deployWithID) {
-    let status = deployWithId.status;
-    this.updateDeployWithId(deployWithId);
+  private saveAndEmitEventIfNeeded(itemWithId: deployWithID | messageWithID) {
+    let status = itemWithId.status;
+    const isDeployWithId = (
+      object: deployWithID | messageWithID
+    ): object is deployWithID => {
+      return (object as deployWithID).deploy !== undefined;
+    };
+    const isMessageWithId = (
+      object: deployWithID | messageWithID
+    ): object is messageWithID => {
+      return (object as messageWithID).messageBytes !== undefined;
+    };
+
+    if (isDeployWithId(itemWithId)) {
+      this.updateDeployWithId(itemWithId);
+    } else if (isMessageWithId(itemWithId)) {
+      this.updateMessageWithId(itemWithId);
+    }
     if (status === 'failed' || status === 'signed') {
       // fire finished event, so that the Promise can resolve and return result to RPC caller
-      this.emit(`${deployWithId.id}:finished`, deployWithId);
+      this.emit(`${itemWithId.id}:finished`, itemWithId);
     }
   }
 
@@ -450,9 +618,24 @@ export default class SignMessageManager extends events.EventEmitter {
       deployData => deployData.id === deployWithId.id
     );
     if (index === -1) {
-      throw new Error(`Could not find message with id: ${deployWithId.id}`);
+      throw new Error(
+        `Could not find deploy in queue with id: ${deployWithId.id}`
+      );
     }
     this.unsignedDeploys[index] = deployWithId;
+    this.updateAppState();
+  }
+
+  private updateMessageWithId(messageWithId: messageWithID) {
+    const index = this.unsignedMessages.findIndex(
+      messageData => messageData.id === messageWithId.id
+    );
+    if (index === -1) {
+      throw new Error(
+        `Could not find message in queue with id: ${messageWithId.id}`
+      );
+    }
+    this.unsignedMessages[index] = messageWithId;
     this.updateAppState();
   }
 }

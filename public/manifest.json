@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "1.3.0",
+  "version": "1.4.0",
   "name": "CasperLabs Signer",
   "author": "https://casperlabs.io",
   "description": "CasperLabs Signer tool for signing transactions on the blockchain.",
@@ -28,7 +28,9 @@
         "*://casperholders.io/*",
         "*://*.casperholders.io/*",
         "*://casperholders.com/*",
-        "*://*.casperholders.com/*"
+        "*://*.casperholders.com/*",
+        "*://*.casperstats.io/*",
+        "*://casperstats.io/*"
       ],
       "js": ["./scripts/content/content.js"],
       "run_at": "document_start",

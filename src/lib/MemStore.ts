@@ -1,7 +1,7 @@
 import { IObservableArray, observable, computed } from 'mobx';
 import { Tab, Site } from '../background/ConnectionManager';
 import { KeyPairWithAlias } from '../@types/models';
-import { deployWithID } from '../background/SignMessageManager';
+import { deployWithID, messageWithID } from '../background/SigningManager';
 
 export class AppState {
   @observable isIntegratedSite: boolean = false;
@@ -13,7 +13,7 @@ export class AppState {
   @observable lockoutTimerStarted: boolean = false;
   timerDurationMins: number = 5;
   @observable remainingMins: number = this.timerDurationMins;
-  @observable idleTimeoutMins: number = 1;
+  @observable idleTimeoutMins: number = 2;
   @observable currentTab: Tab | null = null;
   @computed get connectionStatus(): boolean {
     const url = this.currentTab && this.currentTab.url;
@@ -35,4 +35,6 @@ export class AppState {
     observable.array<KeyPairWithAlias>([], { deep: true });
   @observable unsignedDeploys: IObservableArray<deployWithID> =
     observable.array<deployWithID>([], { deep: true });
+  @observable unsignedMessages: IObservableArray<messageWithID> =
+    observable.array<messageWithID>([], { deep: true });
 }

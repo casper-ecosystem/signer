@@ -123,11 +123,6 @@ class AccountManager {
   }
 
   @computed
-  get unsignedDeploys() {
-    return this.appState.unsignedDeploys;
-  }
-
-  @computed
   get remainingUnlockAttempts() {
     return this.appState.unlockAttempts;
   }
@@ -191,6 +186,11 @@ class AccountManager {
   @computed
   get idleTimeoutMins(): number {
     return this.appState.idleTimeoutMins;
+  }
+
+  async configureTimeout(durationMins: number) {
+    if (durationMins === this.idleTimeoutMins) return;
+    await this.backgroundManager.configureTimeout(durationMins);
   }
 }
 

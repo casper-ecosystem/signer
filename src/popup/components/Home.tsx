@@ -26,6 +26,8 @@ import Pages from './Pages';
 import { confirm } from './Confirmation';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
+import SigningContainer from '../container/SigningContainer';
+import { SignMessagePage } from './SignMessagePage';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -73,6 +75,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   authContainer: AccountManager;
   homeContainer: HomeContainer;
   connectionContainer: ConnectSignerContainer;
+  signingContainer: SigningContainer;
   popupManager: PopupManager;
   errors: ErrorContainer;
 }
@@ -154,8 +157,9 @@ class Home extends React.Component<
 
           <Grid item container>
             <form style={{ textAlign: 'center', width: '100%' }}>
-              <FormControl style={{ width: '80%' }}>
+              <FormControl style={{ width: '80%', float: 'left' }}>
                 <TextFieldWithFormState
+                  autoFocus
                   fieldState={
                     this.props.homeContainer.homeForm.$.setPasswordField
                   }
@@ -213,7 +217,7 @@ class Home extends React.Component<
                 .hasBeenValidated &&
                 !this.props.homeContainer.homeForm.$.setPasswordField
                   .hasError && (
-                  <FormControl fullWidth>
+                  <FormControl style={{ width: '80%', float: 'left' }}>
                     <TextFieldWithFormState
                       fieldState={
                         this.props.homeContainer.homeForm.$.confirmPasswordField
@@ -478,8 +482,10 @@ class Home extends React.Component<
             return <Redirect to={Pages.ConnectSigner} />;
           }
         } else {
-          if (this.props.authContainer.unsignedDeploys.length > 0) {
-            return <Redirect to={Pages.SignMessage} />;
+          if (this.props.signingContainer.deployToSign) {
+            return <Redirect to={Pages.SignDeploy} />;
+          } else if (this.props.signingContainer.messageToSign) {
+            return SignMessagePage(this.props.signingContainer);
           } else {
             return this.renderAccountLists();
           }
