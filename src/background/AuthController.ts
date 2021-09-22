@@ -31,6 +31,7 @@ export interface SerializedKeyPairWithAlias {
 interface PersistentVaultData {
   userAccounts: SerializedKeyPairWithAlias[];
   activeUserAccount: SerializedKeyPairWithAlias | null;
+  idleTimeoutMins: number;
 }
 
 function saveToFile(content: string, filename: string) {
@@ -418,7 +419,8 @@ class AuthController {
       ),
       activeUserAccount: this.appState.activeUserAccount
         ? this.serializeKeyPairWithAlias(this.appState.activeUserAccount)
-        : null
+        : null,
+      idleTimeoutMins: this.appState.idleTimeoutMins
     });
     await this.saveKeyValuetoStore(this.encryptedVaultKey, encryptedVault);
     await this.saveKeyValuetoStore(this.saltKey, this.passwordSalt!);
@@ -545,6 +547,9 @@ class AuthController {
     this.appState.activeUserAccount = vault.activeUserAccount
       ? this.deserializeKeyPairWithAlias(vault.activeUserAccount)
       : null;
+    this.appState.idleTimeoutMins = vault.idleTimeoutMins
+      ? vault.idleTimeoutMins
+      : 2;
 
     updateStatusEvent(this.appState, 'unlocked');
   }
@@ -620,6 +625,7 @@ class AuthController {
   @action.bound
   configureTimeout(durationMins: number) {
     this.appState.idleTimeoutMins = durationMins;
+    this.persistVault();
   }
 }
 
