@@ -156,7 +156,10 @@ class Home extends React.Component<
           </Grid>
 
           <Grid item container>
-            <form style={{ textAlign: 'center', width: '100%' }}>
+            <form
+              style={{ textAlign: 'center', width: '100%' }}
+              onSubmit={e => e.preventDefault()}
+            >
               <FormControl style={{ width: '80%', float: 'left' }}>
                 <TextFieldWithFormState
                   autoFocus
@@ -356,9 +359,26 @@ class Home extends React.Component<
     });
   }
 
+  async tryUnlock() {
+    let password = this.props.homeContainer.homeForm.$.unlockPasswordField.$;
+    try {
+      await this.props.authContainer.unlock(password);
+      this.props.homeContainer.homeForm.$.unlockPasswordField.reset();
+      this.props.errors.dismissLast();
+    } catch (e) {
+      this.props.homeContainer.homeForm.$.unlockPasswordField.setError(
+        (e as Error).message
+      );
+    }
+  }
+
   renderUnlock() {
     return (
-      <div>
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+        }}
+      >
         <Grid
           container
           spacing={4}
@@ -406,19 +426,7 @@ class Home extends React.Component<
                     disabled: this.props.classes.disabled
                   }}
                   disabled={this.props.homeContainer.unlockDisabled}
-                  onClick={async () => {
-                    let password =
-                      this.props.homeContainer.homeForm.$.unlockPasswordField.$;
-                    try {
-                      await this.props.authContainer.unlock(password);
-                      this.props.homeContainer.homeForm.$.unlockPasswordField.reset();
-                      this.props.errors.dismissLast();
-                    } catch (e) {
-                      this.props.homeContainer.homeForm.$.unlockPasswordField.setError(
-                        e.message
-                      );
-                    }
-                  }}
+                  onClick={async () => await this.tryUnlock()}
                 >
                   Unlock
                 </Button>
@@ -437,7 +445,7 @@ class Home extends React.Component<
             </div>
           </Grid>
         </Grid>
-      </div>
+      </form>
     );
   }
 
