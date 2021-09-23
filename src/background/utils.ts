@@ -2,6 +2,7 @@ import { AppState } from '../lib/MemStore';
 import { browser } from 'webextension-polyfill-ts';
 
 export type eventType =
+  | 'initialState'
   | 'connected'
   | 'disconnected'
   | 'tabUpdated'
