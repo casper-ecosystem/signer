@@ -254,23 +254,66 @@ class AuthController {
     this.persistVault();
   }
 
-  async downloadAccountKeys(accountAlias: string) {
+  async downloadAccountKeys(account: string | KeyPairWithAlias) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock Signer before downloading keys.');
     }
-    let accountKeys = this.getAccountFromAlias(accountAlias);
-    if (accountKeys) {
+    if (typeof account === 'string') {
+      let accountKeys = this.getAccountFromAlias(account);
+      if (accountKeys) {
+        saveToFile(
+          accountKeys.exportPrivateKeyInPem(),
+          `${account}_secret_key.pem`
+        );
+        saveToFile(
+          accountKeys.exportPublicKeyInPem(),
+          `${account}_public_key.pem`
+        );
+        saveToFile(
+          accountKeys.publicKey.toHex(),
+          `${account}_public_key_hex.txt`
+        );
+      }
+    } else if (account.KeyPair.signatureAlgorithm) {
+      let publicKey, secretKey, keyPair;
+      switch (account.KeyPair.signatureAlgorithm) {
+        case 'ed25519': {
+          console.log(
+            `${account.KeyPair.privateKey.buffer}\n\
+            ${account.KeyPair.publicKey.data}
+            `
+          );
+          secretKey = Keys.Ed25519.parsePrivateKey(account.KeyPair.privateKey);
+          publicKey = Keys.Ed25519.parsePublicKey(
+            account.KeyPair.publicKey.value()
+          );
+          keyPair = Keys.Ed25519.parseKeyPair(publicKey, secretKey);
+          break;
+        }
+        case 'secp256k1': {
+          secretKey = Keys.Secp256K1.parsePrivateKey(
+            account.KeyPair.privateKey
+          );
+          publicKey = Keys.Secp256K1.parsePublicKey(
+            account.KeyPair.publicKey.value()
+          );
+          keyPair = Keys.Secp256K1.parseKeyPair(publicKey, secretKey, 'raw');
+          break;
+        }
+        default:
+          throw new Error('Invalid signature algorithm on account creation');
+      }
       saveToFile(
-        accountKeys.exportPrivateKeyInPem(),
-        `${accountAlias}_secret_key.pem`
+        keyPair.exportPrivateKeyInPem(),
+        `${account.alias}_secret_key.pem`
       );
       saveToFile(
-        accountKeys.exportPublicKeyInPem(),
-        `${accountAlias}_public_key.pem`
+        keyPair.exportPublicKeyInPem(),
+        `${account.alias}_public_key.pem`
       );
       saveToFile(
-        accountKeys.publicKey.toHex(),
-        `${accountAlias}_public_key_hex.txt`
+        keyPair.publicKey.toHex(),
+        `${account.alias}_public_key_hex.txt`
       );
     }
   }

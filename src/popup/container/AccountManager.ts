@@ -5,7 +5,6 @@ import { AppState } from '../../lib/MemStore';
 import { KeyPairWithAlias } from '../../@types/models';
 import { FieldState, FormState } from 'formstate';
 import { valueRequired } from '../../lib/FormValidator';
-
 class AccountManager {
   constructor(
     private errors: ErrorContainer,
@@ -67,9 +66,9 @@ class AccountManager {
     return this.appState.userAccounts;
   }
 
-  async downloadPemFiles(accountAlias: string) {
+  async downloadPemFiles(account: string | KeyPairWithAlias) {
     // Save the secret and public keys to disk.
-    this.backgroundManager.downloadAccountKeys(accountAlias);
+    this.backgroundManager.downloadAccountKeys(account);
   }
 
   async downloadActiveKey() {

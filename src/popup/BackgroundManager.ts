@@ -176,9 +176,9 @@ export class BackgroundManager {
     );
   }
 
-  public downloadAccountKeys(accountAlias: string) {
+  public downloadAccountKeys(account: string | KeyPairWithAlias) {
     return this.errors.withCapture(
-      this.rpc.call<void>('account.downloadAccountKeys', accountAlias)
+      this.rpc.call<void>('account.downloadAccountKeys', account)
     );
   }
   public connectToSite(url?: string) {
