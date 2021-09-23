@@ -356,9 +356,27 @@ class Home extends React.Component<
     });
   }
 
+  async tryUnlock() {
+    let password = this.props.homeContainer.homeForm.$.unlockPasswordField.$;
+    try {
+      await this.props.authContainer.unlock(password);
+      this.props.homeContainer.homeForm.$.unlockPasswordField.reset();
+      this.props.errors.dismissLast();
+    } catch (e) {
+      this.props.homeContainer.homeForm.$.unlockPasswordField.setError(
+        e.message
+      );
+    }
+  }
+
   renderUnlock() {
     return (
-      <div>
+      <form
+        onSubmit={async e => {
+          e.preventDefault();
+          await this.tryUnlock();
+        }}
+      >
         <Grid
           container
           spacing={4}
@@ -406,19 +424,7 @@ class Home extends React.Component<
                     disabled: this.props.classes.disabled
                   }}
                   disabled={this.props.homeContainer.unlockDisabled}
-                  onClick={async () => {
-                    let password =
-                      this.props.homeContainer.homeForm.$.unlockPasswordField.$;
-                    try {
-                      await this.props.authContainer.unlock(password);
-                      this.props.homeContainer.homeForm.$.unlockPasswordField.reset();
-                      this.props.errors.dismissLast();
-                    } catch (e) {
-                      this.props.homeContainer.homeForm.$.unlockPasswordField.setError(
-                        e.message
-                      );
-                    }
-                  }}
+                  onClick={async () => await this.tryUnlock()}
                 >
                   Unlock
                 </Button>
@@ -437,7 +443,7 @@ class Home extends React.Component<
             </div>
           </Grid>
         </Grid>
-      </div>
+      </form>
     );
   }
 
