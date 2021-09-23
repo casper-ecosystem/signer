@@ -156,7 +156,10 @@ class Home extends React.Component<
           </Grid>
 
           <Grid item container>
-            <form style={{ textAlign: 'center', width: '100%' }}>
+            <form
+              style={{ textAlign: 'center', width: '100%' }}
+              onSubmit={e => e.preventDefault()}
+            >
               <FormControl style={{ width: '80%', float: 'left' }}>
                 <TextFieldWithFormState
                   autoFocus
