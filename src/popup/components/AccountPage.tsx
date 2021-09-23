@@ -16,14 +16,15 @@ import {
   WithStyles,
   FormControl,
   Box,
-  InputLabel
+  InputLabel,
+  Checkbox,
+  FormControlLabel
 } from '@material-ui/core';
 import { SelectFieldWithFormState, TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { decodeBase16, decodeBase64, Keys } from 'casper-js-sdk';
 import { KeyPairWithAlias } from '../../@types/models';
 import Pages from './Pages';
-import { confirm } from './Confirmation';
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -46,7 +47,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
 interface State {
   keyDownloadEnabled: boolean;
   algoAnchorEl: HTMLButtonElement | null;
-  revealSecretKey: boolean;
+  keyPair: KeyPairWithAlias | null;
 }
 
 @observer
@@ -63,7 +64,7 @@ class AccountPage extends React.Component<Props, State> {
     this.state = {
       keyDownloadEnabled: false,
       algoAnchorEl: null,
-      revealSecretKey: false
+      keyPair: null
     };
   }
 
@@ -112,9 +113,7 @@ class AccountPage extends React.Component<Props, State> {
       }
     }
 
-    if (this.state.keyDownloadEnabled) {
-      await this.props.authContainer.downloadPemFiles(keyPair.alias);
-    }
+    this.setState({ keyPair: keyPair });
 
     await this._onSubmit();
   }
@@ -132,6 +131,9 @@ class AccountPage extends React.Component<Props, State> {
       this.accountForm.secretKeyBase64.value,
       this.accountForm.algorithm.$
     );
+    if (this.state.keyDownloadEnabled && this.state.keyPair) {
+      await this.props.authContainer.downloadPemFiles(this.state.keyPair);
+    }
     this.props.history.push(Pages.Home);
     this.props.history.replace(Pages.Home);
   }
@@ -201,24 +203,13 @@ class AccountPage extends React.Component<Props, State> {
     );
   }
 
-  revealSecretKey = () => {
-    if (this.state.revealSecretKey) return;
-    confirm(
-      <div className="text-danger">Reveal Key</div>,
-      <span>Confirm password to reveal key</span>,
-      'Reveal',
-      'Cancel',
-      { requirePassword: true }
-    ).then(() => {
-      this.setState({ revealSecretKey: true });
-      setTimeout(() => this.setState({ revealSecretKey: false }), 5000);
-    });
-  };
-
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
     return (
-      <form className={this.props.classes.root}>
+      <form
+        className={this.props.classes.root}
+        onSubmit={e => e.preventDefault()}
+      >
         <Typography variant="h6" style={{ marginTop: '-1em' }}>
           Create Account
         </Typography>
@@ -249,6 +240,17 @@ class AccountPage extends React.Component<Props, State> {
           label="Public Key"
           id="create-public-key"
           value={formData.publicKey.$ ? formData.publicKey.$ : ''}
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              value={this.state.keyDownloadEnabled}
+              onChange={e =>
+                this.setState({ keyDownloadEnabled: e.target.checked })
+              }
+            />
+          }
+          label="Download Key?"
         />
         <FormControl fullWidth margin={'normal'}>
           <Button
