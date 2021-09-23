@@ -372,9 +372,8 @@ class Home extends React.Component<
   renderUnlock() {
     return (
       <form
-        onSubmit={async e => {
+        onSubmit={e => {
           e.preventDefault();
-          await this.tryUnlock();
         }}
       >
         <Grid
