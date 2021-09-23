@@ -124,7 +124,7 @@ class Confirmation extends React.Component<Props, { boxChecked: boolean }> {
                       this.props.proceed();
                     } catch (e) {
                       this.accountManager.confirmPasswordForm.$.confirmPasswordField.setError(
-                        e.message
+                        (e as Error).message
                       );
                     }
                   }}
