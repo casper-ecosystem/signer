@@ -195,7 +195,8 @@ class AccountManagementPage extends React.Component<Props, State> {
   };
 
   render() {
-    return !this.props.authContainer.isUnLocked ? (
+    return !this.props.authContainer.isUnLocked ||
+      !this.props.authContainer.userAccounts[0] ? (
       <Redirect to={Pages.Home} />
     ) : (
       <React.Fragment>
@@ -239,28 +240,16 @@ class AccountManagementPage extends React.Component<Props, State> {
                                       <EditIcon />
                                     </IconButton>
                                   </Tooltip>
-                                  {this.props.authContainer.userAccounts
-                                    .length > 1 ? (
-                                    <Tooltip title="Delete">
-                                      <IconButton
-                                        edge={'end'}
-                                        onClick={() => {
-                                          this.handleClickRemove(item.alias);
-                                        }}
-                                      >
-                                        <DeleteIcon />
-                                      </IconButton>
-                                    </Tooltip>
-                                  ) : (
-                                    // span is required for tooltip to work on disabled button
-                                    <Tooltip title="Can't delete only account">
-                                      <span>
-                                        <IconButton edge={'end'} disabled>
-                                          <DeleteIcon />
-                                        </IconButton>
-                                      </span>
-                                    </Tooltip>
-                                  )}
+                                  <Tooltip title="Delete">
+                                    <IconButton
+                                      edge={'end'}
+                                      onClick={() => {
+                                        this.handleClickRemove(item.alias);
+                                      }}
+                                    >
+                                      <DeleteIcon />
+                                    </IconButton>
+                                  </Tooltip>
                                   <Tooltip title="View">
                                     <IconButton
                                       edge={'end'}
