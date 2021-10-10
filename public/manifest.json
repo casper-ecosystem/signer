@@ -31,7 +31,8 @@
         "*://*.casperholders.com/*",
         "*://*.casperstats.io/*",
         "*://casperstats.io/*",
-        "*://casper-qr.vercel.app/*"
+        "*://casper-qr.vercel.app/*",
+        "*://picaswap.io/wcspr/*"
       ],
       "js": [
         "./scripts/content/content.js"
