@@ -47,11 +47,18 @@ export class ImportAccountFormData implements SubmittableFormData {
       try {
         // for Ed25519
         algorithmCheck = decoded.toPrettyString().split('\n')[3].split('|')[1];
-        if (!algorithmCheck) {
+        if (!algorithmCheck || algorithmCheck.length > 10) {
           // for Secp256k1
           algorithmCheck = decoded
             .toPrettyString()
             .split('\n')[4]
+            .split('|')[1];
+        }
+        if (!algorithmCheck || algorithmCheck.length > 10) {
+          // for Secp256k1
+          algorithmCheck = decoded
+            .toPrettyString()
+            .split('\n')[5]
             .split('|')[1];
         }
         if (!algorithmCheck) {
