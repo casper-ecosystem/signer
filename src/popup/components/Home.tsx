@@ -414,7 +414,7 @@ class Home extends React.Component<
                       this.props.errors.dismissLast();
                     } catch (e) {
                       this.props.homeContainer.homeForm.$.unlockPasswordField.setError(
-                        e.message
+                        (e as Error).message
                       );
                     }
                   }}
