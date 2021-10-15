@@ -20,7 +20,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.casperlabs.io/*", 
+        "*://*.casperlabs.io/*",
         "*://localhost/*",
         "*://*.make.services/*",
         "*://cspr.live/*",
@@ -32,12 +32,18 @@
         "*://*.casperstats.io/*",
         "*://casperstats.io/*"
       ],
-      "js": ["./scripts/content/content.js"],
+      "js": [
+        "./scripts/content/content.js"
+      ],
       "run_at": "document_start",
       "all_frames": true
     }
   ],
-  "permissions": ["notifications", "storage", "tabs"],
+  "permissions": [
+    "notifications",
+    "storage",
+    "tabs"
+  ],
   "web_accessible_resources": [
     "scripts/content/inpage.js",
     "scripts/content/signerTestMethods.js",

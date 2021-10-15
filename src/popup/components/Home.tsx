@@ -344,13 +344,12 @@ class Home extends React.Component<
   resetVaultOnClick() {
     confirm(
       <div className="text-danger">Reset Vault</div>,
-      'Resetting vault will permanently delete all accounts.',
+      'Resetting vault will permanently delete all accounts. You must have key files backed up if you want to recover them in the future.',
       'Reset',
       'Cancel',
       {
         requireCheckbox: true,
-        checkboxText:
-          'I understand that I will not be able to recover any accounts stored in my vault unless I have backed them up.'
+        checkboxText: 'I have read and understand the above.'
       }
     ).then(() => {
       this.props.authContainer.resetVault();
