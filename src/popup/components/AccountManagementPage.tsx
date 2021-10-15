@@ -73,7 +73,10 @@ class AccountManagementPage extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    this.renameAccountForm = new RenameAccountFormData();
+    const aliases = props.authContainer.userAccounts.map(account => {
+      return account.alias;
+    });
+    this.renameAccountForm = new RenameAccountFormData(aliases);
     this.state = {
       openDialog: false,
       openKeyDialog: false,
@@ -288,28 +291,32 @@ class AccountManagementPage extends React.Component<Props, State> {
           aria-label="Form to rename account - focus will be given to name input field"
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">Rename</DialogTitle>
-          <DialogContent>
-            <TextFieldWithFormState
-              fullWidth
-              label="Rename account"
-              placeholder="Account alias"
-              id="rename-account"
-              fieldState={this.renameAccountForm.name}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.handleClose} color="primary">
-              Cancel
-            </Button>
-            <Button
-              onClick={this.handleUpdateName}
-              color="primary"
-              disabled={this.renameAccountForm.submitDisabled}
-            >
-              Update
-            </Button>
-          </DialogActions>
+          <form>
+            <DialogTitle id="form-dialog-title">Rename</DialogTitle>
+            <DialogContent>
+              <TextFieldWithFormState
+                autoFocus
+                fullWidth
+                label="Rename account"
+                placeholder="Account alias"
+                id="rename-account"
+                fieldState={this.renameAccountForm.name}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.handleClose} color="primary">
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                onClick={this.handleUpdateName}
+                color="primary"
+                disabled={this.renameAccountForm.submitDisabled}
+              >
+                Update
+              </Button>
+            </DialogActions>
+          </form>
         </Dialog>
 
         <Dialog
