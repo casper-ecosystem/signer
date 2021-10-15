@@ -52,6 +52,7 @@ export default class ConnectionManager {
         const url = parseTabURL(tab.url);
         if (url && !BLACKLIST_PROTOCOLS.includes(url.protocol)) {
           this.appState.currentTab = url ? { tabId, url: url.hostname } : null;
+          updateStatusEvent(appState, 'initialState');
         }
       }
     });

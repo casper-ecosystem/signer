@@ -1,6 +1,15 @@
 import { AppState } from '../lib/MemStore';
 import { browser } from 'webextension-polyfill-ts';
 
+export type eventType =
+  | 'initialState'
+  | 'connected'
+  | 'disconnected'
+  | 'tabUpdated'
+  | 'activeKeyChanged'
+  | 'locked'
+  | 'unlocked';
+
 export function updateBadge(appState: AppState) {
   let label = '';
   let count =
@@ -18,7 +27,7 @@ export function updateBadge(appState: AppState) {
   browser.browserAction.setBadgeBackgroundColor({ color: 'red' });
 }
 
-export function updateStatusEvent(appState: AppState, msg: string) {
+export function updateStatusEvent(appState: AppState, msg: eventType) {
   if (!appState.currentTab) return;
   const savedSite = appState.connectedSites.find(
     s => s.url === appState.currentTab!.url
