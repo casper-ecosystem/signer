@@ -95,8 +95,6 @@ class AccountManagementPage extends React.Component<Props, State> {
   };
 
   handleViewKey = async (accountName: string) => {
-    // let hexKey = await this.props.authContainer.getPublicKeyHex(accountName);
-    // let hash = await this.props.authContainer.getAccountHash(accountName);
     let hexKey = await this.props.authContainer.getPublicKeyHexByAlias(
       accountName
     );
