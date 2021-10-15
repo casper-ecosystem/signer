@@ -154,21 +154,49 @@ class AccountManagementPage extends React.Component<Props, State> {
     );
   };
 
-  handleClickRemove = (name: string) => {
-    confirm(
-      <div className="text-danger">Remove account</div>,
-      <span>
-        This account will be permanently deleted. Confirm password to remove
-        account: <b>{name}</b>
-      </span>,
-      'Remove',
-      'Cancel',
-      { requirePassword: true }
-    ).then(() => this.props.authContainer.removeUserAccount(name));
+  handleClickRemove = async (name: string) => {
+    let backedUp = await this.props.authContainer.isBackedUp(name);
+    !backedUp
+      ? confirm(
+          <div className="text-danger">Back up account</div>,
+          <span>
+            This account has not been backed up.
+            <br />
+            <b>
+              You will not be able to recover this account without your key.
+            </b>
+            <br />
+            <br />
+            Would you like to download the key files for {name}?
+          </span>,
+          'Download',
+          'Cancel',
+          {}
+        ).then(
+          async () => await this.props.authContainer.downloadPemFiles(name)
+        )
+      : confirm(
+          <div className="text-danger">Remove account</div>,
+          <span>
+            This account will be permanently deleted. Confirm password to remove
+            account: <b>{name}</b>
+          </span>,
+          'Remove',
+          'Cancel',
+          {
+            requirePassword: true,
+            requireCheckbox: true,
+            checkboxText:
+              'I understand I will need the key files to recover this account'
+          }
+        ).then(
+          async () => await this.props.authContainer.removeUserAccount(name)
+        );
   };
 
   render() {
-    return !this.props.authContainer.isUnLocked ? (
+    return !this.props.authContainer.isUnLocked ||
+      !this.props.authContainer.userAccounts[0] ? (
       <Redirect to={Pages.Home} />
     ) : (
       <React.Fragment>
@@ -212,28 +240,16 @@ class AccountManagementPage extends React.Component<Props, State> {
                                       <EditIcon />
                                     </IconButton>
                                   </Tooltip>
-                                  {this.props.authContainer.userAccounts
-                                    .length > 1 ? (
-                                    <Tooltip title="Delete">
-                                      <IconButton
-                                        edge={'end'}
-                                        onClick={() => {
-                                          this.handleClickRemove(item.alias);
-                                        }}
-                                      >
-                                        <DeleteIcon />
-                                      </IconButton>
-                                    </Tooltip>
-                                  ) : (
-                                    // span is required for tooltip to work on disabled button
-                                    <Tooltip title="Can't delete only account">
-                                      <span>
-                                        <IconButton edge={'end'} disabled>
-                                          <DeleteIcon />
-                                        </IconButton>
-                                      </span>
-                                    </Tooltip>
-                                  )}
+                                  <Tooltip title="Delete">
+                                    <IconButton
+                                      edge={'end'}
+                                      onClick={() => {
+                                        this.handleClickRemove(item.alias);
+                                      }}
+                                    >
+                                      <DeleteIcon />
+                                    </IconButton>
+                                  </Tooltip>
                                   <Tooltip title="View">
                                     <IconButton
                                       edge={'end'}

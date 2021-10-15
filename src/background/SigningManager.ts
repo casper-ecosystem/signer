@@ -110,7 +110,7 @@ export default class SigningManager extends events.EventEmitter {
    */
   public getActivePublicKey() {
     return new Promise<string>((resolve, reject) => {
-      let publicKey = this.appState.activeUserAccount?.KeyPair.publicKey;
+      let publicKey = this.appState.activeUserAccount?.keyPair.publicKey;
       if (!this.appState.connectionStatus) {
         return reject(new Error('Please connect to the Signer to read key'));
       }
@@ -251,7 +251,7 @@ export default class SigningManager extends events.EventEmitter {
     if (!this.appState.activeUserAccount) {
       throw new Error(`No Active Account!`);
     }
-    let activeKeyPair = this.appState.activeUserAccount.KeyPair;
+    let activeKeyPair = this.appState.activeUserAccount.keyPair;
     if (!deployData.deploy) {
       deployData.error = new Error('Cannot sign null deploy!');
       this.saveAndEmitEventIfNeeded(deployData);
@@ -426,11 +426,11 @@ export default class SigningManager extends events.EventEmitter {
         throw new Error('Message or public key was null/undefined');
       if (
         this.appState.userAccounts.some(
-          account => account.KeyPair.publicKey.toHex() !== signingPublicKey
+          account => account.keyPair.publicKey.toHex() !== signingPublicKey
         )
       )
         throw new Error('Provided key is not present in vault.');
-      const activeKeyPair = this.appState.activeUserAccount?.KeyPair;
+      const activeKeyPair = this.appState.activeUserAccount?.keyPair;
       if (!activeKeyPair) throw new Error('No active account');
       if (activeKeyPair.publicKey.toHex() !== signingPublicKey)
         throw new Error(
@@ -470,7 +470,7 @@ export default class SigningManager extends events.EventEmitter {
           case 'signed':
             if (processedMessage.messageBytes) {
               this.appState.unsignedMessages.remove(processedMessage);
-              if (activeKeyPair !== this.appState.activeUserAccount?.KeyPair)
+              if (activeKeyPair !== this.appState.activeUserAccount?.keyPair)
                 throw new Error('Active account changed during signing.');
               const signature = signFormattedMessage(
                 activeKeyPair,
@@ -502,7 +502,7 @@ export default class SigningManager extends events.EventEmitter {
     if (!this.appState.activeUserAccount) {
       throw new Error(`No Active Account!`);
     }
-    let activeKeyPair = this.appState.activeUserAccount.KeyPair;
+    let activeKeyPair = this.appState.activeUserAccount.keyPair;
     if (!messageWithId.messageBytes || !messageWithId.messageString) {
       messageWithId.error = new Error(
         `Cannot sign message: ${

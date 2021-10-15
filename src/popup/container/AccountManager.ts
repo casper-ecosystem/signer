@@ -22,12 +22,14 @@ class AccountManager {
   async importUserAccount(
     name: string,
     secretKeyBase64: string,
-    algorithm: string
+    algorithm: string,
+    backedUp: boolean
   ) {
     return this.backgroundManager.importUserAccount(
       name,
       secretKeyBase64,
-      algorithm
+      algorithm,
+      backedUp
     );
   }
 
@@ -65,6 +67,10 @@ class AccountManager {
   @computed
   get userAccounts(): IObservableArray<KeyPairWithAlias> {
     return this.appState.userAccounts;
+  }
+
+  async isBackedUp(alias: string) {
+    return await this.backgroundManager.isBackedUp(alias);
   }
 
   async downloadPemFiles(accountAlias: string) {
@@ -177,6 +183,7 @@ class AccountManager {
   @computed
   get confirmPasswordDisabled(): boolean {
     let disabled =
+      !this.confirmPasswordForm.$.confirmPasswordField.$ ||
       !this.confirmPasswordForm.$.confirmPasswordField.hasBeenValidated ||
       (this.confirmPasswordForm.$.confirmPasswordField.hasBeenValidated &&
         this.confirmPasswordForm.$.confirmPasswordField.hasError);
