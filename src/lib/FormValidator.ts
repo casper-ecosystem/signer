@@ -37,3 +37,10 @@ export const strongPassword = (val: string) => {
   const result = owasp.test(val);
   return !result.strong && result.errors[0];
 };
+
+export const uniqueAlias = (val: string, accounts: string[]) => {
+  const unique = !accounts.some(alias => {
+    return alias == val;
+  });
+  return !unique && 'This alias is already in use';
+};

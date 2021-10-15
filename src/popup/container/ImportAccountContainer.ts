@@ -4,7 +4,8 @@ import {
   valueRequired,
   isAlgorithm,
   humanReadable,
-  minNameLength
+  minNameLength,
+  uniqueAlias
 } from '../../lib/FormValidator';
 import { action, computed, observable } from 'mobx';
 import { encodeBase64 } from 'tweetnacl-util';
@@ -185,10 +186,16 @@ export class CreateAccountFormData extends ImportAccountFormData {
 }
 
 export class RenameAccountFormData implements SubmittableFormData {
+  private accounts: string[] = [];
+  constructor(accounts: string[]) {
+    this.accounts = accounts;
+  }
+
   name: FieldState<string> = new FieldState<string>('').validators(
     valueRequired,
     minNameLength,
-    humanReadable
+    humanReadable,
+    val => uniqueAlias(val, this.accounts)
   );
 
   @computed

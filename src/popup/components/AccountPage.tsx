@@ -226,7 +226,12 @@ class AccountPage extends React.Component<Props, State> {
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
     return (
-      <form className={this.props.classes.root}>
+      <form
+        className={this.props.classes.root}
+        onSubmit={e => {
+          e.preventDefault();
+        }}
+      >
         <Typography variant="h6" style={{ marginTop: '-1em' }}>
           Create Account
         </Typography>
