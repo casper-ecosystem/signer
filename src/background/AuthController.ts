@@ -533,9 +533,9 @@ class AuthController {
     let vaultResponse;
     try {
       vaultResponse = await this.restoreVault(password);
-    } catch (e) {
+    } catch (err) {
       this.appState.unlockAttempts -= 1;
-      throw new Error(e);
+      throw err;
     }
     let vault = vaultResponse[0];
     this.passwordHash = vaultResponse[1];
@@ -613,7 +613,7 @@ class AuthController {
       await passworder.decrypt(saltedPasswordHash, encryptedVault);
       return true;
     } catch (err) {
-      throw new Error(err);
+      throw err;
     }
   }
 
