@@ -21,7 +21,7 @@ import { MainAppBar } from './components/MainAppBar';
 import AnalyticsProvider from './components/AnalyticsProvider';
 import AccountManagementPage from './components/AccountManagementPage';
 import { ConnectedSitesPage } from './components/ConnectedSitesPage';
-import IdleTimer from 'react-idle-timer';
+import { useIdleTimer } from 'react-idle-timer';
 import { SignMessagePage } from './components/SignMessagePage';
 import { ConfigureTimeoutPage } from './components/ConfigureTimeout';
 
@@ -34,18 +34,19 @@ export interface AppProps {
   connectSignerContainer: ConnectSignerContainer;
 }
 
-const App = (props: AppProps) => {
+const App = observer((props: AppProps) => {
   const lockOnIdle = () => {
     if (props.authContainer.isUnLocked) props.authContainer.lock();
   };
 
+  useIdleTimer({
+    timeout: 1000 * 60 * props.authContainer.idleTimeoutMins,
+    onIdle: lockOnIdle,
+    debounce: 500
+  });
+
   return (
     <div>
-      <IdleTimer
-        timeout={60 * 1000 * props.authContainer.idleTimeoutMins}
-        onIdle={lockOnIdle}
-        debounce={250}
-      />
       <AnalyticsProvider />
       <MainAppBar
         authContainer={props.authContainer}
@@ -147,7 +148,7 @@ const App = (props: AppProps) => {
       </Container>
     </div>
   );
-};
+});
 
 export default App;
 
