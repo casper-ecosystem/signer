@@ -62,6 +62,10 @@ async function setupPopupAPIServer() {
     accountController.reorderAccount.bind(accountController)
   );
   rpc.register(
+    'account.isBackedUp',
+    accountController.isBackedUp.bind(accountController)
+  );
+  rpc.register(
     'account.getActiveUserAccount',
     accountController.getActiveUserAccount.bind(accountController)
   );

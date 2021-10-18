@@ -80,7 +80,8 @@ describe('AuthController', () => {
       authController.importUserAccount(
         'account1',
         encodeBase64(Keys.Ed25519.new().privateKey),
-        Keys.SignatureAlgorithm.Ed25519
+        Keys.SignatureAlgorithm.Ed25519,
+        false
       )
     ).resolves.toBeUndefined();
 
@@ -96,7 +97,7 @@ describe('AuthController', () => {
         await authController.unlock(wrongPassword);
       } catch (e) {
         if (i === 0) {
-          expect(e.message).toBe('Locked out please wait');
+          expect((e as Error).message).toBe('Locked out please wait');
         } else {
           expect(appState.unlockAttempts).toEqual(i - 1);
         }
@@ -113,13 +114,15 @@ describe('AuthController', () => {
     await authController.importUserAccount(
       'account1',
       encodeBase64(Keys.Ed25519.new().privateKey),
-      Keys.SignatureAlgorithm.Ed25519
+      Keys.SignatureAlgorithm.Ed25519,
+      false
     );
     await expect(
       authController.importUserAccount(
         'account2',
         encodeBase64(Keys.Secp256K1.new().privateKey),
-        Keys.SignatureAlgorithm.Secp256K1
+        Keys.SignatureAlgorithm.Secp256K1,
+        false
       )
     ).resolves.toBeUndefined;
 
@@ -130,9 +133,7 @@ describe('AuthController', () => {
 
     // jest.toEqual is deep equal
     expect(anotherState.userAccounts).toEqual(appState.userAccounts);
-    expect(anotherState.activeUserAccount).toEqual(
-      appState.activeUserAccount
-    );
+    expect(anotherState.activeUserAccount).toEqual(appState.activeUserAccount);
   });
 
   it('should change active key, lock and unlock again', async () => {
@@ -142,7 +143,8 @@ describe('AuthController', () => {
       authController.importUserAccount(
         'newAccount',
         encodeBase64(newAccount.privateKey),
-        newAccount.signatureAlgorithm
+        newAccount.signatureAlgorithm,
+        false
       )
     ).resolves.toBeUndefined;
     authController.switchToAccount('newAccount');
@@ -158,18 +160,19 @@ describe('AuthController', () => {
       authController.importUserAccount(
         'oldName',
         encodeBase64(newAccount.privateKey),
-        newAccount.signatureAlgorithm
+        newAccount.signatureAlgorithm,
+        false
       )
     ).resolves.toBeUndefined;
     let activeAccount = authController.getActiveUserAccount();
-    expect(activeAccount.KeyPair).toStrictEqual(newAccount);
+    expect(activeAccount.keyPair).toStrictEqual(newAccount);
     expect(activeAccount.alias).toEqual('oldName');
     await authController.renameUserAccount('oldName', 'newName');
     expect(activeAccount.alias).toEqual('newName');
     await authController.lock();
     expect(appState.isUnlocked).toBeFalsy();
     await authController.unlock(password);
-    expect(authController.getActiveUserAccount().KeyPair).toStrictEqual(
+    expect(authController.getActiveUserAccount().keyPair).toStrictEqual(
       newAccount
     );
     expect(authController.getActiveUserAccount().alias).toEqual('newName');
@@ -185,21 +188,24 @@ describe('AuthController', () => {
         authController.importUserAccount(
           duplicateAccountName,
           encodeBase64(keyPair1.privateKey),
-          keyPair1.signatureAlgorithm
+          keyPair1.signatureAlgorithm,
+          false
         )
       ).resolves.toBeUndefined;
       await expect(
         authController.importUserAccount(
           duplicateAccountName,
           encodeBase64(keyPair2.privateKey),
-          keyPair2.signatureAlgorithm
+          keyPair2.signatureAlgorithm,
+          false
         )
       ).rejects.toThrow(/same name/g);
       await expect(
         authController.importUserAccount(
           'new name',
           encodeBase64(keyPair1.privateKey),
-          keyPair1.signatureAlgorithm
+          keyPair1.signatureAlgorithm,
+          false
         )
       ).rejects.toThrow(/same secret key/g);
     });
@@ -207,21 +213,25 @@ describe('AuthController', () => {
     it('should be able to switch account by account name', async () => {
       const switchAccount1: KeyPairWithAlias = {
         alias: 'Account1',
-        KeyPair: Keys.Ed25519.new()
+        keyPair: Keys.Ed25519.new(),
+        backedUp: false
       };
       const switchAccount2: KeyPairWithAlias = {
         alias: 'Account2',
-        KeyPair: Keys.Ed25519.new()
+        keyPair: Keys.Ed25519.new(),
+        backedUp: false
       };
       await authController.importUserAccount(
         switchAccount1.alias,
-        encodeBase64(switchAccount1.KeyPair.privateKey),
-        switchAccount1.KeyPair.signatureAlgorithm
+        encodeBase64(switchAccount1.keyPair.privateKey),
+        switchAccount1.keyPair.signatureAlgorithm,
+        false
       );
       await authController.importUserAccount(
         switchAccount2.alias,
-        encodeBase64(switchAccount2.KeyPair.privateKey),
-        switchAccount2.KeyPair.signatureAlgorithm
+        encodeBase64(switchAccount2.keyPair.privateKey),
+        switchAccount2.keyPair.signatureAlgorithm,
+        false
       );
 
       expect(appState.activeUserAccount).toStrictEqual(switchAccount2);
@@ -239,13 +249,14 @@ describe('AuthController', () => {
       await authController.importUserAccount(
         'newAccount',
         encodeBase64(keyPair.privateKey),
-        keyPair.signatureAlgorithm
+        keyPair.signatureAlgorithm,
+        false
       );
       await authController.lock();
       expect(authController.isUnlocked).toBeFalsy();
       await authController.unlock(password);
       expect(authController.isUnlocked).toBeTruthy();
-      expect(authController.getActiveUserAccount().KeyPair).toStrictEqual(
+      expect(authController.getActiveUserAccount().keyPair).toStrictEqual(
         keyPair
       );
     });
@@ -255,14 +266,15 @@ describe('AuthController', () => {
       authController.importUserAccount(
         'account',
         encodeBase64(keyPair.privateKey),
-        keyPair.signatureAlgorithm
+        keyPair.signatureAlgorithm,
+        false
       );
       let account = authController.getActiveUserAccount();
       expect(keyPair.publicKey.toHex()).toEqual(
-        account.KeyPair.publicKey.toHex()
+        account.keyPair.publicKey.toHex()
       );
       expect(keyPair.publicKey.toAccountHash()).toEqual(
-        account.KeyPair.publicKey.toAccountHash()
+        account.keyPair.publicKey.toAccountHash()
       );
     });
 
@@ -288,21 +300,24 @@ describe('AuthController', () => {
         authController.importUserAccount(
           duplicateAccountName,
           encodeBase64(keyPair1.privateKey),
-          keyPair1.signatureAlgorithm
+          keyPair1.signatureAlgorithm,
+          false
         )
       ).resolves.toBeUndefined;
       await expect(
         authController.importUserAccount(
           duplicateAccountName,
           encodeBase64(keyPair2.privateKey),
-          keyPair2.signatureAlgorithm
+          keyPair2.signatureAlgorithm,
+          false
         )
       ).rejects.toThrow(/same name/g);
       await expect(
         authController.importUserAccount(
           'new name',
           encodeBase64(keyPair1.privateKey),
-          keyPair1.signatureAlgorithm
+          keyPair1.signatureAlgorithm,
+          false
         )
       ).rejects.toThrow(/same secret key/g);
     });
@@ -310,21 +325,25 @@ describe('AuthController', () => {
     it('should be able to switch account by account name', async () => {
       const switchAccount1: KeyPairWithAlias = {
         alias: 'Account1',
-        KeyPair: Keys.Secp256K1.new()
+        keyPair: Keys.Secp256K1.new(),
+        backedUp: false
       };
       const switchAccount2: KeyPairWithAlias = {
         alias: 'Account2',
-        KeyPair: Keys.Secp256K1.new()
+        keyPair: Keys.Secp256K1.new(),
+        backedUp: false
       };
       await authController.importUserAccount(
         switchAccount1.alias,
-        encodeBase64(switchAccount1.KeyPair.privateKey),
-        switchAccount1.KeyPair.signatureAlgorithm
+        encodeBase64(switchAccount1.keyPair.privateKey),
+        switchAccount1.keyPair.signatureAlgorithm,
+        false
       );
       await authController.importUserAccount(
         switchAccount2.alias,
-        encodeBase64(switchAccount2.KeyPair.privateKey),
-        switchAccount2.KeyPair.signatureAlgorithm
+        encodeBase64(switchAccount2.keyPair.privateKey),
+        switchAccount2.keyPair.signatureAlgorithm,
+        false
       );
 
       expect(appState.activeUserAccount).toStrictEqual(switchAccount2);
@@ -342,14 +361,15 @@ describe('AuthController', () => {
       await authController.importUserAccount(
         'newAccount',
         encodeBase64(keyPair.privateKey),
-        keyPair.signatureAlgorithm
+        keyPair.signatureAlgorithm,
+        false
       );
       await authController.lock();
       expect(authController.isUnlocked).toBeFalsy();
       await authController.unlock(password);
       expect(authController.isUnlocked).toBeTruthy();
       expect(
-        authController.getActiveUserAccount().KeyPair.privateKey
+        authController.getActiveUserAccount().keyPair.privateKey
       ).toStrictEqual(keyPair.privateKey);
     });
 
@@ -358,14 +378,15 @@ describe('AuthController', () => {
       authController.importUserAccount(
         'account',
         encodeBase64(keyPair.privateKey),
-        keyPair.signatureAlgorithm
+        keyPair.signatureAlgorithm,
+        false
       );
       let account = authController.getActiveUserAccount();
       expect(keyPair.publicKey.toHex()).toEqual(
-        account.KeyPair.publicKey.toHex()
+        account.keyPair.publicKey.toHex()
       );
       expect(keyPair.publicKey.toAccountHash()).toEqual(
-        account.KeyPair.publicKey.toAccountHash()
+        account.keyPair.publicKey.toAccountHash()
       );
     });
 
