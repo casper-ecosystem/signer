@@ -40,7 +40,7 @@ export const strongPassword = (val: string) => {
 
 export const uniqueAlias = (val: string, accounts: string[]) => {
   const unique = !accounts.some(alias => {
-    return alias == val;
+    return alias === val;
   });
   return !unique && 'This alias is already in use';
 };
