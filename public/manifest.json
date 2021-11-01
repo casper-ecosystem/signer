@@ -35,7 +35,9 @@
         "*://picaswap.io/wcspr/*",
         "*://casperdash.io/*",
         "*://friendly.market/*",
-        "*://*.friendly.market/*"
+        "*://*.friendly.market/*",
+        "*://metacask.com/*",
+        "*://*.metacask.com/*"
       ],
       "js": [
         "./scripts/content/content.js"
