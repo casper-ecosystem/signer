@@ -51,7 +51,7 @@
     "tweetnacl-ts": "latest",
     "tweetnacl-util": "^0.15.1",
     "typedjson": "^1.7.0",
-    "validator": "^12.2.0",
+    "validator": "^13.7.0",
     "webpack": "4.44.2",
     "webpack-extension-reloader": "^1.1.4",
     "yup": "^0.28.1"
