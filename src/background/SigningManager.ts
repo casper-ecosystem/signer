@@ -158,7 +158,7 @@ export default class SigningManager extends events.EventEmitter {
         });
       }
     } catch (err) {
-      throw new Error(err);
+      throw err;
     }
 
     this.updateAppState();
@@ -385,7 +385,7 @@ export default class SigningManager extends events.EventEmitter {
           });
           deployArgs['Entry Point'] = storedContract.entryPoint;
         } catch (err) {
-          throw new Error(err);
+          throw err;
         }
       }
       return {
@@ -424,18 +424,25 @@ export default class SigningManager extends events.EventEmitter {
 
       if (!message || !signingPublicKey)
         throw new Error('Message or public key was null/undefined');
+
+      let activeKeyPair = this.appState.activeUserAccount?.keyPair;
+      if (!activeKeyPair) throw new Error('No active account');
       if (
         this.appState.userAccounts.some(
-          account => account.keyPair.publicKey.toHex() !== signingPublicKey
+          account => account.keyPair.publicKey.toHex() === signingPublicKey
         )
-      )
+      ) {
+        // The provided key matches one of the keys in the vault.
+        if (activeKeyPair.publicKey.toHex() !== signingPublicKey) {
+          // But it is not set as the Active Key and therefore the signing is cancelled.
+          throw new Error(
+            'Provided key is not set as Active Key - please set it and try again.'
+          );
+        }
+      } else {
+        // The provided key didn't match any of the keys in the vault.
         throw new Error('Provided key is not present in vault.');
-      const activeKeyPair = this.appState.activeUserAccount?.keyPair;
-      if (!activeKeyPair) throw new Error('No active account');
-      if (activeKeyPair.publicKey.toHex() !== signingPublicKey)
-        throw new Error(
-          'Provided key is not set as Active Key - please set it and try again.'
-        );
+      }
 
       const messageId = this.createId();
       let messageBytes;
@@ -453,7 +460,7 @@ export default class SigningManager extends events.EventEmitter {
           status: 'unsigned'
         });
       } catch (err) {
-        throw new Error(err);
+        throw err;
       }
 
       this.updateAppState();
@@ -472,6 +479,8 @@ export default class SigningManager extends events.EventEmitter {
               this.appState.unsignedMessages.remove(processedMessage);
               if (activeKeyPair !== this.appState.activeUserAccount?.keyPair)
                 throw new Error('Active account changed during signing.');
+              if (!activeKeyPair)
+                throw new Error('No Active Key set - set it and try again.');
               const signature = signFormattedMessage(
                 activeKeyPair,
                 processedMessage.messageBytes
