@@ -14,6 +14,7 @@ import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
 import { saveAs } from 'file-saver';
 import { updateStatusEvent } from './utils';
+import PopupManager from './PopupManager';
 // import KeyEncoder from 'key-encoder';
 
 interface TimerStore {
@@ -54,7 +55,11 @@ class AuthController {
   private timerStore: Bucket<TimerStore>;
   private timer: any;
 
+  private popupManager: PopupManager;
+
   constructor(private appState: AppState) {
+    this.popupManager = new PopupManager();
+
     this.timerStore = getBucket<TimerStore>('timerStore');
     this.timerStore
       .get('lockedOutTimestampMillis')
@@ -231,6 +236,8 @@ class AuthController {
     this.appState.activeUserAccount =
       this.appState.userAccounts[this.appState.userAccounts.length - 1];
     this.persistVault();
+
+    this.popupManager.closePopup();
   }
 
   @action
