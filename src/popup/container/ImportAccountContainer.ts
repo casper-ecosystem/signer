@@ -4,7 +4,8 @@ import {
   valueRequired,
   isAlgorithm,
   humanReadable,
-  minNameLength
+  minNameLength,
+  uniqueAlias
 } from '../../lib/FormValidator';
 import { action, computed, observable } from 'mobx';
 import { encodeBase64 } from 'tweetnacl-util';
@@ -41,32 +42,25 @@ export class ImportAccountFormData implements SubmittableFormData {
         ? Hex.decode(val)
         : Base64.unarmor(val);
       decoded = ASN1.decode(der);
-      let algorithmCheck: string;
 
       // Get the algorithm
       try {
-        // for Ed25519
-        algorithmCheck = decoded.toPrettyString().split('\n')[3].split('|')[1];
-        if (!algorithmCheck) {
-          // for Secp256k1
-          algorithmCheck = decoded
-            .toPrettyString()
-            .split('\n')[4]
-            .split('|')[1];
-        }
-        if (!algorithmCheck) {
-          this.errors.capture(
-            Promise.reject('Could not parse algorithm from DER encoding')
-          );
-        }
-        if (algorithmCheck === 'curveEd25519') {
+        let ed25519: boolean = decoded
+          .toPrettyString()
+          .includes('curveEd25519');
+        let secp256k1: boolean = decoded.toPrettyString().includes('secp256k1');
+        if (ed25519) {
           this.algorithm.onChange('ed25519');
           let hexKey = decoded.toPrettyString().split('\n')[4].split('|')[1];
           this.secretKeyBase64.onChange(encodeBase64(decodeBase16(hexKey)));
-        } else {
-          this.algorithm.onChange(algorithmCheck);
+        } else if (secp256k1) {
+          this.algorithm.onChange('secp256k1');
           let hexKey = decoded.toPrettyString().split('\n')[2].split('|')[1];
           this.secretKeyBase64.onChange(encodeBase64(decodeBase16(hexKey)));
+        } else {
+          this.errors.capture(
+            Promise.reject('Could not parse algorithm from DER encoding')
+          );
         }
       } catch (err) {
         this.errors.capture(Promise.reject(err));
@@ -192,10 +186,16 @@ export class CreateAccountFormData extends ImportAccountFormData {
 }
 
 export class RenameAccountFormData implements SubmittableFormData {
+  private accounts: string[] = [];
+  constructor(accounts: string[]) {
+    this.accounts = accounts;
+  }
+
   name: FieldState<string> = new FieldState<string>('').validators(
     valueRequired,
     minNameLength,
-    humanReadable
+    humanReadable,
+    val => uniqueAlias(val, this.accounts)
   );
 
   @computed

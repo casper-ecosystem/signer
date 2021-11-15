@@ -25,6 +25,11 @@ import { KeyPairWithAlias } from '../../@types/models';
 import Pages from './Pages';
 import { confirm } from './Confirmation';
 
+enum method {
+  'Created',
+  'Imported'
+}
+
 const styles = (theme: Theme) =>
   createStyles({
     root: {
@@ -89,21 +94,23 @@ class AccountPage extends React.Component<Props, State> {
       case 'ed25519': {
         keyPair = {
           alias: formData.name.$,
-          KeyPair: Keys.Ed25519.parseKeyPair(
+          keyPair: Keys.Ed25519.parseKeyPair(
             decodeBase16(formData.publicKey.$.substring(2)),
             decodeBase64(formData.secretKeyBase64.value)
-          )
+          ),
+          backedUp: false
         };
         break;
       }
       case 'secp256k1': {
         keyPair = {
           alias: formData.name.$,
-          KeyPair: Keys.Secp256K1.parseKeyPair(
+          keyPair: Keys.Secp256K1.parseKeyPair(
             decodeBase16(formData.publicKey.$.substring(2)),
             decodeBase64(formData.secretKeyBase64.value),
             'raw'
-          )
+          ),
+          backedUp: false
         };
         break;
       }
@@ -116,21 +123,22 @@ class AccountPage extends React.Component<Props, State> {
       await this.props.authContainer.downloadPemFiles(keyPair.alias);
     }
 
-    await this._onSubmit();
+    await this._onSubmit(method.Created);
   }
 
   onImportAccount() {
     if (this.accountForm.submitDisabled) {
       return;
     }
-    this._onSubmit();
+    this._onSubmit(method.Imported);
   }
 
-  async _onSubmit() {
+  async _onSubmit(source: method) {
     await this.props.authContainer.importUserAccount(
       this.accountForm.name.$,
       this.accountForm.secretKeyBase64.value,
-      this.accountForm.algorithm.$
+      this.accountForm.algorithm.$,
+      source === method.Created ? false : true
     );
     this.props.history.push(Pages.Home);
     this.props.history.replace(Pages.Home);
@@ -218,7 +226,12 @@ class AccountPage extends React.Component<Props, State> {
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
     return (
-      <form className={this.props.classes.root}>
+      <form
+        className={this.props.classes.root}
+        onSubmit={e => {
+          e.preventDefault();
+        }}
+      >
         <Typography variant="h6" style={{ marginTop: '-1em' }}>
           Create Account
         </Typography>

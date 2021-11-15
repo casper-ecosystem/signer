@@ -73,7 +73,10 @@ class AccountManagementPage extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    this.renameAccountForm = new RenameAccountFormData();
+    const aliases = props.authContainer.userAccounts.map(account => {
+      return account.alias;
+    });
+    this.renameAccountForm = new RenameAccountFormData(aliases);
     this.state = {
       openDialog: false,
       openKeyDialog: false,
@@ -95,8 +98,6 @@ class AccountManagementPage extends React.Component<Props, State> {
   };
 
   handleViewKey = async (accountName: string) => {
-    // let hexKey = await this.props.authContainer.getPublicKeyHex(accountName);
-    // let hash = await this.props.authContainer.getAccountHash(accountName);
     let hexKey = await this.props.authContainer.getPublicKeyHexByAlias(
       accountName
     );
@@ -154,21 +155,49 @@ class AccountManagementPage extends React.Component<Props, State> {
     );
   };
 
-  handleClickRemove = (name: string) => {
-    confirm(
-      <div className="text-danger">Remove account</div>,
-      <span>
-        This account will be permanently deleted. Confirm password to remove
-        account: <b>{name}</b>
-      </span>,
-      'Remove',
-      'Cancel',
-      { requirePassword: true }
-    ).then(() => this.props.authContainer.removeUserAccount(name));
+  handleClickRemove = async (name: string) => {
+    let backedUp = await this.props.authContainer.isBackedUp(name);
+    !backedUp
+      ? confirm(
+          <div className="text-danger">Back up account</div>,
+          <span>
+            This account has not been backed up.
+            <br />
+            <b>
+              You will not be able to recover this account without your key.
+            </b>
+            <br />
+            <br />
+            Would you like to download the key files for {name}?
+          </span>,
+          'Download',
+          'Cancel',
+          {}
+        ).then(
+          async () => await this.props.authContainer.downloadPemFiles(name)
+        )
+      : confirm(
+          <div className="text-danger">Remove account</div>,
+          <span>
+            This account will be permanently deleted. Confirm password to remove
+            account: <b>{name}</b>
+          </span>,
+          'Remove',
+          'Cancel',
+          {
+            requirePassword: true,
+            requireCheckbox: true,
+            checkboxText:
+              'I understand I will need the key files to recover this account'
+          }
+        ).then(
+          async () => await this.props.authContainer.removeUserAccount(name)
+        );
   };
 
   render() {
-    return !this.props.authContainer.isUnLocked ? (
+    return !this.props.authContainer.isUnLocked ||
+      !this.props.authContainer.userAccounts[0] ? (
       <Redirect to={Pages.Home} />
     ) : (
       <React.Fragment>
@@ -212,28 +241,16 @@ class AccountManagementPage extends React.Component<Props, State> {
                                       <EditIcon />
                                     </IconButton>
                                   </Tooltip>
-                                  {this.props.authContainer.userAccounts
-                                    .length > 1 ? (
-                                    <Tooltip title="Delete">
-                                      <IconButton
-                                        edge={'end'}
-                                        onClick={() => {
-                                          this.handleClickRemove(item.alias);
-                                        }}
-                                      >
-                                        <DeleteIcon />
-                                      </IconButton>
-                                    </Tooltip>
-                                  ) : (
-                                    // span is required for tooltip to work on disabled button
-                                    <Tooltip title="Can't delete only account">
-                                      <span>
-                                        <IconButton edge={'end'} disabled>
-                                          <DeleteIcon />
-                                        </IconButton>
-                                      </span>
-                                    </Tooltip>
-                                  )}
+                                  <Tooltip title="Delete">
+                                    <IconButton
+                                      edge={'end'}
+                                      onClick={() => {
+                                        this.handleClickRemove(item.alias);
+                                      }}
+                                    >
+                                      <DeleteIcon />
+                                    </IconButton>
+                                  </Tooltip>
                                   <Tooltip title="View">
                                     <IconButton
                                       edge={'end'}
@@ -274,28 +291,32 @@ class AccountManagementPage extends React.Component<Props, State> {
           aria-label="Form to rename account - focus will be given to name input field"
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">Rename</DialogTitle>
-          <DialogContent>
-            <TextFieldWithFormState
-              fullWidth
-              label="Rename account"
-              placeholder="Account alias"
-              id="rename-account"
-              fieldState={this.renameAccountForm.name}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.handleClose} color="primary">
-              Cancel
-            </Button>
-            <Button
-              onClick={this.handleUpdateName}
-              color="primary"
-              disabled={this.renameAccountForm.submitDisabled}
-            >
-              Update
-            </Button>
-          </DialogActions>
+          <form>
+            <DialogTitle id="form-dialog-title">Rename</DialogTitle>
+            <DialogContent>
+              <TextFieldWithFormState
+                autoFocus
+                fullWidth
+                label="Rename account"
+                placeholder="Account alias"
+                id="rename-account"
+                fieldState={this.renameAccountForm.name}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.handleClose} color="primary">
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                onClick={this.handleUpdateName}
+                color="primary"
+                disabled={this.renameAccountForm.submitDisabled}
+              >
+                Update
+              </Button>
+            </DialogActions>
+          </form>
         </Dialog>
 
         <Dialog

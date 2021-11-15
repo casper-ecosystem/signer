@@ -59,90 +59,127 @@ class Confirmation extends React.Component<Props, { boxChecked: boolean }> {
         onClose={this.props.dismiss}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
+        style={{ margin: '-1rem -0.5rem' }}
       >
         <DialogTitle id="alert-dialog-title">{this.props.title}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {this.props.confirmation}
-          </DialogContentText>
-          {this.props.options.requirePassword && (
-            <FormControl>
-              <TextFieldWithFormState
-                autoFocus={true}
-                fieldState={
-                  this.accountManager.confirmPasswordForm.$.confirmPasswordField
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+          }}
+        >
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              {this.props.confirmation}
+            </DialogContentText>
+            {this.props.options.requireCheckbox && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    style={{ alignSelf: 'flex-start' }}
+                    checked={this.state.boxChecked}
+                    onChange={this.handleCheckboxChange}
+                  />
                 }
-                required
-                label={'Password'}
-                type={'password'}
-              />
-            </FormControl>
-          )}
-          {this.props.options.requireCheckbox && (
-            <FormControlLabel
-              control={
-                <Checkbox
-                  style={{ alignSelf: 'flex-start' }}
-                  checked={this.state.boxChecked}
-                  onChange={this.handleCheckboxChange}
-                />
-              }
-              label={this.props.options.checkboxText}
-              // Needs styling - the font's a bit big
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              this.props.cancel();
-            }}
-            color="secondary"
-          >
-            {this.props.cancelLabel}
-          </Button>
-          {this.props.options.requirePassword ? (
-            <FormControl>
-              <Button
-                type="submit"
-                // TODO: Disable doesn't work - doesn't enable when field is non-null.
-                // disabled={this.accountManager.confirmPasswordDisabled}
-                onClick={async () => {
-                  let givenPassword =
-                    this.accountManager.confirmPasswordForm.$
-                      .confirmPasswordField.$;
-                  try {
-                    await this.accountManager.confirmPassword(givenPassword);
-                    this.accountManager.confirmPasswordForm.$.confirmPasswordField.reset();
-                    this.errors.dismissLast();
-                    this.props.proceed();
-                  } catch (e) {
-                    this.accountManager.confirmPasswordForm.$.confirmPasswordField.setError(
-                      e.message
-                    );
-                  }
+                label={this.props.options.checkboxText}
+                style={{
+                  fontSize: '0.6rem',
+                  marginRight: '-1rem',
+                  marginBottom: this.props.options.requirePassword
+                    ? '0.5rem'
+                    : 'auto'
                 }}
-                color="primary"
-              >
-                {this.props.proceedLabel}
-              </Button>
-            </FormControl>
-          ) : (
+              />
+            )}
+            {this.props.options.requirePassword && (
+              <FormControl>
+                <TextFieldWithFormState
+                  autoFocus={true}
+                  fieldState={
+                    this.accountManager.confirmPasswordForm.$
+                      .confirmPasswordField
+                  }
+                  required
+                  label={'Password'}
+                  type={'password'}
+                />
+              </FormControl>
+            )}
+          </DialogContent>
+          <DialogActions>
             <Button
-              disabled={
-                this.props.options.requireCheckbox
-                  ? !this.state.boxChecked
-                  : false
-              }
               onClick={() => {
-                this.props.proceed();
+                this.props.cancel();
               }}
-              color="primary"
+              color="secondary"
             >
-              {this.props.proceedLabel}
+              {this.props.cancelLabel}
             </Button>
-          )}
-        </DialogActions>
+            <FormControl>
+              {this.props.options.requireCheckbox &&
+              this.props.options.requirePassword ? (
+                <Button
+                  type="submit"
+                  disabled={!this.state.boxChecked}
+                  onClick={async () => {
+                    let givenPassword =
+                      this.accountManager.confirmPasswordForm.$
+                        .confirmPasswordField.$;
+                    try {
+                      await this.accountManager.confirmPassword(givenPassword);
+                      this.accountManager.confirmPasswordForm.$.confirmPasswordField.reset();
+                      this.errors.dismissLast();
+                      this.props.proceed();
+                    } catch (e) {
+                      this.accountManager.confirmPasswordForm.$.confirmPasswordField.setError(
+                        (e as Error).message
+                      );
+                    }
+                  }}
+                  color="primary"
+                >
+                  {this.props.proceedLabel}
+                </Button>
+              ) : this.props.options.requirePassword ? (
+                <Button
+                  type="submit"
+                  onClick={async () => {
+                    let givenPassword =
+                      this.accountManager.confirmPasswordForm.$
+                        .confirmPasswordField.$;
+                    try {
+                      await this.accountManager.confirmPassword(givenPassword);
+                      this.accountManager.confirmPasswordForm.$.confirmPasswordField.reset();
+                      this.errors.dismissLast();
+                      this.props.proceed();
+                    } catch (e) {
+                      this.accountManager.confirmPasswordForm.$.confirmPasswordField.setError(
+                        (e as Error).message
+                      );
+                    }
+                  }}
+                  color="primary"
+                >
+                  {this.props.proceedLabel}
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  disabled={
+                    this.props.options.requireCheckbox
+                      ? !this.state.boxChecked
+                      : false
+                  }
+                  onClick={() => {
+                    this.props.proceed();
+                  }}
+                  color="primary"
+                >
+                  {this.props.proceedLabel}
+                </Button>
+              )}
+            </FormControl>
+          </DialogActions>
+        </form>
       </Dialog>
     );
   }

@@ -26,11 +26,13 @@ export interface SerializedKeyPairWithAlias {
     publicKey: string; // hex encoded
     secretKey: string; // hex encoded
   };
+  backedUp: boolean;
 }
 
 interface PersistentVaultData {
   userAccounts: SerializedKeyPairWithAlias[];
   activeUserAccount: SerializedKeyPairWithAlias | null;
+  idleTimeoutMins: number;
 }
 
 function saveToFile(content: string, filename: string) {
@@ -79,7 +81,7 @@ class AuthController {
       port.onDisconnect.addListener(() => {
         this.timer = setTimeout(() => {
           if (this.isUnlocked) this.lock();
-        }, 1000 * 60);
+        }, 1000 * 60 * this.appState.idleTimeoutMins);
       });
     });
   }
@@ -136,7 +138,7 @@ class AuthController {
       throw new Error('There is no active key');
     }
     let account = this.appState.activeUserAccount;
-    return account.KeyPair.publicKey.toHex();
+    return account.keyPair.publicKey.toHex();
   }
 
   getActiveAccountHash(): string {
@@ -144,7 +146,7 @@ class AuthController {
       throw new Error('There is no active key');
     }
     let account = this.appState.activeUserAccount;
-    return encodeBase16(account.KeyPair.publicKey.toAccountHash());
+    return encodeBase16(account.keyPair.publicKey.toAccountHash());
   }
 
   getAccountFromAlias(alias: string) {
@@ -152,19 +154,19 @@ class AuthController {
     let account = this.appState.userAccounts.find(storedAccount => {
       return storedAccount.alias === alias;
     });
-    return account?.KeyPair;
+    return account;
   }
 
   getPublicKeyHexByAlias(alias: string): string {
     let account = this.getAccountFromAlias(alias);
     if (!account) throw new Error('Retrieved account was undefined | null');
-    return account?.accountHex();
+    return account?.keyPair.accountHex();
   }
 
   getAccountHashByAlias(alias: string): string {
     let account = this.getAccountFromAlias(alias);
     if (!account) throw new Error('Retrieved account was undefined | null');
-    return encodeBase16(account.accountHash());
+    return encodeBase16(account.keyPair.accountHash());
   }
 
   @action
@@ -180,7 +182,8 @@ class AuthController {
   async importUserAccount(
     name: string,
     secretKeyBase64: string,
-    algorithm: string
+    algorithm: string,
+    backedUp: boolean
   ) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock it before adding new account');
@@ -189,7 +192,7 @@ class AuthController {
     let duplicateAccount = this.appState.userAccounts.find(account => {
       return (
         account.alias === name ||
-        encodeBase64(account.KeyPair.privateKey) === secretKeyBase64
+        encodeBase64(account.keyPair.privateKey) === secretKeyBase64
       );
     });
 
@@ -222,7 +225,8 @@ class AuthController {
 
     this.appState.userAccounts.push({
       alias: name,
-      KeyPair: keyPair
+      keyPair,
+      backedUp
     });
     this.appState.activeUserAccount =
       this.appState.userAccounts[this.appState.userAccounts.length - 1];
@@ -258,20 +262,18 @@ class AuthController {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock Signer before downloading keys.');
     }
-    let accountKeys = this.getAccountFromAlias(accountAlias);
-    if (accountKeys) {
+    let account = this.getAccountFromAlias(accountAlias);
+    let keys = account?.keyPair;
+
+    if (account && keys) {
       saveToFile(
-        accountKeys.exportPrivateKeyInPem(),
+        keys.exportPrivateKeyInPem(),
         `${accountAlias}_secret_key.pem`
       );
-      saveToFile(
-        accountKeys.exportPublicKeyInPem(),
-        `${accountAlias}_public_key.pem`
-      );
-      saveToFile(
-        accountKeys.publicKey.toHex(),
-        `${accountAlias}_public_key_hex.txt`
-      );
+      saveToFile(keys.exportPublicKeyInPem(), `${accountAlias}_public_key.pem`);
+      saveToFile(keys.publicKey.toHex(), `${accountAlias}_public_key_hex.txt`);
+      account.backedUp = true;
+      this.persistVault();
     }
   }
 
@@ -341,6 +343,11 @@ class AuthController {
     this.persistVault();
   }
 
+  async isBackedUp(alias: string) {
+    let account = this.getAccountFromAlias(alias);
+    return account?.backedUp;
+  }
+
   /**
    * Serialize and Deserialize is needed for ByteArray(or Uint8Array),
    * since JSON.parse(JSON.stringify(ByteArray)) !== ByteArray
@@ -357,9 +364,10 @@ class AuthController {
     return {
       name: KeyPairWithAlias.alias,
       keyPair: {
-        publicKey: KeyPairWithAlias.KeyPair.publicKey.toHex(),
-        secretKey: encodeBase64(KeyPairWithAlias.KeyPair.privateKey)
-      }
+        publicKey: KeyPairWithAlias.keyPair.publicKey.toHex(),
+        secretKey: encodeBase64(KeyPairWithAlias.keyPair.privateKey)
+      },
+      backedUp: KeyPairWithAlias.backedUp
     };
   }
 
@@ -402,7 +410,8 @@ class AuthController {
 
     return {
       alias: serializedKeyPairWithAlias.name,
-      KeyPair: deserializedKeyPair
+      keyPair: deserializedKeyPair,
+      backedUp: serializedKeyPairWithAlias.backedUp
     };
   }
 
@@ -418,7 +427,8 @@ class AuthController {
       ),
       activeUserAccount: this.appState.activeUserAccount
         ? this.serializeKeyPairWithAlias(this.appState.activeUserAccount)
-        : null
+        : null,
+      idleTimeoutMins: this.appState.idleTimeoutMins
     });
     await this.saveKeyValuetoStore(this.encryptedVaultKey, encryptedVault);
     await this.saveKeyValuetoStore(this.saltKey, this.passwordSalt!);
@@ -531,9 +541,9 @@ class AuthController {
     let vaultResponse;
     try {
       vaultResponse = await this.restoreVault(password);
-    } catch (e) {
+    } catch (err) {
       this.appState.unlockAttempts -= 1;
-      throw new Error(e);
+      throw err;
     }
     let vault = vaultResponse[0];
     this.passwordHash = vaultResponse[1];
@@ -545,6 +555,9 @@ class AuthController {
     this.appState.activeUserAccount = vault.activeUserAccount
       ? this.deserializeKeyPairWithAlias(vault.activeUserAccount)
       : null;
+    this.appState.idleTimeoutMins = vault.idleTimeoutMins
+      ? vault.idleTimeoutMins
+      : 2;
 
     updateStatusEvent(this.appState, 'unlocked');
   }
@@ -608,7 +621,7 @@ class AuthController {
       await passworder.decrypt(saltedPasswordHash, encryptedVault);
       return true;
     } catch (err) {
-      throw new Error(err);
+      throw err;
     }
   }
 
@@ -620,6 +633,7 @@ class AuthController {
   @action.bound
   configureTimeout(durationMins: number) {
     this.appState.idleTimeoutMins = durationMins;
+    this.persistVault();
   }
 }
 

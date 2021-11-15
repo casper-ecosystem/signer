@@ -60,14 +60,16 @@ export class BackgroundManager {
   public importUserAccount(
     name: string,
     secretKeyBase64: string,
-    algorithm: string
+    algorithm: string,
+    backedUp: boolean
   ) {
     return this.errors.withCapture(
       this.rpc.call<void>(
         'account.importUserAccount',
         name,
         secretKeyBase64,
-        algorithm
+        algorithm,
+        backedUp
       )
     );
   }
@@ -81,6 +83,12 @@ export class BackgroundManager {
   public removeUserAccount(name: string) {
     return this.errors.withCapture(
       this.rpc.call<void>('account.removeUserAccount', name)
+    );
+  }
+
+  public isBackedUp(alias: string) {
+    return this.errors.withCapture(
+      this.rpc.call<boolean>('account.isBackedUp', alias)
     );
   }
 
