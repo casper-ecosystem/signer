@@ -4,6 +4,7 @@ import { encodeBase64 } from 'tweetnacl-ts';
 import { storage } from '@extend-chrome/storage';
 import { Keys } from 'casper-js-sdk';
 import { KeyPairWithAlias } from '../@types/models';
+import PopupManager from './PopupManager';
 
 jest.mock('@extend-chrome/storage', () => {
   const memoryStore = new Map();
@@ -51,13 +52,15 @@ jest.mock('webextension-polyfill-ts', () => ({ browser: {} }));
 
 describe('AuthController', () => {
   let appState: AppState;
+  let popupManager: PopupManager;
   let authController: AuthController;
   const password = 'correct_password';
   const wrongPassword = 'wrong_password';
 
   beforeEach(async () => {
     appState = new AppState();
-    authController = new AuthController(appState);
+    popupManager = new PopupManager();
+    authController = new AuthController(appState, popupManager);
     storage.local.remove('encryptedVault');
     await expect(
       authController.createNewVault(password)
@@ -128,7 +131,7 @@ describe('AuthController', () => {
 
     // restore from storage
     const anotherState = new AppState();
-    const anotherAuthContainer = new AuthController(anotherState);
+    const anotherAuthContainer = new AuthController(anotherState, popupManager);
     await anotherAuthContainer.unlock(password);
 
     // jest.toEqual is deep equal

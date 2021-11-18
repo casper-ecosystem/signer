@@ -55,11 +55,7 @@ class AuthController {
   private timerStore: Bucket<TimerStore>;
   private timer: any;
 
-  private popupManager: PopupManager;
-
-  constructor(private appState: AppState) {
-    this.popupManager = new PopupManager();
-
+  constructor(private appState: AppState, private popupManager: PopupManager) {
     this.timerStore = getBucket<TimerStore>('timerStore');
     this.timerStore
       .get('lockedOutTimestampMillis')

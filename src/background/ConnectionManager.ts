@@ -27,11 +27,9 @@ const parseTabURL = (url: string | undefined): URL | undefined => {
 };
 
 export default class ConnectionManager {
-  private popupManager: PopupManager;
   private store: Bucket<ConnectionManagerStore>;
 
-  constructor(private appState: AppState) {
-    this.popupManager = new PopupManager();
+  constructor(private appState: AppState, private popupManager: PopupManager) {
     this.appState = appState;
 
     this.store = getBucket<ConnectionManagerStore>('store');
