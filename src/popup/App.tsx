@@ -24,14 +24,15 @@ import { ConnectedSitesPage } from './components/ConnectedSitesPage';
 import { useIdleTimer } from 'react-idle-timer';
 import { SignMessagePage } from './components/SignMessagePage';
 import { ConfigureTimeoutPage } from './components/ConfigureTimeout';
+import PopupContainer from './container/PopupContainer';
 
 export interface AppProps {
   errors: ErrorContainer;
   authContainer: AccountManager;
-  popupManager: PopupManager;
   homeContainer: HomeContainer;
   signingContainer: SigningContainer;
   connectSignerContainer: ConnectSignerContainer;
+  popupContainer: PopupContainer;
 }
 
 const App = observer((props: AppProps) => {
@@ -64,7 +65,7 @@ const App = observer((props: AppProps) => {
                 homeContainer={props.homeContainer}
                 connectionContainer={props.connectSignerContainer}
                 signingContainer={props.signingContainer}
-                popupManager={props.popupManager}
+                popupContainer={props.popupContainer}
                 errors={props.errors}
               />
             )}
@@ -125,7 +126,12 @@ const App = observer((props: AppProps) => {
           <Route
             path={Pages.SignMessage}
             exact
-            render={_ => SignMessagePage(props.signingContainer)}
+            render={_ =>
+              SignMessagePage({
+                signingContainer: props.signingContainer,
+                popupContainer: props.popupContainer
+              })
+            }
           />
           <Route
             path={Pages.ConnectSigner}

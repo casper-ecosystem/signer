@@ -17,7 +17,6 @@ import NotInterestedIcon from '@material-ui/icons/NotInterested';
 import HelpIcon from '@material-ui/icons/Help';
 import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
-import PopupManager from '../../background/PopupManager';
 import { HomeContainer } from '../container/HomeContainer';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import ErrorContainer from '../container/ErrorContainer';
@@ -27,7 +26,7 @@ import { confirm } from './Confirmation';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
 import SigningContainer from '../container/SigningContainer';
-import { SignMessagePage } from './SignMessagePage';
+import PopupContainer from '../container/PopupContainer';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -76,8 +75,8 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   homeContainer: HomeContainer;
   connectionContainer: ConnectSignerContainer;
   signingContainer: SigningContainer;
-  popupManager: PopupManager;
   errors: ErrorContainer;
+  popupContainer: PopupContainer;
 }
 
 @observer
@@ -308,9 +307,15 @@ class Home extends React.Component<
                 component={Link}
                 variant="contained"
                 color="primary"
-                onClick={() =>
-                  this.props.popupManager.openPopup('importAccount')
-                }
+                onClick={async () => {
+                  try {
+                    await this.props.popupContainer.callOpenPopup(
+                      'importAccount'
+                    );
+                  } catch (err) {
+                    throw err;
+                  }
+                }}
                 to={Pages.ImportAccount}
                 style={{
                   backgroundColor: '#fff',
@@ -492,7 +497,7 @@ class Home extends React.Component<
           if (this.props.signingContainer.deployToSign) {
             return <Redirect to={Pages.SignDeploy} />;
           } else if (this.props.signingContainer.messageToSign) {
-            return SignMessagePage(this.props.signingContainer);
+            return <Redirect to={Pages.SignMessage} />;
           } else {
             return this.renderAccountLists();
           }
@@ -510,30 +515,32 @@ class Home extends React.Component<
   }
   // Nicer way to handle the rendering however this currently breaks some flows
   // leaving here for me to implement in next release.
-  // render() {
-  //   return this.props.authContainer.hasCreatedVault ? (
-  //     this.props.authContainer.isUnLocked ? (
-  //       !this.props.connectionContainer.connectionStatus &&
-  //       this.props.connectionContainer.connectionRequested ? (
-  //         this.props.authContainer.userAccounts.length > 1 ? (
-  //           this.renderAccountLists()
+  //   render() {
+  //     return this.props.authContainer.hasCreatedVault ? (
+  //       this.props.authContainer.isUnLocked ? (
+  //         !this.props.connectionContainer.connectionStatus &&
+  //           this.props.connectionContainer.connectionRequested ? (
+  //           this.props.authContainer.userAccounts.length > 1 ? (
+  //             this.renderAccountLists()
+  //           ) : (
+  //             <Redirect to={Pages.ConnectSigner} />
+  //           )
+  //         ) : this.props.signingContainer.deployToSign ? (
+  //           <Redirect to={Pages.SignDeploy} />
+  //         ) : this.props.signingContainer.messageToSign ? (
+  //           <Redirect to={Pages.SignMessage} />
   //         ) : (
-  //           <Redirect to={Pages.ConnectSigner} />
+  //           this.renderAccountLists()
   //         )
-  //       ) : this.props.authContainer.unsignedDeploys.length > 0 ? (
-  //         <Redirect to={Pages.SignMessage} />
+  //       ) : this.props.authContainer.isLockedOut ? (
+  //         this.renderLockedOut()
   //       ) : (
-  //         this.renderAccountLists()
+  //         this.renderUnlock()
   //       )
-  //     ) : this.props.authContainer.isLockedOut ? (
-  //       this.renderLockedOut()
   //     ) : (
-  //       this.renderUnlock()
-  //     )
-  //   ) : (
-  //     this.renderCreateNewVault()
-  //   );
+  //       this.renderCreateNewVault()
+  //     );
+  //   }
   // }
 }
-
 export default withStyles(styles, { withTheme: true })(withRouter(Home));

@@ -5,15 +5,21 @@ import { AppState } from '../lib/MemStore';
 import { autorun } from 'mobx';
 import SigningManager from './SigningManager';
 import ConnectionManager from './ConnectionManager';
+import PopupManager from './PopupManager';
 import { updateBadge } from './utils';
 import { setupInjectPageAPIServer } from '../lib/rpc/Provider';
 
 const appState = new AppState();
-const accountController = new AccountController(appState);
-const signingManager = new SigningManager(appState);
-const connectionManager = new ConnectionManager(appState);
+const popupManager = new PopupManager();
+const accountController = new AccountController(appState, popupManager);
+const signingManager = new SigningManager(appState, popupManager);
+const connectionManager = new ConnectionManager(appState, popupManager);
 
-initialize().catch(console.log);
+initialize().catch(err => {
+  // if (err.message == "Could not establish connection. Receiving end does not exist.")
+  //   console.log("Signer :: Content script not present in page");
+  console.error(err);
+});
 
 async function initialize() {
   await setupPopupAPIServer();
@@ -32,7 +38,8 @@ async function setupPopupAPIServer() {
   // once appState update, send updated appState to popup
   autorun(() => {
     rpc.call<void>('popup.updateState', appState).catch(e => {
-      console.log(e);
+      // if (e.message == "Could not establish connection. Receiving end does not exist.")
+      //   console.log("Signer :: Content script not present in page");
     });
     updateBadge(appState);
   });
@@ -168,4 +175,6 @@ async function setupPopupAPIServer() {
     'account.configureTimeout',
     accountController.configureTimeout.bind(accountController)
   );
+  rpc.register('popup.openPopup', popupManager.openPopup.bind(popupManager));
+  rpc.register('popup.closePopup', popupManager.closePopup.bind(popupManager));
 }
