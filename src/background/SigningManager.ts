@@ -575,11 +575,29 @@ export default class SigningManager extends events.EventEmitter {
   ) {
     const transferArgs: argDict = {};
 
-    const targetByteArray = transferDeploy?.getArgByName('target')!.value();
-    const target = encodeBase16(targetByteArray);
+    const targetArg = transferDeploy?.getArgByName('target')!;
 
-    // Confirm hash of provided public key matches target account hash from deploy
-    this.verifyTargetAccountMatch(providedPublicKeyHex, target);
+    const CLTYPE_PUBLIC_KEY_TAG = 22;
+    const CLTYPE_HASH_TAG = 15;
+
+    let targetToDisplay;
+
+    // If deploy is created using older version of SDK
+    // confirm hash of provided public key matches target account hash from deploy
+    if (targetArg.clType().tag === CLTYPE_HASH_TAG) {
+      targetToDisplay = encodeBase16(targetArg.value());
+      this.verifyTargetAccountMatch(providedPublicKeyHex, targetToDisplay);
+    }
+
+    // If deploy is created using version of SDK gte then 2.7.0
+    // In fact this logic can be removed in future as well as providedPublicKeyHex param
+    if (targetArg.clType().tag === CLTYPE_PUBLIC_KEY_TAG) {
+      if ((targetArg as CLPublicKey).toHex() !== providedPublicKeyHex) {
+        throw new Error(
+          "Provided target public key doesn't match the one in deploy"
+        );
+      }
+    }
 
     const recipient = providedPublicKeyHex;
     const amount = transferDeploy?.getArgByName('amount')!.value().toString();
@@ -590,7 +608,9 @@ export default class SigningManager extends events.EventEmitter {
       .value()
       .toString();
 
-    transferArgs['Recipient (Hash)'] = target;
+    if (targetToDisplay) {
+      transferArgs[`Recipient (Hash)`] = targetToDisplay;
+    }
     transferArgs['Recipient (Key)'] = recipient;
     transferArgs['Amount'] = amount;
     transferArgs['Transfer ID'] = id;
