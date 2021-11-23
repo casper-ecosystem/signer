@@ -1,3 +1,5 @@
+import { AppState } from '../lib/MemStore';
+import SigningManager from './SigningManager';
 import { browser } from 'webextension-polyfill-ts';
 
 export type openPurpose =
@@ -20,6 +22,7 @@ const popupBuffer = {
 interface PopupWindow {
   id: number;
   openFor: openPurpose;
+  signingId: number | undefined;
 }
 
 let popupWindow: PopupWindow | null = null;
@@ -29,32 +32,19 @@ let popupWindow: PopupWindow | null = null;
  * Provide inject and background a way to show popup.
  */
 export default class PopupManager {
-  constructor() {
+  private signingManager: SigningManager;
+
+  constructor(appState: AppState) {
+    this.signingManager = new SigningManager(appState, this);
     browser.windows.onRemoved.addListener(id => {
       if (id === popupWindow?.id) {
-        // switch (popupWindow.openFor) {
-        //   case 'signDeploy': {
-        //     let id = appState.unsignedDeploys[0].id;
-        //     if (id) {
-        //       signingManager.rejectSignDeploy(id);
-        //     }
-        //     break;
-        //   };
-        //   case 'signMessage': {
-        //     let id = appState.unsignedMessages[0].id;
-        //     if (id) {
-        //       signingManager.cancelSigningMessage(id);
-        //     }
-        //     break;
-        //   };
-        //   default: break;
-        // }
-        popupWindow = null;
+        this.clearUnsignedItem(id);
       }
+      popupWindow = null;
     });
   }
 
-  async openPopup(openFor: openPurpose) {
+  async openPopup(openFor: openPurpose, signingId?: number) {
     if (!popupWindow) {
       // There is no window open currently
       browser.windows
@@ -83,7 +73,8 @@ export default class PopupManager {
               if (window.id) {
                 popupWindow = {
                   id: window.id,
-                  openFor
+                  openFor,
+                  signingId
                 };
               }
             });
@@ -119,7 +110,7 @@ export default class PopupManager {
       } else {
         // It's open to another page - close it and open a new one.
         await this.closePopup(popupWindow.id);
-        this.openPopup(openFor);
+        this.openPopup(openFor, signingId);
       }
     }
   }
@@ -128,12 +119,7 @@ export default class PopupManager {
 
   async closePopup(windowId?: number, signingId?: number) {
     try {
-      if (signingId) {
-        if (popupWindow?.openFor === 'signDeploy') {
-        }
-        if (popupWindow?.openFor === 'signMessage') {
-        }
-      }
+      if (signingId) this.clearUnsignedItem(signingId);
       if (windowId) {
         await browser.windows.remove(windowId);
       } else {
@@ -145,6 +131,24 @@ export default class PopupManager {
       popupWindow = null;
     } catch (err) {
       throw err;
+    }
+  }
+
+  private async clearUnsignedItem(id: number) {
+    if (!popupWindow) return;
+    try {
+      switch (popupWindow.openFor) {
+        case 'signDeploy':
+          await this.signingManager.rejectSignDeploy(id);
+          break;
+        case 'signMessage':
+          await this.signingManager.cancelSigningMessage(id);
+          break;
+        default:
+          break;
+      }
+    } catch (err) {
+      console.error('Failed to clear unsigned item with id: ', id);
     }
   }
 }
