@@ -18,7 +18,7 @@ import { HomeContainer } from './popup/container/HomeContainer';
 import ErrorContainer from './popup/container/ErrorContainer';
 import SigningContainer from './popup/container/SigningContainer';
 import ConnectSignerContainer from './popup/container/ConnectSignerContainer';
-import PopupContainer from 'popup/container/PopupContainer';
+import PopupContainer from './popup/container/PopupContainer';
 
 const appState = new AppState();
 const errorsContainer = new ErrorContainer();
