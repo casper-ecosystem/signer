@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "1.4.3",
+  "version": "1.4.4",
   "name": "CasperLabs Signer",
   "author": "https://casperlabs.io",
   "description": "CasperLabs Signer tool for signing transactions on the blockchain.",
@@ -34,10 +34,14 @@
         "*://casper-qr.vercel.app/*",
         "*://picaswap.io/wcspr/*",
         "*://casperdash.io/*",
+        "*://*.casperdash.io/*",
         "*://friendly.market/*",
         "*://*.friendly.market/*",
         "*://metacask.com/*",
-        "*://*.metacask.com/*"
+        "*://*.metacask.com/*",
+        "*://*.newland.finance/*",
+        "*://*.huobiapps/*",
+        "*://*.singlecoin.xyz/*"
       ],
       "js": [
         "./scripts/content/content.js"

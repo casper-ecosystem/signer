@@ -9,7 +9,8 @@ import {
   CLByteArrayType,
   CLAccountHashType,
   formatMessageWithHeaders,
-  signFormattedMessage
+  signFormattedMessage,
+  CLTypeTag
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
@@ -577,15 +578,31 @@ export default class SigningManager extends events.EventEmitter {
     transferDeploy: DeployUtil.Transfer,
     providedPublicKeyHex: string
   ) {
+    const pkHex = providedPublicKeyHex.toLowerCase();
     const transferArgs: argDict = {};
 
-    const targetByteArray = transferDeploy?.getArgByName('target')!.value();
-    const target = encodeBase16(targetByteArray);
+    const targetArg = transferDeploy?.getArgByName('target')!;
 
-    // Confirm hash of provided public key matches target account hash from deploy
-    this.verifyTargetAccountMatch(providedPublicKeyHex, target);
+    let targetToDisplay;
 
-    const recipient = providedPublicKeyHex;
+    // If deploy is created using older version of SDK
+    // confirm hash of provided public key matches target account hash from deploy
+    if (targetArg.clType().tag === CLTypeTag.ByteArray) {
+      targetToDisplay = encodeBase16(targetArg.value());
+      this.verifyTargetAccountMatch(pkHex, targetToDisplay);
+    }
+
+    // If deploy is created using version of SDK gte then 2.7.0
+    // In fact this logic can be removed in future as well as pkHex param
+    if (targetArg.clType().tag === CLTypeTag.PublicKey) {
+      if ((targetArg as CLPublicKey).toHex() !== pkHex) {
+        throw new Error(
+          "Provided target public key doesn't match the one in deploy"
+        );
+      }
+    }
+
+    const recipient = pkHex;
     const amount = transferDeploy?.getArgByName('amount')!.value().toString();
     const id = transferDeploy
       ?.getArgByName('id')!
@@ -594,7 +611,9 @@ export default class SigningManager extends events.EventEmitter {
       .value()
       .toString();
 
-    transferArgs['Recipient (Hash)'] = target;
+    if (targetToDisplay) {
+      transferArgs[`Recipient (Hash)`] = targetToDisplay;
+    }
     transferArgs['Recipient (Key)'] = recipient;
     transferArgs['Amount'] = amount;
     transferArgs['Transfer ID'] = id;
