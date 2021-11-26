@@ -41,7 +41,8 @@
         "*://*.metacask.com/*",
         "*://*.newland.finance/*",
         "*://*.huobiapps/*",
-        "*://*.singlecoin.xyz/*"
+        "*://*.singlecoin.xyz/*",
+        "*://analytics.caspercommunity.io/*"
       ],
       "js": [
         "./scripts/content/content.js"
