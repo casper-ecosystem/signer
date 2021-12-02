@@ -241,7 +241,6 @@ export default class SigningManager extends events.EventEmitter {
     deployWithId.error = new Error('User Cancelled Signing');
     this.appState.unsignedDeploys.clear();
     this.saveAndEmitEventIfNeeded(deployWithId);
-    await this.popupManager.closePopup();
   }
 
   // Approve signature request

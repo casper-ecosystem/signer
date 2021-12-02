@@ -28,6 +28,7 @@ import {
   numberWithSpaces,
   motesToCSPR
 } from '../../background/utils';
+import PopupContainer from 'popup/container/PopupContainer';
 
 const styles = () => ({
   tooltip: {
@@ -49,6 +50,7 @@ const CsprTooltip = withStyles({
 interface Props extends RouteComponentProps {
   signingContainer: SigningContainer;
   authContainer: AccountManager;
+  popupContainer: PopupContainer;
   classes: Record<keyof ReturnType<typeof styles>, string>;
 }
 
@@ -84,6 +86,7 @@ class SignDeployPage extends React.Component<
     let w = await browser.windows.getCurrent();
     if (w.type === 'popup') {
       window.addEventListener('beforeunload', e => {
+        alert('closing!');
         this.props.signingContainer.cancel(this.state.deployToSign?.id!);
       });
     }
@@ -366,8 +369,9 @@ class SignDeployPage extends React.Component<
                 <Button
                   variant="contained"
                   color="secondary"
-                  onClick={() => {
-                    this.props.signingContainer.cancel(deployId!);
+                  onClick={async () => {
+                    await this.props.signingContainer.cancel(deployId!);
+                    await this.props.popupContainer.callClosePopup();
                   }}
                 >
                   Cancel
@@ -375,13 +379,10 @@ class SignDeployPage extends React.Component<
               </Grid>
               <Grid item>
                 <Button
-                  onClick={() =>
-                    this.props.signingContainer
-                      .signDeploy(deployId!)
-                      .then(() => {
-                        window.close();
-                      })
-                  }
+                  onClick={async () => {
+                    await this.props.signingContainer.signDeploy(deployId!);
+                    await this.props.popupContainer.callClosePopup();
+                  }}
                   variant="contained"
                   color="primary"
                   style={{

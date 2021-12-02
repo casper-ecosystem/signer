@@ -6,7 +6,6 @@ import { Route, Switch } from 'react-router-dom';
 import Pages from './components/Pages';
 import Home from './components/Home';
 import AccountManager from './container/AccountManager';
-import PopupManager from '../background/PopupManager';
 import { HomeContainer } from './container/HomeContainer';
 import { observer } from 'mobx-react';
 import ErrorContainer from './container/ErrorContainer';
@@ -120,6 +119,7 @@ const App = observer((props: AppProps) => {
               <SignDeployPage
                 signingContainer={props.signingContainer}
                 authContainer={props.authContainer}
+                popupContainer={props.popupContainer}
               />
             )}
           />

@@ -35,6 +35,7 @@ export const SignMessagePage = (props: Props) => {
 
   browser.windows.getCurrent().then(w => {
     window.addEventListener('beforeunload', e => {
+      alert('msg closing!');
       if (messageWithID) {
         props.signingContainer.cancelSigningMessage(messageWithID.id);
       }
