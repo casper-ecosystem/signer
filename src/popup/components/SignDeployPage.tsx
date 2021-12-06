@@ -28,7 +28,7 @@ import {
   numberWithSpaces,
   motesToCSPR
 } from '../../background/utils';
-import PopupContainer from 'popup/container/PopupContainer';
+import PopupContainer from '../container/PopupContainer';
 
 const styles = () => ({
   tooltip: {
