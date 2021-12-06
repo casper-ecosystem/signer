@@ -20,8 +20,6 @@ import {
 } from '@material-ui/core';
 import { SelectFieldWithFormState, TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
-import { decodeBase16, decodeBase64, Keys } from 'casper-js-sdk';
-import { KeyPairWithAlias } from '../../@types/models';
 import Pages from './Pages';
 import { confirm } from './Confirmation';
 
@@ -89,39 +87,8 @@ class AccountPage extends React.Component<Props, State> {
       );
     }
 
-    let keyPair: KeyPairWithAlias;
-    switch (formData.algorithm.$) {
-      case 'ed25519': {
-        keyPair = {
-          alias: formData.name.$,
-          keyPair: Keys.Ed25519.parseKeyPair(
-            decodeBase16(formData.publicKey.$.substring(2)),
-            decodeBase64(formData.secretKeyBase64.value)
-          ),
-          backedUp: false
-        };
-        break;
-      }
-      case 'secp256k1': {
-        keyPair = {
-          alias: formData.name.$,
-          keyPair: Keys.Secp256K1.parseKeyPair(
-            decodeBase16(formData.publicKey.$.substring(2)),
-            decodeBase64(formData.secretKeyBase64.value),
-            'raw'
-          ),
-          backedUp: false
-        };
-        break;
-      }
-      default: {
-        throw new Error('Invalid algorithm selected');
-      }
-    }
-
     await this._onSubmit(method.Created);
     this.downloadKeys(formData.name.$);
-    // this.downloadKeys(keyPair);
   }
 
   downloadKeys(alias: string) {
@@ -133,9 +100,7 @@ class AccountPage extends React.Component<Props, State> {
     ).then(async () => {
       try {
         await this.props.authContainer.downloadPemFiles(alias);
-        // await this._onSubmit(method.Imported);
       } catch (error) {
-        console.error(error);
         return this.props.errors.capture(
           Promise.reject(new Error('Failed to download keys'))
         );
