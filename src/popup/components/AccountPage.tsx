@@ -119,11 +119,28 @@ class AccountPage extends React.Component<Props, State> {
       }
     }
 
-    if (this.state.keyDownloadEnabled) {
-      await this.props.authContainer.downloadPemFiles(keyPair.alias);
-    }
-
     await this._onSubmit(method.Created);
+    this.downloadKeys(formData.name.$);
+    // this.downloadKeys(keyPair);
+  }
+
+  downloadKeys(alias: string) {
+    confirm(
+      <div className="text-danger">Download Key</div>,
+      'Please download your keys and save them securely. If you choose not it is at your own risk',
+      'Download',
+      'Cancel'
+    ).then(async () => {
+      try {
+        await this.props.authContainer.downloadPemFiles(alias);
+        // await this._onSubmit(method.Imported);
+      } catch (error) {
+        console.error(error);
+        return this.props.errors.capture(
+          Promise.reject(new Error('Failed to download keys'))
+        );
+      }
+    });
   }
 
   onImportAccount() {
