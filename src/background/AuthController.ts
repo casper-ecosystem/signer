@@ -268,8 +268,6 @@ class AuthController {
 
     if (account && keys) {
       saveToFile(keys.exportPrivateKeyInPem(), `${alias}_secret_key.pem`);
-      saveToFile(keys.exportPublicKeyInPem(), `${alias}_public_key.pem`);
-      saveToFile(keys.publicKey.toHex(), `${alias}_public_key_hex.txt`);
       account.backedUp = true;
       this.persistVault();
     }
