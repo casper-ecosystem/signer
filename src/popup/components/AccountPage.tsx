@@ -93,19 +93,32 @@ class AccountPage extends React.Component<Props, State> {
 
   downloadKeys(alias: string) {
     confirm(
-      <div className="text-danger">Download Key</div>,
-      'Please download your keys and save them securely. If you choose not to, it is at your own risk',
+      <div className="text-danger">Finalise Key Generation</div>,
+      'To complete the process please save your key securely - look after it as your key is required for recovery.',
       'Download',
       'Cancel'
-    ).then(async () => {
-      try {
-        await this.props.authContainer.downloadPemFiles(alias);
-      } catch (error) {
-        return this.props.errors.capture(
-          Promise.reject(new Error('Failed to download keys'))
-        );
+    ).then(
+      // OK
+      async () => {
+        try {
+          await this.props.authContainer.downloadPemFiles(alias);
+        } catch (error) {
+          return this.props.errors.capture(
+            Promise.reject(new Error('Failed to download keys'))
+          );
+        }
+      },
+      // CANCEL
+      async () => {
+        try {
+          await this.props.authContainer.removeUserAccount(alias);
+        } catch (error) {
+          return this.props.errors.capture(
+            Promise.reject(new Error(`Failed to delete keypair: ${alias}`))
+          );
+        }
       }
-    });
+    );
   }
 
   onImportAccount() {
@@ -190,20 +203,6 @@ class AccountPage extends React.Component<Props, State> {
       </form>
     );
   }
-
-  revealSecretKey = () => {
-    if (this.state.revealSecretKey) return;
-    confirm(
-      <div className="text-danger">Reveal Key</div>,
-      <span>Confirm password to reveal key</span>,
-      'Reveal',
-      'Cancel',
-      { requirePassword: true }
-    ).then(() => {
-      this.setState({ revealSecretKey: true });
-      setTimeout(() => this.setState({ revealSecretKey: false }), 5000);
-    });
-  };
 
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
