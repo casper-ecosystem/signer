@@ -36,9 +36,9 @@ export default class PopupManager {
 
   constructor(appState: AppState) {
     this.signingManager = new SigningManager(appState, this);
-    browser.windows.onRemoved.addListener(id => {
-      if (id === popupWindow?.id) {
-        this.clearUnsignedItem(id);
+    browser.windows.onRemoved.addListener(async id => {
+      if (id === popupWindow?.id && popupWindow.signingId) {
+        await this.clearUnsignedItem(popupWindow.signingId);
       }
       popupWindow = null;
     });
@@ -148,7 +148,11 @@ export default class PopupManager {
           break;
       }
     } catch (err) {
-      console.error('Failed to clear unsigned item with id: ', id);
+      console.info(
+        `Signer: Cancelled ${popupWindow.openFor
+          .substring(4)
+          .toLowerCase()} signing due to window closure.`
+      );
     }
   }
 }
