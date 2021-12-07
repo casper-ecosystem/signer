@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import AccountManager from '../container/AccountManager';
-import { RouteComponentProps, withRouter } from 'react-router';
+import { Redirect, RouteComponentProps, withRouter } from 'react-router';
 import { observable } from 'mobx';
 import {
   CreateAccountFormData,
@@ -23,7 +23,6 @@ import withStyles from '@material-ui/core/styles/withStyles';
 import { decodeBase16, decodeBase64, Keys } from 'casper-js-sdk';
 import { KeyPairWithAlias } from '../../@types/models';
 import Pages from './Pages';
-import { confirm } from './Confirmation';
 
 enum method {
   'Created',
@@ -209,23 +208,9 @@ class AccountPage extends React.Component<Props, State> {
     );
   }
 
-  revealSecretKey = () => {
-    if (this.state.revealSecretKey) return;
-    confirm(
-      <div className="text-danger">Reveal Key</div>,
-      <span>Confirm password to reveal key</span>,
-      'Reveal',
-      'Cancel',
-      { requirePassword: true }
-    ).then(() => {
-      this.setState({ revealSecretKey: true });
-      setTimeout(() => this.setState({ revealSecretKey: false }), 5000);
-    });
-  };
-
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
-    return (
+    return this.props.authContainer.isUnLocked ? (
       <form
         className={this.props.classes.root}
         onSubmit={e => {
@@ -278,6 +263,8 @@ class AccountPage extends React.Component<Props, State> {
           </Button>
         </FormControl>
       </form>
+    ) : (
+      <Redirect to={Pages.Home} />
     );
   }
 

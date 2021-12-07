@@ -83,13 +83,6 @@ class SignDeployPage extends React.Component<
   }
 
   async componentDidMount() {
-    let w = await browser.windows.getCurrent();
-    if (w.type === 'popup') {
-      window.addEventListener('beforeunload', e => {
-        alert('closing!');
-        this.props.signingContainer.cancel(this.state.deployToSign?.id!);
-      });
-    }
     if (this.state.deployToSign) {
       this.generateDeployInfo(this.state.deployToSign);
     }
