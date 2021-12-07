@@ -26,7 +26,7 @@ class SigningContainer {
     await this.backgroundManager.signDeploy(deployId);
   }
 
-  async cancel(deployId: number) {
+  async cancelDeploy(deployId: number) {
     await this.backgroundManager.rejectSignDeploy(deployId);
   }
 

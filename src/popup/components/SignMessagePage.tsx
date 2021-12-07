@@ -33,15 +33,6 @@ interface Props {
 export const SignMessagePage = (props: Props) => {
   const messageWithID = props.signingContainer.messageToSign;
 
-  browser.windows.getCurrent().then(w => {
-    window.addEventListener('beforeunload', e => {
-      alert('msg closing!');
-      if (messageWithID) {
-        props.signingContainer.cancelSigningMessage(messageWithID.id);
-      }
-    });
-  });
-
   return messageWithID ? (
     <div>
       <h2>Do you want to sign the message?</h2>

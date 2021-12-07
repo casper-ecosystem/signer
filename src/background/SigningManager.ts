@@ -160,7 +160,6 @@ export default class SigningManager extends events.EventEmitter {
       throw err;
     }
 
-    this.updateAppState();
     return id;
   }
 
@@ -193,6 +192,7 @@ export default class SigningManager extends events.EventEmitter {
         sourcePublicKeyHex,
         targetPublicKeyHex
       );
+      this.updateAppState();
       this.popupManager.openPopup('signDeploy', deployId);
       // Await outcome of user interaction with popup.
       this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
@@ -204,17 +204,14 @@ export default class SigningManager extends events.EventEmitter {
           );
         }
         switch (processedDeploy.status) {
-          case 'signed':
-            if (processedDeploy.deploy) {
-              this.appState.unsignedDeploys.clear();
-              return resolve(DeployUtil.deployToJson(processedDeploy.deploy));
-            }
+          case 'signed': {
             this.appState.unsignedDeploys.remove(processedDeploy);
-            return reject(new Error(processedDeploy.error?.message));
+            return processedDeploy.deploy
+              ? resolve(DeployUtil.deployToJson(processedDeploy.deploy))
+              : reject(new Error(processedDeploy.error?.message));
+          }
           case 'failed':
-            this.unsignedDeploys = this.unsignedDeploys.filter(
-              d => d.id !== processedDeploy.id
-            );
+            this.appState.unsignedDeploys.remove(processedDeploy);
             return reject(
               new Error(
                 processedDeploy.error?.message! ?? 'User Cancelled Signing'
@@ -239,7 +236,7 @@ export default class SigningManager extends events.EventEmitter {
     const deployWithId = this.getDeployById(deployId);
     deployWithId.status = 'failed';
     deployWithId.error = new Error('User Cancelled Signing');
-    this.appState.unsignedDeploys.clear();
+    this.appState.unsignedDeploys.remove(deployWithId);
     this.saveAndEmitEventIfNeeded(deployWithId);
   }
 
@@ -271,7 +268,7 @@ export default class SigningManager extends events.EventEmitter {
 
     deployData.status = 'signed';
     this.saveAndEmitEventIfNeeded(deployData);
-    await this.popupManager.closePopup();
+    this.updateAppState();
   }
 
   /**
@@ -491,9 +488,7 @@ export default class SigningManager extends events.EventEmitter {
             }
           }
           case 'failed': {
-            this.unsignedMessages = this.unsignedMessages.filter(
-              d => d.id !== processedMessage.id
-            );
+            this.appState.unsignedMessages.remove(processedMessage);
             return reject(
               new Error(
                 processedMessage.error?.message! ?? 'User Cancelled Signing'
@@ -555,7 +550,6 @@ export default class SigningManager extends events.EventEmitter {
     messageWithId.error = new Error('User Cancelled Signing');
     this.appState.unsignedMessages.remove(messageWithId);
     this.saveAndEmitEventIfNeeded(messageWithId);
-    await this.popupManager.closePopup();
   }
 
   private verifyTargetAccountMatch(
