@@ -2,7 +2,6 @@ import SigningContainer from '../container/SigningContainer';
 import React from 'react';
 import { Redirect } from 'react-router-dom';
 import Pages from './Pages';
-import { browser } from 'webextension-polyfill-ts';
 import { Button, withStyles } from '@material-ui/core';
 import { truncateString } from '../../background/utils';
 import PopupContainer from '../container/PopupContainer';
