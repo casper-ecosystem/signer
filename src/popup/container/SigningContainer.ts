@@ -10,18 +10,12 @@ class SigningContainer {
 
   @computed
   get deployToSign() {
-    if (this.appState.unsignedDeploys.length > 0) {
-      return this.appState.unsignedDeploys[0];
-    }
-    return null;
+    return this.appState.unsignedDeploys[0];
   }
 
   @computed
   get messageToSign() {
-    if (this.appState.unsignedMessages.length > 0) {
-      return this.appState.unsignedMessages[0];
-    }
-    return null;
+    return this.appState.unsignedMessages[0];
   }
 
   async parseDeployData(deployId: number) {
