@@ -3,7 +3,6 @@ import React from 'react';
 import { Redirect, RouteComponentProps, withRouter } from 'react-router';
 import SigningContainer from '../container/SigningContainer';
 import Pages from './Pages';
-import { browser } from 'webextension-polyfill-ts';
 import AccountManager from '../container/AccountManager';
 import { withStyles } from '@material-ui/core/styles';
 import {
