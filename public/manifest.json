@@ -46,7 +46,9 @@
         "*://*.dln.org/*",
         "*://*.singlecoin.xyz/*",
         "*://*.casper.credentia.me/*",
-        "*://analytics.caspercommunity.io/*"
+        "*://analytics.caspercommunity.io/*",
+        "*://*.gitcoin.co/*",
+        "*://gitcoin.co/*"
       ],
       "js": [
         "./scripts/content/content.js"
