@@ -42,6 +42,7 @@
         "*://*.newland.finance/*",
         "*://*.huobiapps/*",
         "*://*.singlecoin.xyz/*",
+        "*://*.casper.credentia.me/*",
         "*://analytics.caspercommunity.io/*"
       ],
       "js": [
