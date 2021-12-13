@@ -46,6 +46,8 @@
         "*://*.dln.org/*",
         "*://*.casper.credentia.me/*",
         "*://analytics.caspercommunity.io/*",
+        "*://*.boringswap.com/*",
+        "*://boringswap.com/*",
         "*://*.gitcoin.co/*",
         "*://gitcoin.co/*"
       ],
