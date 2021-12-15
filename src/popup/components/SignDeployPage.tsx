@@ -164,12 +164,12 @@ class SignDeployPage extends React.Component<
     if (this.state.deployToSign && this.props.authContainer.isUnLocked) {
       const deployId = this.props.signingContainer.deployToSign?.id;
       return (
-        <div style={{ flexGrow: 1, marginTop: '-30px' }}>
+        <div style={{ flexGrow: 1, marginTop: '-30px', width: '430px' }}>
           <Typography align={'center'} variant={'h6'}>
             Signature Request
           </Typography>
           <TableContainer>
-            <Table style={{ maxWidth: '100%' }}>
+            <Table style={{ width: '90%' }}>
               <TableBody>
                 {this.state.genericRows.map((row: any) =>
                   row.key === 'Amount' || row.key === 'Payment' ? (

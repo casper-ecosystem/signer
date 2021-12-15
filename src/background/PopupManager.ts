@@ -9,9 +9,12 @@ export type openPurpose =
   | 'importAccount'
   | 'noAccount';
 
+// Popup window sizes
 const normalPopupWidth = 300;
 const normalPopupHeight = 480;
 const expandedPopupHeight = 820;
+const expandedPopupWidth = 430;
+
 // Pads around popup window
 const popupBuffer = {
   right: 20,
@@ -38,7 +41,8 @@ export default class PopupManager {
           type: 'popup',
           height:
             openFor === 'signDeploy' ? expandedPopupHeight : normalPopupHeight,
-          width: normalPopupWidth,
+          width:
+            openFor === 'signDeploy' ? expandedPopupWidth : normalPopupWidth,
           left: windowWidth + xOffset - normalPopupWidth - popupBuffer.right,
           top: yOffset + popupBuffer.top
         });
