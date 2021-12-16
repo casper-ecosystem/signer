@@ -22,6 +22,7 @@ import { SelectFieldWithFormState, TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
 import Pages from './Pages';
 import { confirm } from './Confirmation';
+import ConnectSignerContainer from 'popup/container/ConnectSignerContainer';
 
 enum method {
   'Created',
@@ -44,6 +45,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   authContainer: AccountManager;
   errors: ErrorContainer;
   action: 'Import' | 'Create';
+  connectionContainer: ConnectSignerContainer;
 }
 
 interface State {
@@ -112,6 +114,12 @@ class AccountPage extends React.Component<Props, State> {
       async () => {
         try {
           await this.props.authContainer.removeUserAccount(alias);
+          if (
+            this.props.connectionContainer.connectionRequested &&
+            !this.props.authContainer.userAccounts.length
+          ) {
+            await this.props.connectionContainer.resetConnectionRequest();
+          }
         } catch (error) {
           return this.props.errors.capture(
             Promise.reject(new Error(`Failed to delete keypair: ${alias}`))
