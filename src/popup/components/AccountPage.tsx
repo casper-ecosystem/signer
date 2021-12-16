@@ -22,7 +22,7 @@ import { SelectFieldWithFormState, TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
 import Pages from './Pages';
 import { confirm } from './Confirmation';
-import ConnectSignerContainer from 'popup/container/ConnectSignerContainer';
+import ConnectSignerContainer from '../container/ConnectSignerContainer';
 
 enum method {
   'Created',
