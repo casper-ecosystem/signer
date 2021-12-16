@@ -14,6 +14,7 @@ import { decodeBase16, Keys } from 'casper-js-sdk';
 import ASN1 from '@lapo/asn1js';
 import Base64 from '@lapo/asn1js/base64';
 import Hex from '@lapo/asn1js/hex';
+
 export interface SubmittableFormData {
   submitDisabled: boolean;
   resetFields: () => void;
