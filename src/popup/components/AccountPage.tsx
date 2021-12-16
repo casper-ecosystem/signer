@@ -96,8 +96,7 @@ class AccountPage extends React.Component<Props, State> {
   downloadKeys(alias: string) {
     confirm(
       <div className="text-danger">Download your key</div>,
-      'To proceed, download and save your key securely.\
-      Without it, you will not be able to recover access to your account.',
+      'To proceed, download and save your key securely. Without it, you will not be able to recover access to your account.',
       'Download',
       'Cancel'
     ).then(
