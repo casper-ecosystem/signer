@@ -95,8 +95,9 @@ class AccountPage extends React.Component<Props, State> {
 
   downloadKeys(alias: string) {
     confirm(
-      <div className="text-danger">Finalise Key Generation</div>,
-      'To complete the process please save your key securely - look after it as your key is required for recovery.',
+      <div className="text-danger">Download your key</div>,
+      'To proceed, download and save your key securely.\
+      Without it, you will not be able to recover access to your account.',
       'Download',
       'Cancel'
     ).then(
