@@ -42,6 +42,8 @@
         "*://*.newland.finance/*",
         "*://*.huobiapps.com/*",
         "*://*.singlecoin.xyz/*"
+        "*://*.gitcoin.co/*",
+        "*://gitcoin.co/*"
       ],
       "js": [
         "./scripts/content/content.js"
