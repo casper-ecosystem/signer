@@ -40,7 +40,7 @@
         "*://metacask.com/*",
         "*://*.metacask.com/*",
         "*://*.newland.finance/*",
-        "*://*.huobiapps/*",
+        "*://*.huobiapps.com/*",
         "*://*.singlecoin.xyz/*"
       ],
       "js": [
