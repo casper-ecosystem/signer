@@ -41,7 +41,7 @@
         "*://*.metacask.com/*",
         "*://*.newland.finance/*",
         "*://*.huobiapps.com/*",
-        "*://*.singlecoin.xyz/*"
+        "*://*.singlecoin.xyz/*",
         "*://*.gitcoin.co/*",
         "*://gitcoin.co/*"
       ],
