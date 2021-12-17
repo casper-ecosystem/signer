@@ -29,31 +29,6 @@ let popupWindow: PopupWindow | null = null;
  * Provide inject and background a way to show popup.
  */
 export default class PopupManager {
-  constructor() {
-    browser.windows.onRemoved.addListener(id => {
-      if (id === popupWindow?.id) {
-        // switch (popupWindow.openFor) {
-        //   case 'signDeploy': {
-        //     let id = appState.unsignedDeploys[0].id;
-        //     if (id) {
-        //       signingManager.rejectSignDeploy(id);
-        //     }
-        //     break;
-        //   };
-        //   case 'signMessage': {
-        //     let id = appState.unsignedMessages[0].id;
-        //     if (id) {
-        //       signingManager.cancelSigningMessage(id);
-        //     }
-        //     break;
-        //   };
-        //   default: break;
-        // }
-        popupWindow = null;
-      }
-    });
-  }
-
   async openPopup(openFor: openPurpose) {
     if (!popupWindow) {
       // There is no window open currently
