@@ -192,8 +192,7 @@ export default class SigningManager extends events.EventEmitter {
         sourcePublicKeyHex,
         targetPublicKeyHex
       );
-      this.updateAppState();
-      this.popupManager.openPopup('signDeploy', deployId);
+      this.popupManager.openPopup('signDeploy');
       // Await outcome of user interaction with popup.
       this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
         if (!this.appState.isUnlocked) {
@@ -460,7 +459,7 @@ export default class SigningManager extends events.EventEmitter {
       }
 
       this.updateAppState();
-      this.popupManager.openPopup('signMessage', messageId);
+      this.popupManager.openPopup('signMessage');
       this.once(`${messageId}:finished`, (processedMessage: messageWithID) => {
         if (!this.appState.isUnlocked) {
           return reject(

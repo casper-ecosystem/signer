@@ -10,7 +10,7 @@ import { updateBadge } from './utils';
 import { setupInjectPageAPIServer } from '../lib/rpc/Provider';
 
 const appState = new AppState();
-const popupManager = new PopupManager(appState);
+const popupManager = new PopupManager();
 const accountController = new AccountController(appState, popupManager);
 const signingManager = new SigningManager(appState, popupManager);
 const connectionManager = new ConnectionManager(appState, popupManager);

@@ -59,7 +59,7 @@ describe('AuthController', () => {
 
   beforeEach(async () => {
     appState = new AppState();
-    popupManager = new PopupManager(appState);
+    popupManager = new PopupManager();
     authController = new AuthController(appState, popupManager);
     storage.local.remove('encryptedVault');
     await expect(
