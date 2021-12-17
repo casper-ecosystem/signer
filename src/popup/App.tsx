@@ -98,6 +98,7 @@ const App = observer((props: AppProps) => {
                 errors={props.errors}
                 action={'Import'}
                 authContainer={props.authContainer}
+                connectionContainer={props.connectSignerContainer}
               />
             )}
           />
@@ -109,6 +110,7 @@ const App = observer((props: AppProps) => {
                 errors={props.errors}
                 action={'Create'}
                 authContainer={props.authContainer}
+                connectionContainer={props.connectSignerContainer}
               />
             )}
           />

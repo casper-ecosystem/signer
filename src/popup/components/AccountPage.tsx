@@ -20,9 +20,9 @@ import {
 } from '@material-ui/core';
 import { SelectFieldWithFormState, TextFieldWithFormState } from './Forms';
 import withStyles from '@material-ui/core/styles/withStyles';
-import { decodeBase16, decodeBase64, Keys } from 'casper-js-sdk';
-import { KeyPairWithAlias } from '../../@types/models';
 import Pages from './Pages';
+import { confirm } from './Confirmation';
+import ConnectSignerContainer from '../container/ConnectSignerContainer';
 
 enum method {
   'Created',
@@ -45,6 +45,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   authContainer: AccountManager;
   errors: ErrorContainer;
   action: 'Import' | 'Create';
+  connectionContainer: ConnectSignerContainer;
 }
 
 interface State {
@@ -88,41 +89,44 @@ class AccountPage extends React.Component<Props, State> {
       );
     }
 
-    let keyPair: KeyPairWithAlias;
-    switch (formData.algorithm.$) {
-      case 'ed25519': {
-        keyPair = {
-          alias: formData.name.$,
-          keyPair: Keys.Ed25519.parseKeyPair(
-            decodeBase16(formData.publicKey.$.substring(2)),
-            decodeBase64(formData.secretKeyBase64.value)
-          ),
-          backedUp: false
-        };
-        break;
-      }
-      case 'secp256k1': {
-        keyPair = {
-          alias: formData.name.$,
-          keyPair: Keys.Secp256K1.parseKeyPair(
-            decodeBase16(formData.publicKey.$.substring(2)),
-            decodeBase64(formData.secretKeyBase64.value),
-            'raw'
-          ),
-          backedUp: false
-        };
-        break;
-      }
-      default: {
-        throw new Error('Invalid algorithm selected');
-      }
-    }
-
-    if (this.state.keyDownloadEnabled) {
-      await this.props.authContainer.downloadPemFiles(keyPair.alias);
-    }
-
     await this._onSubmit(method.Created);
+    this.downloadKeys(formData.name.$);
+  }
+
+  downloadKeys(alias: string) {
+    confirm(
+      <div className="text-danger">Download your key</div>,
+      'To proceed, download and save your key securely. Without it, you will not be able to recover access to your account.',
+      'Download',
+      'Cancel'
+    ).then(
+      // OK
+      async () => {
+        try {
+          await this.props.authContainer.downloadPemFiles(alias);
+        } catch (error) {
+          return this.props.errors.capture(
+            Promise.reject(new Error('Failed to download keys'))
+          );
+        }
+      },
+      // CANCEL
+      async () => {
+        try {
+          await this.props.authContainer.removeUserAccount(alias);
+          if (
+            this.props.connectionContainer.connectionRequested &&
+            !this.props.authContainer.userAccounts.length
+          ) {
+            await this.props.connectionContainer.resetConnectionRequest();
+          }
+        } catch (error) {
+          return this.props.errors.capture(
+            Promise.reject(new Error(`Failed to delete keypair: ${alias}`))
+          );
+        }
+      }
+    );
   }
 
   onImportAccount() {

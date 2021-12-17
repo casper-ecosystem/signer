@@ -73,9 +73,9 @@ class AccountManager {
     return await this.backgroundManager.isBackedUp(alias);
   }
 
-  async downloadPemFiles(accountAlias: string) {
+  async downloadPemFiles(alias: string) {
     // Save the secret and public keys to disk.
-    this.backgroundManager.downloadAccountKeys(accountAlias);
+    this.backgroundManager.downloadAccountKeys(alias);
   }
 
   async downloadActiveKey() {

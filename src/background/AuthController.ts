@@ -177,6 +177,7 @@ class AuthController {
     this.appState.unsignedDeploys.clear();
     this.appState.hasCreatedVault = false;
     storage.local.remove(this.encryptedVaultKey);
+    storage.local.remove(this.saltKey);
   }
 
   @action
@@ -261,20 +262,15 @@ class AuthController {
     this.persistVault();
   }
 
-  async downloadAccountKeys(accountAlias: string) {
+  async downloadAccountKeys(alias: string) {
     if (!this.appState.isUnlocked) {
       throw new Error('Unlock Signer before downloading keys.');
     }
-    let account = this.getAccountFromAlias(accountAlias);
+    let account = this.getAccountFromAlias(alias);
     let keys = account?.keyPair;
 
     if (account && keys) {
-      saveToFile(
-        keys.exportPrivateKeyInPem(),
-        `${accountAlias}_secret_key.pem`
-      );
-      saveToFile(keys.exportPublicKeyInPem(), `${accountAlias}_public_key.pem`);
-      saveToFile(keys.publicKey.toHex(), `${accountAlias}_public_key_hex.txt`);
+      saveToFile(keys.exportPrivateKeyInPem(), `${alias}_secret_key.pem`);
       account.backedUp = true;
       this.persistVault();
     }
