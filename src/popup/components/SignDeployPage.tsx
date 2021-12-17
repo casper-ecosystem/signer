@@ -362,7 +362,7 @@ class SignDeployPage extends React.Component<
                   variant="contained"
                   color="secondary"
                   onClick={async () => {
-                    await this.props.signingContainer.cancel(deployId!);
+                    await this.props.signingContainer.cancelDeploy(deployId!);
                     await this.props.popupContainer.callClosePopup();
                   }}
                 >
