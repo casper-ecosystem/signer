@@ -13,7 +13,6 @@ export type openPurpose =
 const normalPopupWidth = 300;
 const normalPopupHeight = 480;
 const expandedPopupHeight = 820;
-const expandedPopupWidth = 430;
 // Pads around popup window
 const popupBuffer = {
   right: 20,
@@ -65,10 +64,7 @@ export default class PopupManager {
                 openFor === 'signDeploy'
                   ? expandedPopupHeight
                   : normalPopupHeight,
-              width:
-                openFor === 'signDeploy'
-                  ? expandedPopupWidth
-                  : normalPopupWidth,
+              width: normalPopupWidth,
               left:
                 windowWidth + xOffset - normalPopupWidth - popupBuffer.right,
               top: yOffset + popupBuffer.top
@@ -118,6 +114,8 @@ export default class PopupManager {
       }
     }
   }
+
+  // error: "No window with id: 306."
 
   async closePopup(windowId?: number, signingId?: number) {
     try {

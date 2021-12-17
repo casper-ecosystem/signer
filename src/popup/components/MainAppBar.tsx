@@ -18,7 +18,6 @@ import confirmConnect from './ConfirmConnect';
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      width: '100vw',
       flexGrow: 1,
       color: '#c4c4c4',
       backgroundColor: 'var(--cspr-dark-blue)'
