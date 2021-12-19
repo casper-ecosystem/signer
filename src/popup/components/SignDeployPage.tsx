@@ -28,6 +28,7 @@ import {
   numberWithSpaces,
   motesToCSPR
 } from '../../background/utils';
+import PopupContainer from '../container/PopupContainer';
 
 const styles = () => ({
   tooltip: {
@@ -49,6 +50,7 @@ const CsprTooltip = withStyles({
 interface Props extends RouteComponentProps {
   signingContainer: SigningContainer;
   authContainer: AccountManager;
+  popupContainer: PopupContainer;
   classes: Record<keyof ReturnType<typeof styles>, string>;
 }
 
@@ -367,7 +369,9 @@ class SignDeployPage extends React.Component<
                   variant="contained"
                   color="secondary"
                   onClick={() => {
-                    this.props.signingContainer.cancel(deployId!);
+                    this.props.signingContainer.cancel(deployId!).then(() => {
+                      this.props.popupContainer.callClosePopup();
+                    });
                   }}
                 >
                   Cancel
@@ -379,7 +383,7 @@ class SignDeployPage extends React.Component<
                     this.props.signingContainer
                       .signDeploy(deployId!)
                       .then(() => {
-                        window.close();
+                        this.props.popupContainer.callClosePopup();
                       })
                   }
                   variant="contained"

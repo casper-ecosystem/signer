@@ -5,6 +5,7 @@ import Pages from './Pages';
 import { browser } from 'webextension-polyfill-ts';
 import { Button, withStyles } from '@material-ui/core';
 import { truncateString } from '../../background/utils';
+import PopupContainer from '../container/PopupContainer';
 
 const ApproveButton = withStyles(() => ({
   root: {
@@ -24,7 +25,10 @@ const CancelButton = withStyles(() => ({
   }
 }))(Button);
 
-export const SignMessagePage = (signingContainer: SigningContainer) => {
+export const SignMessagePage = (
+  signingContainer: SigningContainer,
+  popupContainer: PopupContainer
+) => {
   const messageWithID = signingContainer.messageToSign; // useState(signingContainer.messageToSign);
   browser.windows.getCurrent().then(w => {
     if (w.type === 'popup' && messageWithID?.id) {
@@ -79,7 +83,7 @@ export const SignMessagePage = (signingContainer: SigningContainer) => {
           onClick={() =>
             signingContainer
               .approveSigningMessage(messageWithID.id)
-              .then(() => window.close())
+              .then(() => popupContainer.callClosePopup())
           }
         >
           Approve
@@ -89,7 +93,7 @@ export const SignMessagePage = (signingContainer: SigningContainer) => {
           onClick={() =>
             signingContainer
               .cancelSigningMessage(messageWithID.id)
-              .then(() => window.close())
+              .then(() => popupContainer.callClosePopup())
           }
         >
           Cancel
