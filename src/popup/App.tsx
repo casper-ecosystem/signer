@@ -121,13 +121,16 @@ const App = observer((props: AppProps) => {
               <SignDeployPage
                 signingContainer={props.signingContainer}
                 authContainer={props.authContainer}
+                popupContainer={props.popupContainer}
               />
             )}
           />
           <Route
             path={Pages.SignMessage}
             exact
-            render={_ => SignMessagePage(props.signingContainer)}
+            render={_ =>
+              SignMessagePage(props.signingContainer, props.popupContainer)
+            }
           />
           <Route
             path={Pages.ConnectSigner}
