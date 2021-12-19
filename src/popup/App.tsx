@@ -6,7 +6,6 @@ import { Route, Switch } from 'react-router-dom';
 import Pages from './components/Pages';
 import Home from './components/Home';
 import AccountManager from './container/AccountManager';
-import PopupManager from '../background/PopupManager';
 import { HomeContainer } from './container/HomeContainer';
 import { observer } from 'mobx-react';
 import ErrorContainer from './container/ErrorContainer';
@@ -24,11 +23,12 @@ import { ConnectedSitesPage } from './components/ConnectedSitesPage';
 import { useIdleTimer } from 'react-idle-timer';
 import { SignMessagePage } from './components/SignMessagePage';
 import { ConfigureTimeoutPage } from './components/ConfigureTimeout';
+import PopupContainer from './container/PopupContainer';
 
 export interface AppProps {
   errors: ErrorContainer;
   authContainer: AccountManager;
-  popupManager: PopupManager;
+  popupContainer: PopupContainer;
   homeContainer: HomeContainer;
   signingContainer: SigningContainer;
   connectSignerContainer: ConnectSignerContainer;
@@ -64,7 +64,7 @@ const App = observer((props: AppProps) => {
                 homeContainer={props.homeContainer}
                 connectionContainer={props.connectSignerContainer}
                 signingContainer={props.signingContainer}
-                popupManager={props.popupManager}
+                popupContainer={props.popupContainer}
                 errors={props.errors}
               />
             )}

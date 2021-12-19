@@ -17,7 +17,7 @@ import NotInterestedIcon from '@material-ui/icons/NotInterested';
 import HelpIcon from '@material-ui/icons/Help';
 import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
-import PopupManager from '../../background/PopupManager';
+import PopupContainer from '../container/PopupContainer';
 import { HomeContainer } from '../container/HomeContainer';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import ErrorContainer from '../container/ErrorContainer';
@@ -76,7 +76,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   homeContainer: HomeContainer;
   connectionContainer: ConnectSignerContainer;
   signingContainer: SigningContainer;
-  popupManager: PopupManager;
+  popupContainer: PopupContainer;
   errors: ErrorContainer;
 }
 
@@ -309,7 +309,7 @@ class Home extends React.Component<
                 variant="contained"
                 color="primary"
                 onClick={() =>
-                  this.props.popupManager.openPopup('importAccount')
+                  this.props.popupContainer.callOpenPopup('importAccount')
                 }
                 to={Pages.ImportAccount}
                 style={{
