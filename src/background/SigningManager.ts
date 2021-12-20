@@ -54,14 +54,12 @@ export default class SigningManager extends events.EventEmitter {
   private unsignedDeploys: deployWithID[];
   private unsignedMessages: messageWithID[];
   private nextId: number;
-  private popupManager: PopupManager;
 
-  constructor(private appState: AppState) {
+  constructor(private appState: AppState, private popupManager: PopupManager) {
     super();
     this.unsignedDeploys = [];
     this.unsignedMessages = [];
     this.nextId = Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
-    this.popupManager = new PopupManager();
   }
 
   /**
@@ -161,8 +159,6 @@ export default class SigningManager extends events.EventEmitter {
     } catch (err) {
       throw err;
     }
-
-    this.updateAppState();
     return id;
   }
 
@@ -195,7 +191,8 @@ export default class SigningManager extends events.EventEmitter {
         sourcePublicKeyHex,
         targetPublicKeyHex
       );
-      this.popupManager.openPopup('signDeploy');
+      this.updateAppState();
+      this.popupManager.openPopup('signDeploy', deployId);
       // Await outcome of user interaction with popup.
       this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
         if (!this.appState.isUnlocked) {
@@ -206,17 +203,14 @@ export default class SigningManager extends events.EventEmitter {
           );
         }
         switch (processedDeploy.status) {
-          case 'signed':
-            if (processedDeploy.deploy) {
-              this.appState.unsignedDeploys.clear();
-              return resolve(DeployUtil.deployToJson(processedDeploy.deploy));
-            }
+          case 'signed': {
             this.appState.unsignedDeploys.remove(processedDeploy);
-            return reject(new Error(processedDeploy.error?.message));
+            return processedDeploy.deploy
+              ? resolve(DeployUtil.deployToJson(processedDeploy.deploy))
+              : reject(new Error(processedDeploy.error?.message));
+          }
           case 'failed':
-            this.unsignedDeploys = this.unsignedDeploys.filter(
-              d => d.id !== processedDeploy.id
-            );
+            this.appState.unsignedDeploys.remove(processedDeploy);
             return reject(
               new Error(
                 processedDeploy.error?.message! ?? 'User Cancelled Signing'
@@ -237,13 +231,12 @@ export default class SigningManager extends events.EventEmitter {
    * Sets the status and errors fields for the rejected deploy.
    * @param deployId ID to identify deploy from queue
    */
-  public rejectSignDeploy(deployId: number) {
+  public async rejectSignDeploy(deployId: number) {
     const deployWithId = this.getDeployById(deployId);
     deployWithId.status = 'failed';
     deployWithId.error = new Error('User Cancelled Signing');
-    this.appState.unsignedDeploys.clear();
+    this.appState.unsignedDeploys.remove(deployWithId);
     this.saveAndEmitEventIfNeeded(deployWithId);
-    this.popupManager.closePopup();
   }
 
   // Approve signature request
@@ -274,6 +267,7 @@ export default class SigningManager extends events.EventEmitter {
 
     deployData.status = 'signed';
     this.saveAndEmitEventIfNeeded(deployData);
+    this.updateAppState();
   }
 
   /**
@@ -465,7 +459,7 @@ export default class SigningManager extends events.EventEmitter {
       }
 
       this.updateAppState();
-      this.popupManager.openPopup('signMessage');
+      this.popupManager.openPopup('signMessage', messageId);
       this.once(`${messageId}:finished`, (processedMessage: messageWithID) => {
         if (!this.appState.isUnlocked) {
           return reject(
@@ -492,9 +486,7 @@ export default class SigningManager extends events.EventEmitter {
               return reject(new Error(processedMessage.error?.message));
             }
           case 'failed':
-            this.unsignedMessages = this.unsignedMessages.filter(
-              d => d.id !== processedMessage.id
-            );
+            this.appState.unsignedMessages.remove(processedMessage);
             return reject(
               new Error(
                 processedMessage.error?.message! ?? 'User Cancelled Signing'

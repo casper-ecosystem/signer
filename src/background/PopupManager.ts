@@ -1,6 +1,6 @@
-// size of the popup
-
+import SigningManager from './SigningManager';
 import { browser } from 'webextension-polyfill-ts';
+import { AppState } from '../lib/MemStore';
 
 export type openPurpose =
   | 'connect'
@@ -21,6 +21,7 @@ const popupBuffer = {
 interface PopupWindow {
   windowId: number;
   openFor: openPurpose;
+  signingId?: number;
 }
 
 let popupWindow: PopupWindow | null = null;
@@ -30,7 +31,18 @@ let popupWindow: PopupWindow | null = null;
  * Provide inject and background a way to show popup.
  */
 export default class PopupManager {
-  async openPopup(openFor: openPurpose) {
+  private signingManager: SigningManager;
+  constructor(appstate: AppState) {
+    this.signingManager = new SigningManager(appstate, this);
+    browser.windows.onRemoved.addListener(async windowId => {
+      if (windowId === popupWindow?.windowId && popupWindow.signingId) {
+        await this.cancelUnsignedItem(popupWindow.signingId);
+      }
+      popupWindow = null;
+    });
+  }
+
+  async openPopup(openFor: openPurpose, signingId?: number) {
     if (!popupWindow) {
       // No popup window open
       browser.windows
@@ -62,7 +74,8 @@ export default class PopupManager {
               if (newPopup.id) {
                 popupWindow = {
                   windowId: newPopup.id,
-                  openFor
+                  openFor,
+                  signingId
                 };
               }
             });
@@ -105,8 +118,9 @@ export default class PopupManager {
     }
   }
 
-  async closePopup(windowId?: number) {
+  async closePopup(windowId?: number, signingId?: number) {
     try {
+      if (signingId) this.cancelUnsignedItem(signingId);
       if (windowId) {
         await browser.windows.remove(windowId);
       } else {
@@ -119,6 +133,28 @@ export default class PopupManager {
       popupWindow = null;
     } catch (error) {
       throw error;
+    }
+  }
+
+  private async cancelUnsignedItem(signingId: number) {
+    if (!popupWindow) return;
+    try {
+      switch (popupWindow.openFor) {
+        case 'signDeploy':
+          await this.signingManager.rejectSignDeploy(signingId);
+          break;
+        case 'signMessage':
+          await this.signingManager.cancelSigningMessage(signingId);
+          break;
+        default:
+          break;
+      }
+    } catch (err) {
+      console.info(
+        `Signer: Cancelled ${popupWindow.openFor
+          .substring(4)
+          .toLowerCase()} signing due to window closure.`
+      );
     }
   }
 }
