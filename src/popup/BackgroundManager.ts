@@ -238,7 +238,10 @@ export class BackgroundManager {
     );
   }
 
-  public callClosePopup() {
-    return this.errors.withCapture(this.rpc.call<void>('popup.closePopup'));
+  public callClosePopup(signingId?: number) {
+    // first parameter is undefined to cover the optional windowId arg
+    return this.errors.withCapture(
+      this.rpc.call<void>('popup.closePopup', undefined, signingId)
+    );
   }
 }
