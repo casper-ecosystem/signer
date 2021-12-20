@@ -197,39 +197,42 @@ export default class SigningManager extends events.EventEmitter {
       );
       this.popupManager.openPopup('signDeploy');
       // Await outcome of user interaction with popup.
-      this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
-        if (!this.appState.isUnlocked) {
-          return reject(
-            new Error(
-              `Signer locked during signing process, please unlock and try again.`
-            )
-          );
-        }
-        switch (processedDeploy.status) {
-          case 'signed':
-            if (processedDeploy.deploy) {
-              this.appState.unsignedDeploys.clear();
-              return resolve(DeployUtil.deployToJson(processedDeploy.deploy));
-            }
-            this.appState.unsignedDeploys.remove(processedDeploy);
-            return reject(new Error(processedDeploy.error?.message));
-          case 'failed':
-            this.unsignedDeploys = this.unsignedDeploys.filter(
-              d => d.id !== processedDeploy.id
-            );
+      this.once(
+        `casper-signer:${deployId}:finished`,
+        (processedDeploy: deployWithID) => {
+          if (!this.appState.isUnlocked) {
             return reject(
               new Error(
-                processedDeploy.error?.message! ?? 'User Cancelled Signing'
+                `Signer locked during signing process, please unlock and try again.`
               )
             );
-          default:
-            return reject(
-              new Error(
-                `Signer: Unknown error occurred. Deploy transferDeploy: ${processedDeploy.toString()}`
-              )
-            );
+          }
+          switch (processedDeploy.status) {
+            case 'signed':
+              if (processedDeploy.deploy) {
+                this.appState.unsignedDeploys.clear();
+                return resolve(DeployUtil.deployToJson(processedDeploy.deploy));
+              }
+              this.appState.unsignedDeploys.remove(processedDeploy);
+              return reject(new Error(processedDeploy.error?.message));
+            case 'failed':
+              this.unsignedDeploys = this.unsignedDeploys.filter(
+                d => d.id !== processedDeploy.id
+              );
+              return reject(
+                new Error(
+                  processedDeploy.error?.message! ?? 'User Cancelled Signing'
+                )
+              );
+            default:
+              return reject(
+                new Error(
+                  `Signer: Unknown error occurred. Deploy transferDeploy: ${processedDeploy.toString()}`
+                )
+              );
+          }
         }
-      });
+      );
     });
   }
 
@@ -466,44 +469,47 @@ export default class SigningManager extends events.EventEmitter {
 
       this.updateAppState();
       this.popupManager.openPopup('signMessage');
-      this.once(`${messageId}:finished`, (processedMessage: messageWithID) => {
-        if (!this.appState.isUnlocked) {
-          return reject(
-            new Error(
-              `Signer locked during signing process, please unlock and try again.`
-            )
-          );
-        }
-        switch (processedMessage.status) {
-          case 'signed':
-            if (processedMessage.messageBytes) {
-              this.appState.unsignedMessages.remove(processedMessage);
-              if (activeKeyPair !== this.appState.activeUserAccount?.keyPair)
-                throw new Error('Active account changed during signing.');
-              if (!activeKeyPair)
-                throw new Error('No Active Key set - set it and try again.');
-              const signature = signFormattedMessage(
-                activeKeyPair,
-                processedMessage.messageBytes
-              );
-              return resolve(encodeBase16(signature));
-            } else {
-              this.appState.unsignedMessages.remove(processedMessage);
-              return reject(new Error(processedMessage.error?.message));
-            }
-          case 'failed':
-            this.unsignedMessages = this.unsignedMessages.filter(
-              d => d.id !== processedMessage.id
-            );
+      this.once(
+        `casper-signer:${messageId}:finished`,
+        (processedMessage: messageWithID) => {
+          if (!this.appState.isUnlocked) {
             return reject(
               new Error(
-                processedMessage.error?.message! ?? 'User Cancelled Signing'
+                `Signer locked during signing process, please unlock and try again.`
               )
             );
-          default:
-            return reject(new Error(`Signer: Unknown error occurred`));
+          }
+          switch (processedMessage.status) {
+            case 'signed':
+              if (processedMessage.messageBytes) {
+                this.appState.unsignedMessages.remove(processedMessage);
+                if (activeKeyPair !== this.appState.activeUserAccount?.keyPair)
+                  throw new Error('Active account changed during signing.');
+                if (!activeKeyPair)
+                  throw new Error('No Active Key set - set it and try again.');
+                const signature = signFormattedMessage(
+                  activeKeyPair,
+                  processedMessage.messageBytes
+                );
+                return resolve(encodeBase16(signature));
+              } else {
+                this.appState.unsignedMessages.remove(processedMessage);
+                return reject(new Error(processedMessage.error?.message));
+              }
+            case 'failed':
+              this.unsignedMessages = this.unsignedMessages.filter(
+                d => d.id !== processedMessage.id
+              );
+              return reject(
+                new Error(
+                  processedMessage.error?.message! ?? 'User Cancelled Signing'
+                )
+              );
+            default:
+              return reject(new Error(`Signer: Unknown error occurred`));
+          }
         }
-      });
+      );
     });
   }
 
@@ -637,7 +643,7 @@ export default class SigningManager extends events.EventEmitter {
     }
     if (status === 'failed' || status === 'signed') {
       // fire finished event, so that the Promise can resolve and return result to RPC caller
-      this.emit(`${itemWithId.id}:finished`, itemWithId);
+      this.emit(`casper-signer:${itemWithId.id}:finished`, itemWithId);
     }
   }
 
