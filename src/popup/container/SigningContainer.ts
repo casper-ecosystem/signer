@@ -1,6 +1,5 @@
 import { BackgroundManager } from '../BackgroundManager';
 import { AppState } from '../../lib/MemStore';
-import { browser } from 'webextension-polyfill-ts';
 import { computed } from 'mobx';
 
 class SigningContainer {
@@ -45,12 +44,6 @@ class SigningContainer {
 
   async cancelSigningMessage(messageId: number) {
     await this.backgroundManager.cancelSigningMessage(messageId);
-  }
-
-  private async closeWindow() {
-    let views = await browser.extension.getViews();
-    let popup = views[1].window;
-    popup.close();
   }
 }
 
