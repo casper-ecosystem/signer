@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import AccountManager from '../container/AccountManager';
-import { RouteComponentProps, withRouter } from 'react-router';
+import { Redirect, RouteComponentProps, withRouter } from 'react-router';
 import { observable } from 'mobx';
 import {
   CreateAccountFormData,
@@ -214,7 +214,7 @@ class AccountPage extends React.Component<Props, State> {
 
   renderCreateForm() {
     const formData = this.accountForm as CreateAccountFormData;
-    return (
+    return this.props.authContainer.isUnLocked ? (
       <form
         className={this.props.classes.root}
         onSubmit={e => {
@@ -267,6 +267,8 @@ class AccountPage extends React.Component<Props, State> {
           </Button>
         </FormControl>
       </form>
+    ) : (
+      <Redirect to={Pages.Home} />
     );
   }
 
