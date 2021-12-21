@@ -27,7 +27,6 @@ import { confirm } from './Confirmation';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
 import SigningContainer from '../container/SigningContainer';
-import { SignMessagePage } from './SignMessagePage';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -474,66 +473,34 @@ class Home extends React.Component<
     );
   }
 
-  render() {
-    if (this.props.authContainer.hasCreatedVault) {
-      if (this.props.authContainer.isUnLocked) {
-        if (
-          !this.props.connectionContainer.connectionStatus &&
-          this.props.connectionContainer.connectionRequested
-        ) {
-          // Not connected and there is a request to connect
-          if (this.props.authContainer.userAccounts.length < 1) {
-            // Don't prompt for connection if there are no accounts
-            return this.renderAccountLists();
-          } else {
-            return <Redirect to={Pages.ConnectSigner} />;
-          }
-        } else {
-          if (this.props.signingContainer.deployToSign) {
-            return <Redirect to={Pages.SignDeploy} />;
-          } else if (this.props.signingContainer.messageToSign) {
-            return SignMessagePage(this.props.signingContainer);
-          } else {
-            return this.renderAccountLists();
-          }
-        }
-      } else {
-        if (this.props.authContainer.isLockedOut) {
-          return this.renderLockedOut();
-        } else {
-          return this.renderUnlock();
-        }
-      }
-    } else {
-      return this.renderCreateNewVault();
-    }
-  }
   // Nicer way to handle the rendering however this currently breaks some flows
   // leaving here for me to implement in next release.
-  // render() {
-  //   return this.props.authContainer.hasCreatedVault ? (
-  //     this.props.authContainer.isUnLocked ? (
-  //       !this.props.connectionContainer.connectionStatus &&
-  //       this.props.connectionContainer.connectionRequested ? (
-  //         this.props.authContainer.userAccounts.length > 1 ? (
-  //           this.renderAccountLists()
-  //         ) : (
-  //           <Redirect to={Pages.ConnectSigner} />
-  //         )
-  //       ) : this.props.authContainer.unsignedDeploys.length > 0 ? (
-  //         <Redirect to={Pages.SignMessage} />
-  //       ) : (
-  //         this.renderAccountLists()
-  //       )
-  //     ) : this.props.authContainer.isLockedOut ? (
-  //       this.renderLockedOut()
-  //     ) : (
-  //       this.renderUnlock()
-  //     )
-  //   ) : (
-  //     this.renderCreateNewVault()
-  //   );
-  // }
+  render() {
+    return this.props.authContainer.hasCreatedVault ? (
+      this.props.authContainer.isUnLocked ? (
+        !this.props.connectionContainer.connectionStatus &&
+        this.props.connectionContainer.connectionRequested ? (
+          this.props.authContainer.userAccounts.length > 1 ? (
+            this.renderAccountLists()
+          ) : (
+            <Redirect to={Pages.ConnectSigner} />
+          )
+        ) : this.props.signingContainer.messageToSign ? (
+          <Redirect to={Pages.SignMessage} />
+        ) : this.props.signingContainer.deployToSign ? (
+          <Redirect to={Pages.SignDeploy} />
+        ) : (
+          this.renderAccountLists()
+        )
+      ) : this.props.authContainer.isLockedOut ? (
+        this.renderLockedOut()
+      ) : (
+        this.renderUnlock()
+      )
+    ) : (
+      this.renderCreateNewVault()
+    );
+  }
 }
 
 export default withStyles(styles, { withTheme: true })(withRouter(Home));
