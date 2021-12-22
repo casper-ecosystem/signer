@@ -1,5 +1,9 @@
 # Signer
-Browser plugin used to sign transactions for CasperLabs.
+Signer is a browser plugin used to sign transactions for the Casper Network.
+
+You can find the latest version of Signer on [Chrome Web Store](https://chrome.google.com/webstore/detail/casperlabs-signer/djhndpllfiibmcdbnmaaahkhchcoijce). For help using Signer, check out the [Casper Signer User Guide](https://casper.network/docs/workflow/signer-guide).
+
+Signer supports Google Chrome, and Chromium-based browsers like Brave. Using the latest available browser versions is highly recommended.
 
 ## Architecture 
 
