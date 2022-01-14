@@ -55,6 +55,7 @@ export default class SigningManager extends events.EventEmitter {
   private unsignedMessages: messageWithID[];
   private nextId: number;
   private popupManager: PopupManager;
+  private messagePrefix: string = `casper-signer`;
 
   constructor(private appState: AppState) {
     super();
@@ -198,7 +199,7 @@ export default class SigningManager extends events.EventEmitter {
       this.popupManager.openPopup('signDeploy');
       // Await outcome of user interaction with popup.
       this.once(
-        `casper-signer:${deployId}:finished`,
+        `${this.messagePrefix}:${deployId}:finished`,
         (processedDeploy: deployWithID) => {
           if (!this.appState.isUnlocked) {
             return reject(
@@ -470,7 +471,7 @@ export default class SigningManager extends events.EventEmitter {
       this.updateAppState();
       this.popupManager.openPopup('signMessage');
       this.once(
-        `casper-signer:${messageId}:finished`,
+        `${this.messagePrefix}:${messageId}:finished`,
         (processedMessage: messageWithID) => {
           if (!this.appState.isUnlocked) {
             return reject(
@@ -643,7 +644,7 @@ export default class SigningManager extends events.EventEmitter {
     }
     if (status === 'failed' || status === 'signed') {
       // fire finished event, so that the Promise can resolve and return result to RPC caller
-      this.emit(`casper-signer:${itemWithId.id}:finished`, itemWithId);
+      this.emit(`${this.messagePrefix}:${itemWithId.id}:finished`, itemWithId);
     }
   }
 
