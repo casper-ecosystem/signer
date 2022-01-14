@@ -19,6 +19,10 @@ body:
       placeholder: "*://analytics.exampleproject.io/*"
     validations:
       required: true
+  - type: input
+    id: audit-url
+    attributes:
+      label: Code audit/review URL if available
   - type: textarea
     id: description
     attributes:
