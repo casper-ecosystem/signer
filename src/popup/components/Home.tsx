@@ -308,9 +308,6 @@ class Home extends React.Component<
                 component={Link}
                 variant="contained"
                 color="primary"
-                onClick={() =>
-                  this.props.popupManager.openPopup('importAccount')
-                }
                 to={Pages.ImportAccount}
                 style={{
                   backgroundColor: '#fff',

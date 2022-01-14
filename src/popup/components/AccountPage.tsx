@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react';
 import React from 'react';
+import { Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { observable } from 'mobx';
@@ -271,7 +272,9 @@ class AccountPage extends React.Component<Props, State> {
   }
 
   render() {
-    return (
+    return !this.props.authContainer.isUnLocked ? (
+      <Redirect to={Pages.Home} />
+    ) : (
       <div>
         <div className="mt-5 mb-4">
           {this.accountForm instanceof CreateAccountFormData
