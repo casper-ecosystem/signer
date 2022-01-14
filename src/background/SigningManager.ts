@@ -485,9 +485,13 @@ export default class SigningManager extends events.EventEmitter {
               if (processedMessage.messageBytes) {
                 this.appState.unsignedMessages.remove(processedMessage);
                 if (activeKeyPair !== this.appState.activeUserAccount?.keyPair)
-                  throw new Error('Active account changed during signing.');
+                  return reject(
+                    new Error('Active account changed during signing.')
+                  );
                 if (!activeKeyPair)
-                  throw new Error('No Active Key set - set it and try again.');
+                  return reject(
+                    new Error('No Active Key set - set it and try again.')
+                  );
                 const signature = signFormattedMessage(
                   activeKeyPair,
                   processedMessage.messageBytes
