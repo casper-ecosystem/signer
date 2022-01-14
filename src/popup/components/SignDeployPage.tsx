@@ -28,6 +28,7 @@ import {
   numberWithSpaces,
   motesToCSPR
 } from '../../background/utils';
+import { popupDimensions } from '../../background/PopupManager';
 
 const styles = () => ({
   tooltip: {
@@ -164,7 +165,13 @@ class SignDeployPage extends React.Component<
     if (this.state.deployToSign && this.props.authContainer.isUnLocked) {
       const deployId = this.props.signingContainer.deployToSign?.id;
       return (
-        <div style={{ flexGrow: 1, marginTop: '-30px', width: '430px' }}>
+        <div
+          style={{
+            flexGrow: 1,
+            marginTop: '-30px',
+            width: popupDimensions.expandedWidth
+          }}
+        >
           <Typography align={'center'} variant={'h6'}>
             Signature Request
           </Typography>
