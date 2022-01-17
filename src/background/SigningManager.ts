@@ -13,7 +13,6 @@ import {
   CLTypeTag
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
-export type deployStatus = 'unsigned' | 'signed' | 'failed';
 type argDict = { [key: string]: string };
 
 export interface messageWithID {
@@ -22,14 +21,14 @@ export interface messageWithID {
   messageString: string;
   signingKey: string;
   signature?: Uint8Array;
-  status: deployStatus;
+  status: SigningStatus;
   error?: Error;
   pushed?: boolean;
 }
 
 export interface deployWithID {
   id: number;
-  status: deployStatus;
+  status: SigningStatus;
   deploy: DeployUtil.Deploy | undefined;
   signingKey: string;
   targetKey: string;
@@ -50,12 +49,19 @@ export interface DeployData {
   deployArgs: Object;
 }
 
+enum SigningStatus {
+  unsigned,
+  signed,
+  failed
+}
+
 export default class SigningManager extends events.EventEmitter {
   private unsignedDeploys: deployWithID[];
   private unsignedMessages: messageWithID[];
   private nextId: number;
   private popupManager: PopupManager;
   private messagePrefix: string = `casper-signer`;
+  private signingFinished: string = `finished`;
 
   constructor(private appState: AppState) {
     super();
@@ -148,7 +154,7 @@ export default class SigningManager extends events.EventEmitter {
       if (innerDeploy.ok) {
         this.unsignedDeploys.push({
           id: id,
-          status: 'unsigned',
+          status: SigningStatus.unsigned,
           // Should be safe to unwrap here since Result was ok
           deploy: innerDeploy.unwrap(),
           signingKey: sourcePublicKey,
@@ -199,7 +205,7 @@ export default class SigningManager extends events.EventEmitter {
       this.popupManager.openPopup('signDeploy');
       // Await outcome of user interaction with popup.
       this.once(
-        `${this.messagePrefix}:${deployId}:finished`,
+        `${this.messagePrefix}:${deployId}:${this.signingFinished}`,
         (processedDeploy: deployWithID) => {
           if (!this.appState.isUnlocked) {
             return reject(
@@ -209,14 +215,14 @@ export default class SigningManager extends events.EventEmitter {
             );
           }
           switch (processedDeploy.status) {
-            case 'signed':
+            case SigningStatus.signed:
               if (processedDeploy.deploy) {
                 this.appState.unsignedDeploys.clear();
                 return resolve(DeployUtil.deployToJson(processedDeploy.deploy));
               }
               this.appState.unsignedDeploys.remove(processedDeploy);
               return reject(new Error(processedDeploy.error?.message));
-            case 'failed':
+            case SigningStatus.failed:
               this.unsignedDeploys = this.unsignedDeploys.filter(
                 d => d.id !== processedDeploy.id
               );
@@ -243,7 +249,7 @@ export default class SigningManager extends events.EventEmitter {
    */
   public rejectSignDeploy(deployId: number) {
     const deployWithId = this.getDeployById(deployId);
-    deployWithId.status = 'failed';
+    deployWithId.status = SigningStatus.failed;
     deployWithId.error = new Error('User Cancelled Signing');
     this.appState.unsignedDeploys.clear();
     this.saveAndEmitEventIfNeeded(deployWithId);
@@ -268,7 +274,7 @@ export default class SigningManager extends events.EventEmitter {
       deployData.signingKey &&
       activeKeyPair.publicKey.toHex() !== deployData.signingKey
     ) {
-      deployData.status = 'failed';
+      deployData.status = SigningStatus.failed;
       deployData.error = new Error('Active key changed during signing');
       this.saveAndEmitEventIfNeeded(deployData);
       return;
@@ -276,7 +282,7 @@ export default class SigningManager extends events.EventEmitter {
 
     DeployUtil.signDeploy(deployData.deploy, activeKeyPair);
 
-    deployData.status = 'signed';
+    deployData.status = SigningStatus.signed;
     this.saveAndEmitEventIfNeeded(deployData);
   }
 
@@ -462,7 +468,7 @@ export default class SigningManager extends events.EventEmitter {
           messageBytes: messageBytes,
           messageString: message,
           signingKey: signingPublicKey,
-          status: 'unsigned'
+          status: SigningStatus.unsigned
         });
       } catch (err) {
         throw err;
@@ -471,7 +477,7 @@ export default class SigningManager extends events.EventEmitter {
       this.updateAppState();
       this.popupManager.openPopup('signMessage');
       this.once(
-        `${this.messagePrefix}:${messageId}:finished`,
+        `${this.messagePrefix}:${messageId}:${this.signingFinished}`,
         (processedMessage: messageWithID) => {
           if (!this.appState.isUnlocked) {
             return reject(
@@ -481,7 +487,7 @@ export default class SigningManager extends events.EventEmitter {
             );
           }
           switch (processedMessage.status) {
-            case 'signed':
+            case SigningStatus.signed:
               if (processedMessage.messageBytes) {
                 this.appState.unsignedMessages.remove(processedMessage);
                 if (activeKeyPair !== this.appState.activeUserAccount?.keyPair)
@@ -501,7 +507,7 @@ export default class SigningManager extends events.EventEmitter {
                 this.appState.unsignedMessages.remove(processedMessage);
                 return reject(new Error(processedMessage.error?.message));
               }
-            case 'failed':
+            case SigningStatus.failed:
               this.unsignedMessages = this.unsignedMessages.filter(
                 d => d.id !== processedMessage.id
               );
@@ -543,7 +549,7 @@ export default class SigningManager extends events.EventEmitter {
       messageWithId.signingKey &&
       activeKeyPair.publicKey.toHex() !== messageWithId.signingKey
     ) {
-      messageWithId.status = 'failed';
+      messageWithId.status = SigningStatus.failed;
       messageWithId.error = new Error('Active key changed during signing');
       this.saveAndEmitEventIfNeeded(messageWithId);
       return;
@@ -554,13 +560,13 @@ export default class SigningManager extends events.EventEmitter {
       messageWithId.messageBytes
     );
 
-    messageWithId.status = 'signed';
+    messageWithId.status = SigningStatus.signed;
     this.saveAndEmitEventIfNeeded(messageWithId);
   }
 
   public async cancelSigningMessage(messageId: number) {
     const messageWithId = this.getMessageById(messageId);
-    messageWithId.status = 'failed';
+    messageWithId.status = SigningStatus.failed;
     messageWithId.error = new Error('User Cancelled Signing');
     this.appState.unsignedMessages.remove(messageWithId);
     this.saveAndEmitEventIfNeeded(messageWithId);
@@ -646,9 +652,12 @@ export default class SigningManager extends events.EventEmitter {
     } else if (isMessageWithId(itemWithId)) {
       this.updateMessageWithId(itemWithId);
     }
-    if (status === 'failed' || status === 'signed') {
+    if (status === SigningStatus.failed || status === SigningStatus.signed) {
       // fire finished event, so that the Promise can resolve and return result to RPC caller
-      this.emit(`${this.messagePrefix}:${itemWithId.id}:finished`, itemWithId);
+      this.emit(
+        `${this.messagePrefix}:${itemWithId.id}:${this.signingFinished}`,
+        itemWithId
+      );
     }
   }
 
