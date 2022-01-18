@@ -44,7 +44,8 @@
         "*://*.singlecoin.xyz/*",
         "*://*.gitcoin.co/*",
         "*://gitcoin.co/*",
-        "*://*.casperpunks.io/*"
+        "*://*.casperpunks.io/*",
+        "*://*.fuzhouchain.io/*"
       ],
       "js": [
         "./scripts/content/content.js"
