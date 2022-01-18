@@ -1,6 +1,7 @@
 // size of the popup
 
 import { browser } from 'webextension-polyfill-ts';
+import { popupDimensions } from '../shared/constants';
 
 export type openPurpose =
   | 'connect'
@@ -9,9 +10,6 @@ export type openPurpose =
   | 'importAccount'
   | 'noAccount';
 
-const normalPopupWidth = 300;
-const normalPopupHeight = 480;
-const expandedPopupHeight = 820;
 // Pads around popup window
 const popupBuffer = {
   right: 20,
@@ -27,7 +25,9 @@ export default class PopupManager {
       .getCurrent()
       .then(window => {
         let windowWidth =
-          window.width === undefined || null ? normalPopupWidth : window.width;
+          window.width === undefined || null
+            ? popupDimensions.defaultWidth
+            : window.width;
         let xOffset = window.left === undefined || null ? 0 : window.left;
         let yOffset = window.top === undefined || null ? 0 : window.top;
         browser.windows.create({
@@ -37,9 +37,18 @@ export default class PopupManager {
               : 'index.html?#/',
           type: 'popup',
           height:
-            openFor === 'signDeploy' ? expandedPopupHeight : normalPopupHeight,
-          width: normalPopupWidth,
-          left: windowWidth + xOffset - normalPopupWidth - popupBuffer.right,
+            openFor === 'signDeploy'
+              ? popupDimensions.expandedHeight
+              : popupDimensions.defaultHeight,
+          width:
+            openFor === 'signDeploy'
+              ? popupDimensions.expandedWidth
+              : popupDimensions.defaultWidth,
+          left:
+            windowWidth +
+            xOffset -
+            popupDimensions.defaultWidth -
+            popupBuffer.right,
           top: yOffset + popupBuffer.top
         });
       })
