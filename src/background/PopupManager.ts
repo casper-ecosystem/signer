@@ -30,6 +30,12 @@ let popupWindow: PopupWindow | null = null;
  * Provide inject and background a way to show popup.
  */
 export default class PopupManager {
+  constructor() {
+    browser.windows.onRemoved.addListener(async windowId => {
+      if (popupWindow?.windowId !== windowId) return;
+      popupWindow = null;
+    });
+  }
   async openPopup(openFor: openPurpose) {
     if (!popupWindow) {
       // No popup window open
