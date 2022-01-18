@@ -28,8 +28,7 @@ import {
   numberWithSpaces,
   motesToCSPR
 } from '../../background/utils';
-import { popupDimensions } from '../../background/PopupManager';
-
+import { popupDimensions } from '../../shared/constants';
 const styles = () => ({
   tooltip: {
     fontSize: '.8rem',

@@ -1,6 +1,7 @@
 // size of the popup
 
 import { browser } from 'webextension-polyfill-ts';
+import { popupDimensions } from '../shared/constants';
 
 export type openPurpose =
   | 'connect'
@@ -8,13 +9,6 @@ export type openPurpose =
   | 'signMessage'
   | 'importAccount'
   | 'noAccount';
-
-export const popupDimensions = {
-  defaultWidth: 300,
-  defaultHeight: 480,
-  expandedWidth: 430,
-  expandedHeight: 820
-};
 
 // Pads around popup window
 const popupBuffer = {
