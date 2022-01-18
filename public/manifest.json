@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "1.4.7",
+  "version": "1.4.8",
   "name": "CasperLabs Signer",
   "author": "https://casperlabs.io",
   "description": "CasperLabs Signer tool for signing transactions on the blockchain.",
@@ -44,7 +44,8 @@
         "*://*.singlecoin.xyz/*",
         "*://*.gitcoin.co/*",
         "*://gitcoin.co/*",
-        "*://*.casperpunks.io/*"
+        "*://*.casperpunks.io/*",
+        "*://*.fuzhouchain.io/*"
       ],
       "js": [
         "./scripts/content/content.js"
