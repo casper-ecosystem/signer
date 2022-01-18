@@ -23,21 +23,21 @@ interface PopupWindow {
   openFor: openPurpose;
 }
 
-let popupWindow: PopupWindow | null = null;
-
 /**
  * A Class to manager Popup
  * Provide inject and background a way to show popup.
  */
 export default class PopupManager {
+  private popupWindow: PopupWindow | null = null;
+
   constructor() {
     browser.windows.onRemoved.addListener(async windowId => {
-      if (popupWindow?.windowId !== windowId) return;
-      popupWindow = null;
+      if (this.popupWindow?.windowId !== windowId) return;
+      this.popupWindow = null;
     });
   }
   async openPopup(openFor: openPurpose) {
-    if (!popupWindow) {
+    if (!this.popupWindow) {
       // No popup window open
       browser.windows
         .getCurrent()
@@ -66,7 +66,7 @@ export default class PopupManager {
             })
             .then(newPopup => {
               if (newPopup.id) {
-                popupWindow = {
+                this.popupWindow = {
                   windowId: newPopup.id,
                   openFor
                 };
@@ -93,9 +93,9 @@ export default class PopupManager {
         });
     } else {
       // There is a window open already
-      if (popupWindow.openFor == openFor) {
+      if (this.popupWindow.openFor == openFor) {
         // Current window is open to the required page
-        let w = await browser.windows.get(popupWindow.windowId);
+        let w = await browser.windows.get(this.popupWindow.windowId);
         if (w.id) {
           browser.windows.update(w.id, {
             // Bring current window to the front
@@ -105,7 +105,7 @@ export default class PopupManager {
         }
       } else {
         // Current window is open to another page
-        await this.closePopup(popupWindow.windowId);
+        await this.closePopup(this.popupWindow.windowId);
         await this.openPopup(openFor);
       }
     }
@@ -122,7 +122,7 @@ export default class PopupManager {
         }
       }
       // Reset popup state
-      popupWindow = null;
+      this.popupWindow = null;
     } catch (error) {
       throw error;
     }
