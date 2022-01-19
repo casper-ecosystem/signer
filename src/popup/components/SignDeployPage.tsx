@@ -29,7 +29,7 @@ import {
   motesToCSPR
 } from '../../background/utils';
 import PopupContainer from '../container/PopupContainer';
-import { popupDimensions } from '../../shared/constants';
+import { popupDimensions } from '../../shared';
 
 const styles = () => ({
   tooltip: {
