@@ -1,11 +1,8 @@
 // size of the popup
 
 import { browser } from 'webextension-polyfill-ts';
-import { PurposeForOpening } from '../shared';
+import { PurposeForOpening, popupDimensions } from '../shared';
 
-const normalPopupWidth = 300;
-const normalPopupHeight = 480;
-const expandedPopupHeight = 820;
 // Pads around popup window
 const popupBuffer = {
   right: 20,
@@ -36,7 +33,7 @@ export default class PopupManager {
       browser.windows
         .getCurrent()
         .then(window => {
-          let windowWidth = window.width ?? normalPopupWidth;
+          let windowWidth = window.width ?? popupDimensions.defaultWidth;
           let xOffset = window.left ?? 0;
           let yOffset = window.top ?? 0;
           browser.windows
@@ -48,11 +45,14 @@ export default class PopupManager {
               type: 'popup',
               height:
                 purposeForOpening === PurposeForOpening.SignDeploy
-                  ? expandedPopupHeight
-                  : normalPopupHeight,
-              width: normalPopupWidth,
+                  ? popupDimensions.expandedHeight
+                  : popupDimensions.defaultHeight,
+              width: popupDimensions.defaultWidth,
               left:
-                windowWidth + xOffset - normalPopupWidth - popupBuffer.right,
+                windowWidth +
+                xOffset -
+                popupDimensions.defaultWidth -
+                popupBuffer.right,
               top: yOffset + popupBuffer.top
             })
             .then(newPopup => {
