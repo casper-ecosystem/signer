@@ -1,13 +1,7 @@
 // size of the popup
 
 import { browser } from 'webextension-polyfill-ts';
-
-export type openPurpose =
-  | 'connect'
-  | 'signDeploy'
-  | 'signMessage'
-  | 'importAccount'
-  | 'noAccount';
+import { PurposeForOpening } from '../shared';
 
 const normalPopupWidth = 300;
 const normalPopupHeight = 480;
@@ -20,7 +14,7 @@ const popupBuffer = {
 
 interface PopupWindow {
   windowId: number;
-  openFor: openPurpose;
+  purposeForOpening: PurposeForOpening;
 }
 
 /**
@@ -36,27 +30,24 @@ export default class PopupManager {
       this.popupWindow = null;
     });
   }
-  async openPopup(openFor: openPurpose) {
+  async openPopup(purposeForOpening: PurposeForOpening) {
     if (!this.popupWindow) {
       // No popup window open
       browser.windows
         .getCurrent()
         .then(window => {
-          let windowWidth =
-            window.width === undefined || null
-              ? normalPopupWidth
-              : window.width;
-          let xOffset = window.left === undefined || null ? 0 : window.left;
-          let yOffset = window.top === undefined || null ? 0 : window.top;
+          let windowWidth = window.width ?? normalPopupWidth;
+          let xOffset = window.left ?? 0;
+          let yOffset = window.top ?? 0;
           browser.windows
             .create({
               url:
-                openFor === 'importAccount'
+                purposeForOpening === PurposeForOpening.ImportAccount
                   ? 'index.html?#/import'
                   : 'index.html?#/',
               type: 'popup',
               height:
-                openFor === 'signDeploy'
+                purposeForOpening === PurposeForOpening.SignDeploy
                   ? expandedPopupHeight
                   : normalPopupHeight,
               width: normalPopupWidth,
@@ -68,21 +59,25 @@ export default class PopupManager {
               if (newPopup.id) {
                 this.popupWindow = {
                   windowId: newPopup.id,
-                  openFor
+                  purposeForOpening
                 };
               }
             });
         })
         .catch(() => {
           let title, message;
-          if (openFor === 'connect') {
-            title = 'Connection Request';
-            message = 'Open Signer to Approve or Reject Connection';
-          } else if (openFor === 'signDeploy' || openFor === 'signMessage') {
-            title = 'Signature Request';
-            message = 'Open Signer to Approve or Cancel Signing';
-          } else {
-            throw new Error('Purpose for alert message not found!');
+          switch (purposeForOpening) {
+            case PurposeForOpening.Connect:
+              title = 'Connection Request';
+              message = 'Open Signer to Approve or Reject Connection';
+              break;
+            case PurposeForOpening.SignDeploy:
+            case PurposeForOpening.SignMessage:
+              title = 'Signature Request';
+              message = 'Open Signer to Approve or Cancel Signing';
+              break;
+            default:
+              throw new Error('Purpose for alert message not found!');
           }
           browser.notifications.create({
             title: title,
@@ -93,7 +88,7 @@ export default class PopupManager {
         });
     } else {
       // There is a window open already
-      if (this.popupWindow.openFor == openFor) {
+      if (this.popupWindow.purposeForOpening === purposeForOpening) {
         // Current window is open to the required page
         let w = await browser.windows.get(this.popupWindow.windowId);
         if (w.id) {
@@ -106,7 +101,7 @@ export default class PopupManager {
       } else {
         // Current window is open to another page
         await this.closePopup(this.popupWindow.windowId);
-        await this.openPopup(openFor);
+        await this.openPopup(purposeForOpening);
       }
     }
   }

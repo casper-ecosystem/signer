@@ -28,6 +28,7 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
 import SigningContainer from '../container/SigningContainer';
 import { SignMessagePage } from './SignMessagePage';
+import { PurposeForOpening } from '../../shared';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -309,7 +310,9 @@ class Home extends React.Component<
                 variant="contained"
                 color="primary"
                 onClick={() =>
-                  this.props.popupContainer.callOpenPopup('importAccount')
+                  this.props.popupContainer.callOpenPopup(
+                    PurposeForOpening.ImportAccount
+                  )
                 }
                 to={Pages.ImportAccount}
                 style={{

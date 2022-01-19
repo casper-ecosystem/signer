@@ -13,6 +13,7 @@ import {
   CLTypeTag
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
+import { PurposeForOpening } from '../shared';
 export type deployStatus = 'unsigned' | 'signed' | 'failed';
 type argDict = { [key: string]: string };
 
@@ -195,7 +196,7 @@ export default class SigningManager extends events.EventEmitter {
         sourcePublicKeyHex,
         targetPublicKeyHex
       );
-      this.popupManager.openPopup('signDeploy');
+      this.popupManager.openPopup(PurposeForOpening.SignDeploy);
       // Await outcome of user interaction with popup.
       this.once(`${deployId}:finished`, (processedDeploy: deployWithID) => {
         if (!this.appState.isUnlocked) {
@@ -465,7 +466,7 @@ export default class SigningManager extends events.EventEmitter {
       }
 
       this.updateAppState();
-      this.popupManager.openPopup('signMessage');
+      this.popupManager.openPopup(PurposeForOpening.SignMessage);
       this.once(`${messageId}:finished`, (processedMessage: messageWithID) => {
         if (!this.appState.isUnlocked) {
           return reject(
