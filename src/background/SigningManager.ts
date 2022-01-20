@@ -50,6 +50,7 @@ export interface DeployData {
   deployArgs: Object;
 }
 
+// TODO: Change this to a string enum
 enum SigningStatus {
   unsigned,
   signed,
