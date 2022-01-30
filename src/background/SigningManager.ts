@@ -14,7 +14,8 @@ import {
   CLURef,
   CLByteArray,
   CLAccountHash,
-  CLList
+  CLList,
+  CLOption
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
 type argDict = { [key: string]: string | string[] };
@@ -404,7 +405,7 @@ export default class SigningManager extends events.EventEmitter {
     let tag = arg.clType().tag;
     switch (tag) {
       case CLTypeTag.Unit:
-        return String("Unable to display 'Unit'");
+        return String('CLValue Unit');
       case CLTypeTag.Key:
         let keyBytes = new CLKeyBytesParser().fromBytesWithRemainder(
           arg.value()
@@ -425,7 +426,12 @@ export default class SigningManager extends events.EventEmitter {
       case CLTypeTag.URef:
         return (arg as CLURef).toFormattedStr();
       case CLTypeTag.Option:
-        return String("Unable to display 'Option'");
+        let option = arg as CLOption<CLValue>;
+        if (option.isSome()) {
+          return this.parseDeployArg(option.value().unwrap().value());
+        } else {
+          return option.value().toString();
+        }
       case CLTypeTag.List:
         let list = (arg as CLList<CLValue>).value();
         let parsedList = list.map(listMember => {
