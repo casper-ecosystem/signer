@@ -145,18 +145,21 @@ class SignDeployPage extends React.Component<
     ];
     let argRows = [];
     for (let [key, value] of Object.entries(deployData.deployArgs)) {
-      argRows.push(
-        this.createRow(
-          key,
-          value.length > 15 ? truncateString(value, 6, 6) : value,
-          value.length > 12 ? value : undefined
-        )
+      let row = this.createRow(
+        key,
+        !Array.isArray(value) && value.length > 15
+          ? truncateString(value, 6, 6)
+          : value,
+        !Array.isArray(value) && value.length > 12 ? value : undefined
       );
+      console.log(row);
+      argRows.push(row);
     }
+    console.log(argRows);
     this.setState({
       genericRows: baseRows,
       deploySpecificRows: argRows,
-      argsExpanded: argRows.length > 3 ? false : true
+      argsExpanded: argRows.length < 4
     });
   }
 
@@ -342,7 +345,23 @@ class SignDeployPage extends React.Component<
                                         </TableCell>
                                         <TableCell align="right">
                                           {isNaN(+row.value)
-                                            ? row.value
+                                            ? Array.isArray(row.value)
+                                              ? row.value.map(listItem => {
+                                                  return (
+                                                    <ul>
+                                                      {!Array.isArray(
+                                                        listItem
+                                                      ) && listItem.length > 15
+                                                        ? truncateString(
+                                                            listItem,
+                                                            6,
+                                                            6
+                                                          )
+                                                        : listItem}
+                                                    </ul>
+                                                  );
+                                                })
+                                              : row.value
                                             : numberWithSpaces(row.value)}
                                         </TableCell>
                                       </TableRow>

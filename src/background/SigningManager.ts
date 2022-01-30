@@ -10,10 +10,25 @@ import {
   CLAccountHashType,
   formatMessageWithHeaders,
   signFormattedMessage,
-  CLTypeTag
+  CLTypeTag,
+  CLValue,
+  CLKeyBytesParser,
+  CLErrorCodes,
+  CLKey,
+  CLURef,
+  CLOption,
+  CLByteArray,
+  CLAccountHash,
+  CLList,
+  CLListType,
+  CLMap,
+  CLMapType,
+  CLValueBytesParsers,
+  CLType,
+  CLTypeBuilder
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
-type argDict = { [key: string]: string };
+type argDict = { [key: string]: string | string[] };
 
 export interface messageWithID {
   id: number;
@@ -344,17 +359,9 @@ export default class SigningManager extends events.EventEmitter {
       } else if (deployWithID.deploy.session.moduleBytes) {
         deployWithID.deploy.session.moduleBytes.args.args.forEach(
           (argument, key) => {
-            if (argument.clType() instanceof CLPublicKeyType) {
-              deployArgs[key] = (argument as CLPublicKey).toHex();
-            } else if (
-              argument.clType() instanceof CLByteArrayType ||
-              argument.clType() instanceof CLAccountHashType
-            ) {
-              deployArgs[key] = encodeBase16(argument.value());
-            } else {
-              // if not a PublicKey or ByteArray
-              deployArgs[key] = argument.value().toString();
-            }
+            let parsedArg = this.parseDeployArg(argument);
+            console.log(parsedArg);
+            deployArgs[key] = parsedArg;
           }
         );
         deployArgs['Module Bytes'] =
@@ -382,17 +389,9 @@ export default class SigningManager extends events.EventEmitter {
         try {
           // Credit to Killian Hascoët (@KillianH on GH) for inspiring this initial implementation for arg parsing.
           storedContract.args.args.forEach((argument, key) => {
-            if (argument.clType() instanceof CLPublicKeyType) {
-              deployArgs[key] = (argument as CLPublicKey).toHex();
-            } else if (
-              argument.clType() instanceof CLByteArrayType ||
-              argument.clType() instanceof CLAccountHashType
-            ) {
-              deployArgs[key] = encodeBase16(argument.value());
-            } else {
-              // if not a PublicKey or ByteArray
-              deployArgs[key] = argument.value().toString();
-            }
+            let parsedArg = this.parseDeployArg(argument);
+            console.log(key, parsedArg);
+            deployArgs[key] = parsedArg;
           });
           deployArgs['Entry Point'] = storedContract.entryPoint;
         } catch (err) {
@@ -413,6 +412,57 @@ export default class SigningManager extends events.EventEmitter {
       };
     } else {
       throw new Error('Invalid Deploy');
+    }
+  }
+
+  private parseDeployArg(arg: CLValue): any {
+    let tag = arg.clType().tag;
+    switch (tag) {
+      case CLTypeTag.Unit:
+        return String('Unit');
+      case CLTypeTag.Key:
+        let keyBytes = new CLKeyBytesParser().fromBytesWithRemainder(
+          arg.value()
+        ).result.val;
+        if (!(keyBytes instanceof CLKey)) {
+          throw new Error('Failed to parse key bytes from arg');
+        }
+        if (keyBytes.isAccount()) {
+          return this.parseDeployArg(keyBytes.value() as CLAccountHash);
+        }
+        if (keyBytes.isURef()) {
+          return this.parseDeployArg(keyBytes.value() as CLURef);
+        }
+        if (keyBytes.isHash()) {
+          return this.parseDeployArg(keyBytes.value() as CLByteArray);
+        }
+        throw new Error('Failed to parse key argument');
+      case CLTypeTag.URef:
+        return (arg as CLURef).toFormattedStr();
+      case CLTypeTag.Option:
+        return String('Option');
+      case CLTypeTag.List:
+        let list = (arg as CLList<CLValue>).value();
+        let parsedList = list.map(listMember => {
+          return this.parseDeployArg(listMember);
+        });
+        return parsedList;
+      case CLTypeTag.ByteArray:
+        return encodeBase16(arg.value());
+      case CLTypeTag.Result:
+        return String('Result');
+      case CLTypeTag.Map:
+        return String('Map');
+      case CLTypeTag.Tuple1:
+        return String('Tuple1');
+      case CLTypeTag.Tuple2:
+        return String('Tuple2');
+      case CLTypeTag.Tuple3:
+        return String('Tuple3');
+      case CLTypeTag.PublicKey:
+        return (arg as CLPublicKey).toHex();
+      default:
+        return arg.value().toString();
     }
   }
 
