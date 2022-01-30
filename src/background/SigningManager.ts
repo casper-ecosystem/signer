@@ -5,27 +5,16 @@ import {
   DeployUtil,
   encodeBase16,
   CLPublicKey,
-  CLPublicKeyType,
-  CLByteArrayType,
-  CLAccountHashType,
   formatMessageWithHeaders,
   signFormattedMessage,
   CLTypeTag,
   CLValue,
   CLKeyBytesParser,
-  CLErrorCodes,
   CLKey,
   CLURef,
-  CLOption,
   CLByteArray,
   CLAccountHash,
-  CLList,
-  CLListType,
-  CLMap,
-  CLMapType,
-  CLValueBytesParsers,
-  CLType,
-  CLTypeBuilder
+  CLList
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
 import { PurposeForOpening } from '../shared';
@@ -358,9 +347,7 @@ export default class SigningManager extends events.EventEmitter {
       } else if (deployWithID.deploy.session.moduleBytes) {
         deployWithID.deploy.session.moduleBytes.args.args.forEach(
           (argument, key) => {
-            let parsedArg = this.parseDeployArg(argument);
-            console.log(parsedArg);
-            deployArgs[key] = parsedArg;
+            deployArgs[key] = this.parseDeployArg(argument);
           }
         );
         deployArgs['Module Bytes'] =
@@ -388,9 +375,7 @@ export default class SigningManager extends events.EventEmitter {
         try {
           // Credit to Killian Hascoët (@KillianH on GH) for inspiring this initial implementation for arg parsing.
           storedContract.args.args.forEach((argument, key) => {
-            let parsedArg = this.parseDeployArg(argument);
-            console.log(key, parsedArg);
-            deployArgs[key] = parsedArg;
+            deployArgs[key] = this.parseDeployArg(argument);
           });
           deployArgs['Entry Point'] = storedContract.entryPoint;
         } catch (err) {
@@ -418,7 +403,7 @@ export default class SigningManager extends events.EventEmitter {
     let tag = arg.clType().tag;
     switch (tag) {
       case CLTypeTag.Unit:
-        return String('Unit');
+        return String("Unable to display 'Unit'");
       case CLTypeTag.Key:
         let keyBytes = new CLKeyBytesParser().fromBytesWithRemainder(
           arg.value()
@@ -439,7 +424,7 @@ export default class SigningManager extends events.EventEmitter {
       case CLTypeTag.URef:
         return (arg as CLURef).toFormattedStr();
       case CLTypeTag.Option:
-        return String('Option');
+        return String("Unable to display 'Option'");
       case CLTypeTag.List:
         let list = (arg as CLList<CLValue>).value();
         let parsedList = list.map(listMember => {
@@ -449,15 +434,13 @@ export default class SigningManager extends events.EventEmitter {
       case CLTypeTag.ByteArray:
         return encodeBase16(arg.value());
       case CLTypeTag.Result:
-        return String('Result');
+        return String("Unable to display 'Result'");
       case CLTypeTag.Map:
-        return String('Map');
+        return String("Unable to display 'Map'");
       case CLTypeTag.Tuple1:
-        return String('Tuple1');
       case CLTypeTag.Tuple2:
-        return String('Tuple2');
       case CLTypeTag.Tuple3:
-        return String('Tuple3');
+        return String("Unable to display 'Tuple'");
       case CLTypeTag.PublicKey:
         return (arg as CLPublicKey).toHex();
       default:

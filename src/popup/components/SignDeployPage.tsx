@@ -154,10 +154,8 @@ class SignDeployPage extends React.Component<
           : value,
         !Array.isArray(value) && value.length > 12 ? value : undefined
       );
-      console.log(row);
       argRows.push(row);
     }
-    console.log(argRows);
     this.setState({
       genericRows: baseRows,
       deploySpecificRows: argRows,
