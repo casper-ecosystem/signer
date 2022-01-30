@@ -15,7 +15,13 @@ import {
   CLByteArray,
   CLAccountHash,
   CLList,
-  CLOption
+  CLOption,
+  CLResult,
+  CLType,
+  CLMap,
+  CLTuple1,
+  CLTuple2,
+  CLTuple3
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
 type argDict = { [key: string]: string | string[] };
@@ -407,20 +413,15 @@ export default class SigningManager extends events.EventEmitter {
       case CLTypeTag.Unit:
         return String('CLValue Unit');
       case CLTypeTag.Key:
-        let keyBytes = new CLKeyBytesParser().fromBytesWithRemainder(
-          arg.value()
-        ).result.val;
-        if (!(keyBytes instanceof CLKey)) {
-          throw new Error('Failed to parse key bytes from arg');
+        let key = arg as CLKey;
+        if (key.isAccount()) {
+          return this.parseDeployArg(key.value() as CLAccountHash);
         }
-        if (keyBytes.isAccount()) {
-          return this.parseDeployArg(keyBytes.value() as CLAccountHash);
+        if (key.isURef()) {
+          return this.parseDeployArg(key.value() as CLURef);
         }
-        if (keyBytes.isURef()) {
-          return this.parseDeployArg(keyBytes.value() as CLURef);
-        }
-        if (keyBytes.isHash()) {
-          return this.parseDeployArg(keyBytes.value() as CLByteArray);
+        if (key.isHash()) {
+          return this.parseDeployArg(key.value() as CLByteArray);
         }
         throw new Error('Failed to parse key argument');
       case CLTypeTag.URef:
@@ -439,18 +440,35 @@ export default class SigningManager extends events.EventEmitter {
         });
         return parsedList;
       case CLTypeTag.ByteArray:
-        return encodeBase16(arg.value());
+        let bytes = (arg as CLByteArray).value();
+        return encodeBase16(bytes);
       case CLTypeTag.Result:
-        return String("Unable to display 'Result'");
+        let result = arg as CLResult<CLType, CLType>;
+        return result.value().toString();
       case CLTypeTag.Map:
-        return String("Unable to display 'Map'");
+        let map = arg as CLMap<CLValue, CLValue>;
+        return map.value().toString();
       case CLTypeTag.Tuple1:
+        let tupleOne = arg as CLTuple1;
+        return this.parseDeployArg(tupleOne.value()[0]);
       case CLTypeTag.Tuple2:
+        let tupleTwo = arg as CLTuple2;
+        let parsedTupleTwo = tupleTwo.value().map(member => {
+          return this.parseDeployArg(member);
+        });
+        return parsedTupleTwo;
       case CLTypeTag.Tuple3:
-        return String("Unable to display 'Tuple'");
+        let tupleThree = arg as CLTuple3;
+        let parsedTupleThree = tupleThree.value().map(member => {
+          return this.parseDeployArg(member);
+        });
+        return parsedTupleThree;
       case CLTypeTag.PublicKey:
         return (arg as CLPublicKey).toHex();
       default:
+        if (arg instanceof CLAccountHash)
+          // Special handling as there is no CLTypeTag for CLAccountHash
+          return encodeBase16(arg.value());
         return arg.value().toString();
     }
   }
