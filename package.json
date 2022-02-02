@@ -3,7 +3,7 @@
   "version": "1.4.6",
   "private": true,
   "dependencies": {
-    "@babel/core": "^7.14.6",
+    "@babel/core": "^7.16.12",
     "@extend-chrome/storage": "^1.5.0",
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@lapo/asn1js": "^1.2.1",
