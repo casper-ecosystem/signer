@@ -9,7 +9,7 @@ export function Content(): JSX.Element {
           Each of your accounts has a corresponding Secret Key file that
           provides access to the funds on that account.
         </p>
-        <ul>
+        <ul className="prompt-content-list">
           <li>
             Make sure that you have downloaded and backed up each Secret Key
             file. <a href="#">Start here</a>.
