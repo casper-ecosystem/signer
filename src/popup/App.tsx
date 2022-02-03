@@ -24,6 +24,12 @@ import { ConnectedSitesPage } from './components/ConnectedSitesPage';
 import { useIdleTimer } from 'react-idle-timer';
 import { SignMessagePage } from './components/SignMessagePage';
 import { ConfigureTimeoutPage } from './components/ConfigureTimeout';
+import {
+  Prompt,
+  SecurityCheckupActions,
+  SecurityCheckupContent,
+  SecurityCheckupHeader
+} from './components/Prompt';
 
 export interface AppProps {
   errors: ErrorContainer;
@@ -45,8 +51,19 @@ const App = observer((props: AppProps) => {
     debounce: 500
   });
 
+  const { isTimeToSecurityCheckup } = props.authContainer;
+  const closeHandler = props.authContainer.resetSecurityCheckupFlag.bind(
+    props.authContainer
+  );
+
   return (
     <div>
+      <Prompt
+        isOpened={isTimeToSecurityCheckup}
+        Header={SecurityCheckupHeader}
+        Content={SecurityCheckupContent}
+        Actions={() => <SecurityCheckupActions closeHandler={closeHandler} />}
+      />
       <AnalyticsProvider />
       <MainAppBar
         authContainer={props.authContainer}

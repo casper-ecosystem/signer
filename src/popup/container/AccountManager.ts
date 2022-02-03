@@ -69,6 +69,16 @@ class AccountManager {
     return this.appState.userAccounts;
   }
 
+  @computed
+  get isTimeToSecurityCheckup(): boolean {
+    return this.appState.isTimeToSecurityCheckup;
+  }
+
+  @action
+  async resetSecurityCheckupFlag() {
+    return await this.backgroundManager.resetSecurityCheckupFlag();
+  }
+
   async isBackedUp(alias: string) {
     return await this.backgroundManager.isBackedUp(alias);
   }

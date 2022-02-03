@@ -14,6 +14,11 @@ import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
 import { saveAs } from 'file-saver';
 import { updateStatusEvent } from './utils';
+import {
+  checkDateToSecurityCheckup,
+  setSecurityCheckupTimestamp,
+  removeSecurityCheckupTimestamp
+} from './securityCheckupPrompt';
 // import KeyEncoder from 'key-encoder';
 
 interface TimerStore {
@@ -257,6 +262,10 @@ class AuthController {
           : null;
     }
     this.persistVault();
+
+    if (!this.appState.userAccounts.length) {
+      removeSecurityCheckupTimestamp();
+    }
   }
 
   async downloadAccountKeys(alias: string) {
@@ -513,6 +522,16 @@ class AuthController {
     return encodeBase64(hashedBytes);
   }
 
+  @computed
+  get isTimeToSecurityCheckup(): boolean {
+    return this.appState.isTimeToSecurityCheckup;
+  }
+
+  @action.bound
+  resetIsTimeToSecurityCheckupFlag() {
+    this.appState.isTimeToSecurityCheckup = false;
+  }
+
   /*
    * user can lock the plugin manually, and then user need to use
    * password to unlock, so that the plugin won't be used by others
@@ -556,6 +575,18 @@ class AuthController {
       : 2;
 
     updateStatusEvent(this.appState, 'unlocked');
+
+    const isTimeToCheck = await checkDateToSecurityCheckup();
+
+    if (!this.appState.userAccounts.length) {
+      return;
+    }
+
+    this.appState.isTimeToSecurityCheckup = isTimeToCheck;
+
+    if (isTimeToCheck) {
+      await setSecurityCheckupTimestamp();
+    }
   }
 
   @action

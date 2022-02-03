@@ -41,6 +41,13 @@ export class BackgroundManager {
     this.appState.unsignedDeploys.replace(appState.unsignedDeploys);
     this.appState.unsignedMessages.replace(appState.unsignedMessages);
     this.appState.idleTimeoutMins = appState.idleTimeoutMins;
+    this.appState.isTimeToSecurityCheckup = appState.isTimeToSecurityCheckup;
+  }
+
+  public resetSecurityCheckupFlag() {
+    return this.errors.withCapture(
+      this.rpc.call<void>('account.resetSecurityCheckupFlag')
+    );
   }
 
   public unlock(password: string) {

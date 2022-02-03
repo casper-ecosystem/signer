@@ -6,6 +6,7 @@ import { deployWithID, messageWithID } from '../background/SigningManager';
 export class AppState {
   @observable isIntegratedSite: boolean = false;
   @observable isUnlocked: boolean = false;
+  @observable isTimeToSecurityCheckup: boolean = false;
   @observable unlockAttempts: number = 5;
   @computed get lockedOut(): boolean {
     return this.unlockAttempts === 0;
