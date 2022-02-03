@@ -14,21 +14,23 @@ interface PopupWindow {
   purposeForOpening: PurposeForOpening;
 }
 
+// this acts as a singleton
+let popupWindow: PopupWindow | null = null;
+
 /**
  * A Class to manager Popup
  * Provide inject and background a way to show popup.
  */
 export default class PopupManager {
-  private popupWindow: PopupWindow | null = null;
-
   constructor() {
     browser.windows.onRemoved.addListener(async windowId => {
-      if (this.popupWindow?.windowId !== windowId) return;
-      this.popupWindow = null;
+      if (popupWindow?.windowId !== windowId) return;
+      popupWindow = null;
     });
   }
+
   async openPopup(purposeForOpening: PurposeForOpening) {
-    if (!this.popupWindow) {
+    if (!popupWindow) {
       // No popup window open
       browser.windows
         .getCurrent()
@@ -57,7 +59,7 @@ export default class PopupManager {
             })
             .then(newPopup => {
               if (newPopup.id) {
-                this.popupWindow = {
+                popupWindow = {
                   windowId: newPopup.id,
                   purposeForOpening
                 };
@@ -87,20 +89,20 @@ export default class PopupManager {
           });
         });
     } else {
-      // There is a window open already
-      if (this.popupWindow.purposeForOpening === purposeForOpening) {
-        // Current window is open to the required page
-        let w = await browser.windows.get(this.popupWindow.windowId);
-        if (w.id) {
-          browser.windows.update(w.id, {
-            // Bring current window to the front
+      // There is a popup window open already
+      if (popupWindow.purposeForOpening === purposeForOpening) {
+        // popup window is open to the required page
+        let window = await browser.windows.get(popupWindow.windowId);
+        if (window.id) {
+          browser.windows.update(window.id, {
+            // Bring popup window to the front
             focused: true,
             drawAttention: true
           });
         }
       } else {
-        // Current window is open to another page
-        await this.closePopup(this.popupWindow.windowId);
+        // popup window is open to another page
+        await this.closePopup(popupWindow.windowId);
         await this.openPopup(purposeForOpening);
       }
     }
@@ -111,13 +113,14 @@ export default class PopupManager {
       if (windowId) {
         await browser.windows.remove(windowId);
       } else {
-        let w = await browser.windows.getCurrent();
-        if (w.type === 'popup' && w.id) {
-          await browser.windows.remove(w.id);
+        //FIXME: this code is missing a comment what case it's trying to cover, please fix
+        let currentWindow = await browser.windows.getCurrent();
+        if (currentWindow.type === 'popup' && currentWindow.id) {
+          await browser.windows.remove(currentWindow.id);
         }
       }
       // Reset popup state
-      this.popupWindow = null;
+      popupWindow = null;
     } catch (error) {
       throw error;
     }
