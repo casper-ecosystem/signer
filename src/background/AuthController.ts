@@ -84,6 +84,7 @@ class AuthController {
         clearTimeout(this.timer);
       }
       port.onDisconnect.addListener(() => {
+        this.appState.isTimeToSecurityCheckup = false;
         this.timer = setTimeout(() => {
           if (this.isUnlocked) this.lock();
         }, 1000 * 60 * this.appState.idleTimeoutMins);
