@@ -29,12 +29,17 @@ import {
   motesToCSPR
 } from '../../background/utils';
 import PopupContainer from '../container/PopupContainer';
+import { popupDimensions } from '../../shared/constants';
 
 const styles = () => ({
   tooltip: {
     fontSize: '.8rem',
     width: '260px',
     margin: '10px 0 0 0'
+  },
+  listItemTooltip: {
+    fontSize: '.8rem',
+    marginRight: '60px'
   }
 });
 
@@ -56,21 +61,21 @@ interface Props extends RouteComponentProps {
 
 @observer
 class SignDeployPage extends React.Component<
-  Props,
-  {
-    genericRows: {
-      key: string;
-      value: any;
-      title: any;
-    }[];
-    deploySpecificRows: {
-      key: string;
-      value: any;
-      title: any;
-    }[];
-    deployToSign: deployWithID | null;
-    argsExpanded: boolean;
-  }
+Props,
+{
+  genericRows: {
+    key: string;
+    value: any;
+    title: any;
+  }[];
+  deploySpecificRows: {
+    key: string;
+    value: any;
+    title: any;
+  }[];
+  deployToSign: deployWithID | null;
+  argsExpanded: boolean;
+}
 > {
   constructor(props: Props) {
     super(props);
@@ -347,20 +352,35 @@ class SignDeployPage extends React.Component<
                                           {isNaN(+row.value)
                                             ? Array.isArray(row.value)
                                               ? row.value.map(listItem => {
-                                                  return (
-                                                    <ul>
-                                                      {!Array.isArray(
-                                                        listItem
-                                                      ) && listItem.length > 15
-                                                        ? truncateString(
+                                                return (
+                                                  <ul>
+                                                    {!Array.isArray(
+                                                      listItem
+                                                    ) &&
+                                                      listItem.length > 15 ? (
+                                                      <Tooltip
+                                                        title={listItem.toString()}
+                                                        placement="top"
+                                                        classes={{
+                                                          tooltip:
+                                                            this.props.classes
+                                                              .listItemTooltip
+                                                        }}
+                                                      >
+                                                        <p>
+                                                          {truncateString(
                                                             listItem,
                                                             6,
                                                             6
-                                                          )
-                                                        : listItem}
-                                                    </ul>
-                                                  );
-                                                })
+                                                          )}
+                                                        </p>
+                                                      </Tooltip>
+                                                    ) : (
+                                                      listItem
+                                                    )}
+                                                  </ul>
+                                                );
+                                              })
                                               : row.value
                                             : numberWithSpaces(row.value)}
                                         </TableCell>
