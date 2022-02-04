@@ -18,7 +18,8 @@ import {
   TableContainer,
   TableRow,
   Tooltip,
-  Typography
+  Typography,
+  Zoom
 } from '@material-ui/core';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
@@ -191,6 +192,7 @@ Props,
                       key={row.key}
                       title={row.title ? row.title : ''}
                       placement="top"
+                      TransitionComponent={Zoom}
                     >
                       <TableRow key={row.key}>
                         <TableCell
@@ -209,6 +211,7 @@ Props,
                       title={row.title ? row.title : ''}
                       classes={{ tooltip: this.props.classes.tooltip }}
                       placement="top"
+                      TransitionComponent={Zoom}
                     >
                       <TableRow key={row.key}>
                         <TableCell
@@ -251,6 +254,7 @@ Props,
                                   key={index}
                                   title={`${motesToCSPR(row.value)} CSPR`}
                                   placement="top"
+                                  TransitionComponent={Zoom}
                                 >
                                   <TableRow key={index}>
                                     <TableCell
@@ -273,6 +277,7 @@ Props,
                                     tooltip: this.props.classes.tooltip
                                   }}
                                   placement="top"
+                                  TransitionComponent={Zoom}
                                 >
                                   <TableRow>
                                     <TableCell style={{ fontWeight: 'bold' }}>
@@ -341,6 +346,7 @@ Props,
                                         tooltip: this.props.classes.tooltip
                                       }}
                                       placement="top"
+                                      TransitionComponent={Zoom}
                                     >
                                       <TableRow>
                                         <TableCell
