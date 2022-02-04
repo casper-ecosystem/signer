@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 // see https://github.com/mobxjs/mobx-react-lite/#observer-batching
 import 'mobx-react-lite/batchingForReactDom';
 import './App.scss';
@@ -24,12 +24,8 @@ import { ConnectedSitesPage } from './components/ConnectedSitesPage';
 import { useIdleTimer } from 'react-idle-timer';
 import { SignMessagePage } from './components/SignMessagePage';
 import { ConfigureTimeoutPage } from './components/ConfigureTimeout';
-import {
-  Prompt,
-  SecurityCheckupActions,
-  SecurityCheckupContent,
-  SecurityCheckupHeader
-} from './components/Prompt';
+import { Prompt } from './components/Prompt';
+import { createPromptSubComponents } from './components/Prompt/securityCheckup';
 
 export interface AppProps {
   errors: ErrorContainer;
@@ -41,6 +37,8 @@ export interface AppProps {
 }
 
 const App = observer((props: AppProps) => {
+  const [isInitialPageShown, setIsInitialPageShown] = useState(true);
+
   const lockOnIdle = () => {
     if (props.authContainer.isUnLocked) props.authContainer.lock();
   };
@@ -56,13 +54,20 @@ const App = observer((props: AppProps) => {
     props.authContainer
   );
 
+  const { Header, Content, Actions } = createPromptSubComponents({
+    isInitialPageShown,
+    setIsInitialPageShown,
+    authContainer: props.authContainer,
+    closeHandler
+  });
+
   return (
     <div>
       <Prompt
         isOpened={isTimeToSecurityCheckup}
-        Header={SecurityCheckupHeader}
-        Content={SecurityCheckupContent}
-        Actions={() => <SecurityCheckupActions closeHandler={closeHandler} />}
+        Header={Header}
+        Content={Content}
+        Actions={Actions}
       />
       <AnalyticsProvider />
       <MainAppBar

@@ -38,7 +38,14 @@ button.link {
 
 // Prompt
 .prompt-container {
-  padding: 20px;
+  padding: 10px;
+
+  .MuiDialogTitle-root {
+    padding: 0px;
+  }
+  .MuiDialogContent-root {
+    padding: 8px 10px;
+  }
 }
 
 .prompt-content-list {
