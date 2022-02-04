@@ -113,7 +113,7 @@ export default class PopupManager {
       if (windowId) {
         await browser.windows.remove(windowId);
       } else {
-        //FIXME: this code is missing a comment what case it's trying to cover, please fix
+        // This allows the FE to call close popup without querying for window id to pass.
         let currentWindow = await browser.windows.getCurrent();
         if (currentWindow.type === 'popup' && currentWindow.id) {
           await browser.windows.remove(currentWindow.id);
