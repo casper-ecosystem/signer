@@ -29,11 +29,16 @@ import {
   motesToCSPR
 } from '../../background/utils';
 import { popupDimensions } from '../../shared/constants';
+
 const styles = () => ({
   tooltip: {
     fontSize: '.8rem',
     width: '260px',
     margin: '10px 0 0 0'
+  },
+  listItemTooltip: {
+    fontSize: '.8rem',
+    marginRight: '60px'
   }
 });
 
@@ -349,13 +354,28 @@ class SignDeployPage extends React.Component<
                                                     <ul>
                                                       {!Array.isArray(
                                                         listItem
-                                                      ) && listItem.length > 15
-                                                        ? truncateString(
-                                                            listItem,
-                                                            6,
-                                                            6
-                                                          )
-                                                        : listItem}
+                                                      ) &&
+                                                      listItem.length > 15 ? (
+                                                        <Tooltip
+                                                          title={listItem.toString()}
+                                                          placement="top"
+                                                          classes={{
+                                                            tooltip:
+                                                              this.props.classes
+                                                                .listItemTooltip
+                                                          }}
+                                                        >
+                                                          <p>
+                                                            {truncateString(
+                                                              listItem,
+                                                              6,
+                                                              6
+                                                            )}
+                                                          </p>
+                                                        </Tooltip>
+                                                      ) : (
+                                                        listItem
+                                                      )}
                                                     </ul>
                                                   );
                                                 })
