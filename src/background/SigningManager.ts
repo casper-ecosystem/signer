@@ -439,7 +439,7 @@ export default class SigningManager extends events.EventEmitter {
       case CLTypeTag.Option:
         let option = arg as CLOption<CLValue>;
         if (option.isSome()) {
-          return this.parseDeployArg(option.value().unwrap().value());
+          return this.parseDeployArg(option.value().unwrap());
         } else {
           // Prints 'None (<inner CLType()>)'
           return (
@@ -458,8 +458,9 @@ export default class SigningManager extends events.EventEmitter {
         return encodeBase16(bytes);
       case CLTypeTag.Result:
         let result = arg as CLResult<CLType, CLType>;
-        let status = result.isOk() ? 'OK' : 'ERR';
-        return status + ' ' + result.value().toString();
+        let status = result.isOk() ? 'OK: ' : 'ERR: ';
+        let parsed = this.parseDeployArg(result.value().val);
+        return status + parsed;
       case CLTypeTag.Map:
         let map = arg as CLMap<CLValue, CLValue>;
         return map.value().toString();
