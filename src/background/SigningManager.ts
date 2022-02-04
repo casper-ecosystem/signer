@@ -9,7 +9,6 @@ import {
   signFormattedMessage,
   CLTypeTag,
   CLValue,
-  CLKeyBytesParser,
   CLKey,
   CLURef,
   CLByteArray,
@@ -161,7 +160,15 @@ export default class SigningManager extends events.EventEmitter {
   ): number {
     const id: number = this.createId();
     try {
+      console.dir(deployJson);
       let innerDeploy = DeployUtil.deployFromJson(deployJson);
+      console.log(
+        innerDeploy
+          .unwrap()
+          .session.storedContractByHash?.getArgByName('OptionSome')
+          ?.clType()
+          .toString()
+      );
       if (innerDeploy.ok) {
         this.unsignedDeploys.push({
           id: id,
@@ -408,6 +415,10 @@ export default class SigningManager extends events.EventEmitter {
   }
 
   private parseDeployArg(arg: CLValue): any {
+    if (!(arg instanceof CLValue)) {
+      console.log(arg);
+      throw new Error('Argument should be a CLValue, received: ' + typeof arg);
+    }
     let tag = arg.clType().tag;
     switch (tag) {
       case CLTypeTag.Unit:
@@ -431,7 +442,11 @@ export default class SigningManager extends events.EventEmitter {
         if (option.isSome()) {
           return this.parseDeployArg(option.value().unwrap().value());
         } else {
-          return option.value().toString();
+          // Prints 'None (<inner CLType()>)'
+          return (
+            option.value().toString() +
+            ` ${option.clType().toString().split(' ')[1]}`
+          );
         }
       case CLTypeTag.List:
         let list = (arg as CLList<CLValue>).value();
@@ -444,7 +459,8 @@ export default class SigningManager extends events.EventEmitter {
         return encodeBase16(bytes);
       case CLTypeTag.Result:
         let result = arg as CLResult<CLType, CLType>;
-        return result.value().toString();
+        let status = result.isOk() ? 'OK' : 'ERR';
+        return status + ' ' + result.value().toString();
       case CLTypeTag.Map:
         let map = arg as CLMap<CLValue, CLValue>;
         return map.value().toString();
