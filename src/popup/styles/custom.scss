@@ -40,6 +40,12 @@ button.link {
 .prompt-container {
   padding: 10px;
 
+  p,
+  ul {
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+
   .prompt-bottom-buttons {
     position: fixed;
     bottom: 35px;
@@ -51,6 +57,9 @@ button.link {
   .MuiListItem-root {
     padding-top: 0;
     padding-bottom: 0;
+  }
+  .MuiList-root {
+    padding-top: 0;
   }
   .MuiDialogTitle-root {
     padding: 0px;
