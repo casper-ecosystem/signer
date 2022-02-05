@@ -1,4 +1,5 @@
-# Signer
+# Casper Signer
+
 The Casper Signer is a browser plugin used to sign transactions for the Casper Network.
 
 You can find the latest version on the [Chrome Web Store](https://chrome.google.com/webstore/detail/casperlabs-signer/djhndpllfiibmcdbnmaaahkhchcoijce). For help and usage tips, check out the [Casper Signer User Guide](https://casper.network/docs/workflow/signer-guide).
