@@ -6,6 +6,10 @@ You can find the latest version on the [Chrome Web Store](https://chrome.google.
 
 **Note:** The Casper Signer supports Google Chrome and Chromium-based browsers like Brave. We recommend using the latest available browser versions.
 
+## Integrating with the Casper Signer
+
+To integrate your website with the Casper Signer on Mainnet, you need to go through an [approval process](https://github.com/casper-ecosystem/signer/issues/new?assignees=George-cl&labels=Integration&template=whitelisting_request.yml&title=%5BIntegration%5D%3A+Name+of+Your+Project).
+
 ## Architecture 
 
 The Casper Signer browser extension has four components outlined here.
@@ -75,3 +79,4 @@ To build and publish your changes, run the following command. You will find the 
 npm run complete
 
 ```
+
