@@ -67,8 +67,17 @@ export function Content({
         <ul className="prompt-content-list">
           <li>
             Make sure that you have downloaded and backed up each Secret Key
-            file. <Button onClick={nextPageHandler}>Start here</Button>
+            file.
           </li>
+        </ul>
+        <Button
+          className="start-here-button"
+          fullWidth
+          onClick={nextPageHandler}
+        >
+          Start here
+        </Button>
+        <ul className="prompt-content-list">
           <li>Never share your Secret Key file with anyone.</li>
           <li>
             The Casper Signer Team will never ask for your Secret Key file.
