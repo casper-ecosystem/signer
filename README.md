@@ -1,53 +1,76 @@
 # Signer
-Signer is a browser plugin used to sign transactions for the Casper Network.
+The Casper Signer is a browser plugin used to sign transactions for the Casper Network.
 
-You can find the latest version of Signer on [Chrome Web Store](https://chrome.google.com/webstore/detail/casperlabs-signer/djhndpllfiibmcdbnmaaahkhchcoijce). For help using Signer, check out the [Casper Signer User Guide](https://casper.network/docs/workflow/signer-guide).
+You can find the latest version on the [Chrome Web Store](https://chrome.google.com/webstore/detail/casperlabs-signer/djhndpllfiibmcdbnmaaahkhchcoijce). For help and usage tips, check out the [Casper Signer User Guide](https://casper.network/docs/workflow/signer-guide).
 
-Signer supports Google Chrome, and Chromium-based browsers like Brave. Using the latest available browser versions is highly recommended.
+**Note:** The Casper Signer supports Google Chrome and Chromium-based browsers like Brave. We recommend using the latest available browser versions.
 
 ## Architecture 
 
-There are four roles in the browser extension.
+The Casper Signer browser extension has four components outlined here.
 
-### 1. Popup
+### 1. User Interface
 
-The directory `src/popup` contains the UI part of WebExtension, which is written in React. Since all states lose when the user closes the WebExtension, we need to use the background script as a server. 
+The directory `src/popup` contains the web extension's user interface (UI), written in React. Since we do not store state information when the user closes the Signer window, we need to use the background script in the next step, which acts as a server. 
 
-#### State Synchronization
+To synchronize and modify its state, the UI calls the background script via RPC, sending an update request. Thus, the UI will refresh.
 
-Popup call RPC method to background script to modify state, then background scripts push its updated state to popup.
+### 2. Background Script
 
-### 2. Background script
-
-Background work as a backend server, it provides RPC methods for injecting page and popup. The related source code is in `src/background`.
+The second component is a script that works in the background as a back-end server, providing RPC methods for updating the UI. The related source code is in `src/background`.
 
 ### 3. Content Script
 
-A content script is a part of your extension that runs in the context of a particular web page. You can specify which webpage can run the content script by specifying rule in `manifest.json/content_scripts`. 
+A content script is also part of the Casper Signer extension and runs in the context of a particular webpage. You can specify which web page can run the content script by adding a rule in `manifest.json/content_scripts`. 
 
-The code is in `src/content/contentscript.ts`. When Clarity is visited, the WebExtension creates a new ContentScript in Clarity's page context. This script represents a per-page setup process, which injects `inject.ts` into the DOM before anything loads.  And then content script sets up a Proxy, it receives requests from the injected script and forwards it to background script.
+When a web page is integrated with the Signer, such as the [CSPR.live](https://cspr.live/) block explorer; the web extension creates a new *ContentScript* in the web page context. You will find the source code in `src/content/contentscript.ts`. 
+
+Thus you need to set up the content script for each page in question and call in the inject script, `inject.ts`, into the DOM before anything loads. Then, the content script sets up a proxy to receive requests from the injected script and forward them to the background script.
 
 ### 4. Inject Script
 
-Inject script run inside the context of Clarity, which is injected by content script. It just creates a global instance of `CasperLabsPluginHelper`, so that Clarity code could use it by `window.casperlabsHelper`.
+The fourth component is the inject script, `inject.ts`, which runs inside the context of the web page integrated with the Casper Singer. Remember from the previous step that the content script calls the inject script, which creates a global instance of the `CasperLabsPluginHelper`, and the web page can call `window.casperlabsHelper`.
 
-## Develop locally
+## Developing Locally
 
-To build the client and the server you'll need npm.
+Here we provide some helpful commands for building and running the Casper Signer.
 
-Here we provide some useful npm command for developing.
+### Prerequisites
 
-### `npm install`
-It will install all dependencies for you.
+First, you need to install `npm`, which will help you set up all the dependencies.
 
-### `npm run watch`
+```bash
 
-It will build Popup and output bundle files to `build` directory, and it will also rebuild every time when you modified the code of Popup, however, you still need to reopen or refresh the Popup.
+npm install
 
-### `npm run scripts_watch`
+```
 
-It will build background, content, and inject scrips in watch mode. However, you have to reload the extension in Chrome's Extension Manage Page.
+### Building the Casper Signer
 
-## Build & Publish
+The next command builds the Casper Signer and outputs the bundle files to the `build` directory. This command will also help you rebuild the code of the user interface; however, you need to reopen or refresh the Singer pop-up window to see the changes take effect.
 
-Run `npm run complete`, and then you can find a built browser extension in `artifacts` directory.
+```bash
+
+npm run watch
+
+```
+
+### Running the Scripts
+
+The following command builds the background, content, and inject scrips in *watch* mode. When using this command, you have to reload the extension on Chrome's extension manager page.
+
+```bash
+
+npm run scripts_watch
+
+```
+
+### Building and Publishing
+
+To build and publish your changes, run the following command. You will find the built package in the `artifacts` directory.
+
+```bash
+
+npm run complete
+
+```
