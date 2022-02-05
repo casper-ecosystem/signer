@@ -1,6 +1,1 @@
-export { Prompt } from './Prompt';
-export {
-  Header as SecurityCheckupHeader,
-  Actions as SecurityCheckupActions,
-  Content as SecurityCheckupContent
-} from './securityCheckup';
+export { default as Prompt } from './Prompt';

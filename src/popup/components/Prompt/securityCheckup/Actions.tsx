@@ -14,7 +14,7 @@ export function Actions({
 }: ActionsProps): JSX.Element {
   if (!isInitialPageShown) {
     return (
-      <div>
+      <div className="prompt-bottom-buttons">
         <Button fullWidth onClick={goBackHandler}>
           Back
         </Button>
@@ -24,7 +24,9 @@ export function Actions({
 
   return (
     <div>
-      <Button onClick={closeHandler}>I have backed up all my accounts</Button>
+      <Button fullWidth onClick={closeHandler}>
+        I have backed up all my accounts
+      </Button>
     </div>
   );
 }

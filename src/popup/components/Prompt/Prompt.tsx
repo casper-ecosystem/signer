@@ -1,21 +1,30 @@
 import React from 'react';
-import { Dialog } from '@material-ui/core';
+import { Dialog, withStyles, WithStyles } from '@material-ui/core';
 
-interface PromptProps {
+interface PromptProps extends WithStyles<typeof styles> {
   isOpened: boolean;
   Header: React.FC;
   Content: React.FC;
   Actions: React.FC;
 }
 
-export function Prompt({
+const styles = {
+  dialogPaper: {
+    minHeight: '90vh',
+    maxHeight: '90vh',
+    height: '90vh'
+  }
+};
+
+function Prompt({
+  classes,
   isOpened,
   Header,
   Content,
   Actions
 }: PromptProps): JSX.Element {
   return (
-    <Dialog open={isOpened}>
+    <Dialog fullWidth classes={{ paper: classes.dialogPaper }} open={isOpened}>
       <div className="prompt-container">
         <Header />
         <Content />
@@ -24,3 +33,5 @@ export function Prompt({
     </Dialog>
   );
 }
+
+export default withStyles(styles)(Prompt);
