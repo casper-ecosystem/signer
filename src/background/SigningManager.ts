@@ -23,7 +23,7 @@ import {
   CLTuple3
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
-type argDict = { [key: string]: string | string[] };
+type ArgDict = { [key: string]: string | string[] };
 
 export interface messageWithID {
   id: number;
@@ -353,7 +353,7 @@ export default class SigningManager extends events.EventEmitter {
         : // is Stored Versioned Contract
           'Contract Package Call';
 
-      let deployArgs: argDict = {};
+      let deployArgs: ArgDict = {};
       if (deployWithID.deploy.session.transfer) {
         deployArgs = this.parseTransferData(
           deployWithID.deploy.session.transfer,
@@ -666,7 +666,7 @@ export default class SigningManager extends events.EventEmitter {
     providedPublicKeyHex: string
   ) {
     const pkHex = providedPublicKeyHex.toLowerCase();
-    const transferArgs: argDict = {};
+    const transferArgs: ArgDict = {};
 
     const targetArg = transferDeploy?.getArgByName('target')!;
 
