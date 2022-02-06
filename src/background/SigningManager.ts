@@ -160,15 +160,7 @@ export default class SigningManager extends events.EventEmitter {
   ): number {
     const id: number = this.createId();
     try {
-      console.dir(deployJson);
       let innerDeploy = DeployUtil.deployFromJson(deployJson);
-      console.log(
-        innerDeploy
-          .unwrap()
-          .session.storedContractByHash?.getArgByName('OptionSome')
-          ?.clType()
-          .toString()
-      );
       if (innerDeploy.ok) {
         this.unsignedDeploys.push({
           id: id,
