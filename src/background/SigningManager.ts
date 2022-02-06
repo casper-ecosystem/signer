@@ -448,6 +448,7 @@ export default class SigningManager extends events.EventEmitter {
         return parsedList;
       case CLTypeTag.ByteArray:
         let bytes = (arg as CLByteArray).value();
+        // Byte arrays need to be encoded as strings before being displayed in the UI.
         return encodeBase16(bytes);
       case CLTypeTag.Result:
         let result = arg as CLResult<CLType, CLType>;
