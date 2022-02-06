@@ -448,8 +448,7 @@ export default class SigningManager extends events.EventEmitter {
         return parsedList;
       case CLTypeTag.ByteArray:
         let bytes = (arg as CLByteArray).value();
-        // Byte arrays need to be encoded as strings before being displayed in the UI.
-        return encodeBase16(bytes);
+        return this.parseBytesToString(bytes);
       case CLTypeTag.Result:
         let result = arg as CLResult<CLType, CLType>;
         let status = result.isOk() ? 'OK: ' : 'ERR: ';
@@ -476,11 +475,19 @@ export default class SigningManager extends events.EventEmitter {
       case CLTypeTag.PublicKey:
         return (arg as CLPublicKey).toHex();
       default:
+        // Special handling as there is no CLTypeTag for CLAccountHash
         if (arg instanceof CLAccountHash)
-          // Special handling as there is no CLTypeTag for CLAccountHash
-          return encodeBase16(arg.value());
+          return this.parseBytesToString(arg.value());
         return arg.value().toString();
     }
+  }
+
+  /**
+   * Byte arrays cannot be displayed on the FE without converting them to strings.
+   * We hex encode them for this reason.
+   */
+  private parseBytesToString(bytes: Uint8Array): string {
+    return encodeBase16(bytes);
   }
 
   /**
