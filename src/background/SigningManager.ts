@@ -328,12 +328,12 @@ export default class SigningManager extends events.EventEmitter {
       const type = deployWithID.deploy.isTransfer()
         ? 'Transfer'
         : deployWithID.deploy.session.isModuleBytes()
-        ? 'WASM-Based Deploy'
-        : deployWithID.deploy.session.isStoredContractByHash() ||
-          deployWithID.deploy.session.isStoredContractByName()
-        ? 'Contract Call'
-        : // is Stored Versioned Contract
-          'Contract Package Call';
+          ? 'WASM-Based Deploy'
+          : deployWithID.deploy.session.isStoredContractByHash() ||
+            deployWithID.deploy.session.isStoredContractByName()
+            ? 'Contract Call'
+            : // is Stored Versioned Contract
+            'Contract Package Call';
 
       let deployArgs: argDict = {};
       if (deployWithID.deploy.session.transfer) {
@@ -532,10 +532,9 @@ export default class SigningManager extends events.EventEmitter {
     let activeKeyPair = this.appState.activeUserAccount.keyPair;
     if (!messageWithId.messageBytes || !messageWithId.messageString) {
       messageWithId.error = new Error(
-        `Cannot sign message: ${
-          !messageWithId.messageBytes
-            ? 'message bytes were null'
-            : !messageWithId.messageString
+        `Cannot sign message: ${!messageWithId.messageBytes
+          ? 'message bytes were null'
+          : !messageWithId.messageString
             ? 'message string was null'
             : ''
         }`
