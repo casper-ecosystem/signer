@@ -62,6 +62,10 @@ button.link {
     color: var(--cspr-red);
   }
 
+  .MuiTypography-body1 {
+    font-size: 14px;
+  }
+
   .MuiListItem-root {
     padding-top: 0;
     padding-bottom: 0;
@@ -73,7 +77,7 @@ button.link {
 
   .MuiDialogTitle-root {
     padding: 0;
-    margin-left: 10px;
+    text-align: center;
   }
 
   .MuiDialogContent-root {

@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  Button,
   DialogContent,
   DialogContentText,
   IconButton,
+  Link,
   List,
   ListItem,
   ListItemSecondaryAction,
@@ -67,17 +67,15 @@ export function Content({
         <ul className="prompt-content-list">
           <li>
             Make sure that you have downloaded and backed up each Secret Key
-            file.
+            file.{' '}
+            <Link
+              className="start-here-button"
+              component="button"
+              onClick={nextPageHandler}
+            >
+              Start here
+            </Link>
           </li>
-        </ul>
-        <Button
-          className="start-here-button"
-          fullWidth
-          onClick={nextPageHandler}
-        >
-          Start here
-        </Button>
-        <ul className="prompt-content-list">
           <li>Never share your Secret Key file with anyone.</li>
           <li>
             The Casper Signer Team will never ask for your Secret Key file.
