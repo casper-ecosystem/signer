@@ -54,7 +54,7 @@ const App = observer((props: AppProps) => {
     props.authContainer
   );
 
-  const { Header, Content, Actions } = createPromptSubComponents({
+  const promptSubComponents = createPromptSubComponents({
     isInitialPageShown,
     setIsInitialPageShown,
     authContainer: props.authContainer,
@@ -63,12 +63,7 @@ const App = observer((props: AppProps) => {
 
   return (
     <div>
-      <Prompt
-        isOpened={isTimeToSecurityCheckup}
-        Header={Header}
-        Content={Content}
-        Actions={Actions}
-      />
+      <Prompt isOpened={isTimeToSecurityCheckup} {...promptSubComponents} />
       <AnalyticsProvider />
       <MainAppBar
         authContainer={props.authContainer}

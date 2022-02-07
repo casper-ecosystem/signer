@@ -54,6 +54,10 @@ button.link {
     margin-right: 8px;
   }
 
+  .prompt-content-list {
+    padding-left: 18px;
+  }
+
   .start-here-button {
     color: var(--cspr-red);
   }
@@ -62,17 +66,17 @@ button.link {
     padding-top: 0;
     padding-bottom: 0;
   }
+
   .MuiList-root {
     padding-top: 0;
   }
+
   .MuiDialogTitle-root {
-    padding: 0px;
+    padding: 0;
+    margin-left: 10px;
   }
+
   .MuiDialogContent-root {
     padding: 8px 10px;
   }
-}
-
-.prompt-content-list {
-  padding-left: 18px;
 }
