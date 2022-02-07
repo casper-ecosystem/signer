@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@material-ui/core';
 
-interface ActionsProps {
+interface Props {
   closeHandler: () => void;
   goBackHandler: () => void;
   isInitialPageShown: boolean;
@@ -11,10 +11,10 @@ export function Actions({
   closeHandler,
   goBackHandler,
   isInitialPageShown
-}: ActionsProps): JSX.Element {
+}: Props): JSX.Element {
   if (!isInitialPageShown) {
     return (
-      <div className="prompt-bottom-buttons">
+      <div className="prompt-back-button">
         <Button fullWidth onClick={goBackHandler}>
           Back
         </Button>
@@ -23,7 +23,7 @@ export function Actions({
   }
 
   return (
-    <div>
+    <div className="prompt-close-button">
       <Button fullWidth onClick={closeHandler}>
         I have backed up all my accounts
       </Button>

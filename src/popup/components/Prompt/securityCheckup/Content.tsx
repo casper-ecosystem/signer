@@ -29,10 +29,10 @@ export function Content({
     return (
       <DialogContent>
         <DialogContentText>
-          {authContainer &&
-            authContainer.userAccounts &&
-            authContainer.userAccounts.map((account, index) => (
-              <List>
+          <List className="prompt-account-list">
+            {authContainer &&
+              authContainer.userAccounts &&
+              authContainer.userAccounts.map((account, index) => (
                 <ListItem>
                   <ListItemText primary={account.alias} />
                   <ListItemSecondaryAction>
@@ -48,8 +48,8 @@ export function Content({
                     </Tooltip>
                   </ListItemSecondaryAction>
                 </ListItem>
-              </List>
-            ))}
+              ))}
+          </List>
         </DialogContentText>
       </DialogContent>
     );

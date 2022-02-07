@@ -43,15 +43,24 @@ button.link {
   p,
   ul {
     margin-top: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
-  .prompt-bottom-buttons {
+  .prompt-account-list {
+    margin-bottom: 24px;
+  }
+
+  .prompt-close-button {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .prompt-back-button {
     position: fixed;
-    bottom: 35px;
-    width: 200px;
-    margin-left: 8px;
-    margin-right: 8px;
+    bottom: 42px;
+    width: 228px;
+    margin-left: 10px;
+    margin-right: 10px;
   }
 
   .prompt-content-list {
@@ -71,6 +80,11 @@ button.link {
     padding-bottom: 0;
   }
 
+  .MuiListItemText-root {
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+
   .MuiList-root {
     padding-top: 0;
   }
@@ -78,6 +92,7 @@ button.link {
   .MuiDialogTitle-root {
     padding: 0;
     text-align: center;
+    margin-top: 14px;
   }
 
   .MuiDialogContent-root {
