@@ -5,7 +5,7 @@ const styles = {
   MuiDialogTitle: {
     padding: '0',
     textAlign: 'center' as const,
-    marginTop: '14px'
+    marginTop: '15px'
   }
 };
 
