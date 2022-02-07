@@ -8,11 +8,46 @@ import {
   ListItem,
   ListItemSecondaryAction,
   ListItemText,
-  Tooltip
+  Tooltip,
+  makeStyles
 } from '@material-ui/core';
+import { GetApp } from '@material-ui/icons';
 
 import AccountManager from '../../../container/AccountManager';
-import { GetApp } from '@material-ui/icons';
+
+const styles = {
+  MuiDialogContent: {
+    padding: '4px 10px'
+  },
+  MuiTypography: {
+    fontSize: '14px'
+  },
+  MuiList: {
+    marginBottom: '30px',
+    paddingTop: '0'
+  },
+  MuiListItem: {
+    paddingTop: '0',
+    paddingBottom: '0'
+  },
+  MuiListItemText: {
+    fontSize: '14px',
+    marginTop: '6px',
+    marginBottom: '6px'
+  },
+  MuiLink: {
+    color: '#e6332a'
+  },
+  list: {
+    marginTop: '8px',
+    paddingLeft: '18px'
+  },
+  paragraph: {
+    marginTop: '8px'
+  }
+};
+
+const useStyles = makeStyles(styles);
 
 interface Props {
   authContainer: AccountManager;
@@ -25,20 +60,25 @@ export function Content({
   isInitialPageShown,
   setIsInitialPageShown
 }: Props): JSX.Element {
+  const classes = useStyles();
+
   if (!isInitialPageShown) {
     return (
-      <DialogContent>
-        <DialogContentText>
-          <List className="prompt-account-list">
+      <DialogContent classes={{ root: classes.MuiDialogContent }}>
+        <DialogContentText classes={{ root: classes.MuiTypography }}>
+          <List classes={{ root: classes.MuiList }}>
             {authContainer &&
               authContainer.userAccounts &&
               authContainer.userAccounts.map((account, index) => (
-                <ListItem>
-                  <ListItemText primary={account.alias} />
+                <ListItem classes={{ root: classes.MuiListItem }}>
+                  <ListItemText
+                    classes={{ primary: classes.MuiListItemText }}
+                    primary={account.alias}
+                  />
                   <ListItemSecondaryAction>
                     <Tooltip title="Download">
                       <IconButton
-                        edge={'end'}
+                        edge="end"
                         onClick={() => {
                           authContainer.downloadPemFiles(account.alias);
                         }}
@@ -58,18 +98,18 @@ export function Content({
   const nextPageHandler = () => setIsInitialPageShown(false);
 
   return (
-    <DialogContent>
-      <DialogContentText>
-        <p>
+    <DialogContent classes={{ root: classes.MuiDialogContent }}>
+      <DialogContentText classes={{ root: classes.MuiTypography }}>
+        <p className={classes.paragraph}>
           Each of your accounts has a corresponding Secret Key file that
           provides access to the funds on that account.
         </p>
-        <ul className="prompt-content-list">
+        <ul className={classes.list}>
           <li>
             Make sure that you have downloaded and backed up each Secret Key
             file.{' '}
             <Link
-              className="start-here-button"
+              classes={{ root: classes.MuiLink }}
               component="button"
               onClick={nextPageHandler}
             >

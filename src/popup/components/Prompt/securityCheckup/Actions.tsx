@@ -1,5 +1,22 @@
 import React from 'react';
 import { Button } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core';
+
+const styles = {
+  closeButtonStyle: {
+    paddingLeft: '10px',
+    paddingRight: '10px'
+  },
+  backButtonStyle: {
+    position: 'fixed' as const,
+    bottom: '42px',
+    width: '228px',
+    marginLeft: '10px',
+    marginRight: '10px'
+  }
+};
+
+const useStyles = makeStyles(styles);
 
 interface Props {
   closeHandler: () => void;
@@ -12,9 +29,11 @@ export function Actions({
   goBackHandler,
   isInitialPageShown
 }: Props): JSX.Element {
+  const classes = useStyles();
+
   if (!isInitialPageShown) {
     return (
-      <div className="prompt-back-button">
+      <div className={classes.backButtonStyle}>
         <Button fullWidth onClick={goBackHandler}>
           Back
         </Button>
@@ -23,7 +42,7 @@ export function Actions({
   }
 
   return (
-    <div className="prompt-close-button">
+    <div className={classes.closeButtonStyle}>
       <Button fullWidth onClick={closeHandler}>
         I have backed up all my accounts
       </Button>
