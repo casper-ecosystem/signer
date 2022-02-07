@@ -28,7 +28,8 @@ import {
   numberWithSpaces,
   motesToCSPR
 } from '../../background/utils';
-import { popupDimensions } from '../../shared/constants';
+import PopupContainer from '../container/PopupContainer';
+
 const styles = () => ({
   tooltip: {
     fontSize: '.8rem',
@@ -49,6 +50,7 @@ const CsprTooltip = withStyles({
 interface Props extends RouteComponentProps {
   signingContainer: SigningContainer;
   authContainer: AccountManager;
+  popupContainer: PopupContainer;
   classes: Record<keyof ReturnType<typeof styles>, string>;
 }
 
@@ -168,7 +170,7 @@ class SignDeployPage extends React.Component<
           style={{
             flexGrow: 1,
             marginTop: '-30px',
-            width: popupDimensions.expandedWidth
+            width: '100%'
           }}
         >
           <Typography align={'center'} variant={'h6'}>
@@ -373,7 +375,9 @@ class SignDeployPage extends React.Component<
                   variant="contained"
                   color="secondary"
                   onClick={() => {
-                    this.props.signingContainer.cancel(deployId!);
+                    this.props.signingContainer.cancel(deployId!).then(() => {
+                      this.props.popupContainer.callClosePopup();
+                    });
                   }}
                 >
                   Cancel
@@ -385,7 +389,7 @@ class SignDeployPage extends React.Component<
                     this.props.signingContainer
                       .signDeploy(deployId!)
                       .then(() => {
-                        window.close();
+                        this.props.popupContainer.callClosePopup();
                       })
                   }
                   variant="contained"
