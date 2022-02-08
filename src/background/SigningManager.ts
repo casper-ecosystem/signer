@@ -13,6 +13,7 @@ import {
   CLTypeTag
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
+import { PurposeForOpening } from '../shared';
 type argDict = { [key: string]: string };
 
 export interface messageWithID {
@@ -49,6 +50,7 @@ export interface DeployData {
   deployArgs: Object;
 }
 
+// TODO: Change this to a string enum
 enum SigningStatus {
   unsigned,
   signed,
@@ -202,7 +204,7 @@ export default class SigningManager extends events.EventEmitter {
         sourcePublicKeyHex,
         targetPublicKeyHex
       );
-      this.popupManager.openPopup('signDeploy');
+      this.popupManager.openPopup(PurposeForOpening.SignDeploy);
       // Await outcome of user interaction with popup.
       this.once(
         `${this.messagePrefix}:${deployId}:${this.messageSuffix}`,
@@ -475,7 +477,7 @@ export default class SigningManager extends events.EventEmitter {
       }
 
       this.updateAppState();
-      this.popupManager.openPopup('signMessage');
+      this.popupManager.openPopup(PurposeForOpening.SignMessage);
       this.once(
         `${this.messagePrefix}:${messageId}:${this.messageSuffix}`,
         (processedMessage: messageWithID) => {

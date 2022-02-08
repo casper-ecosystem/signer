@@ -17,7 +17,7 @@ import NotInterestedIcon from '@material-ui/icons/NotInterested';
 import HelpIcon from '@material-ui/icons/Help';
 import { Link, Redirect } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
-import PopupManager from '../../background/PopupManager';
+import PopupContainer from '../container/PopupContainer';
 import { HomeContainer } from '../container/HomeContainer';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import ErrorContainer from '../container/ErrorContainer';
@@ -28,6 +28,7 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
 import SigningContainer from '../container/SigningContainer';
 import { SignMessagePage } from './SignMessagePage';
+import { PurposeForOpening } from '../../shared';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -76,7 +77,7 @@ interface Props extends RouteComponentProps, WithStyles<typeof styles> {
   homeContainer: HomeContainer;
   connectionContainer: ConnectSignerContainer;
   signingContainer: SigningContainer;
-  popupManager: PopupManager;
+  popupContainer: PopupContainer;
   errors: ErrorContainer;
 }
 
@@ -309,7 +310,9 @@ class Home extends React.Component<
                 variant="contained"
                 color="primary"
                 onClick={() =>
-                  this.props.popupManager.openPopup('importAccount')
+                  this.props.popupContainer.callOpenPopup(
+                    PurposeForOpening.ImportAccount
+                  )
                 }
                 to={Pages.ImportAccount}
                 style={{
@@ -492,7 +495,10 @@ class Home extends React.Component<
           if (this.props.signingContainer.deployToSign) {
             return <Redirect to={Pages.SignDeploy} />;
           } else if (this.props.signingContainer.messageToSign) {
-            return SignMessagePage(this.props.signingContainer);
+            return SignMessagePage(
+              this.props.signingContainer,
+              this.props.popupContainer
+            );
           } else {
             return this.renderAccountLists();
           }
