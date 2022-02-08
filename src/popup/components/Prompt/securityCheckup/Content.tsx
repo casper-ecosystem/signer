@@ -20,7 +20,8 @@ const styles = {
     padding: '4px 10px'
   },
   MuiTypography: {
-    fontSize: '14px'
+    fontSize: '14px',
+    marginBlockEnd: '7px'
   },
   MuiList: {
     marginBottom: '30px',
@@ -36,14 +37,18 @@ const styles = {
     marginBottom: '6px'
   },
   MuiLink: {
-    color: '#e6332a'
+    color: '#e6332a',
+    lineHeight: '0'
   },
   list: {
     marginTop: '8px',
-    paddingLeft: '18px'
+    paddingLeft: '18px',
+    marginBlockStart: '0',
+    marginBlockEnd: '0'
   },
   paragraph: {
-    marginTop: '8px'
+    marginTop: '8px',
+    marginBlockEnd: '0'
   }
 };
 
@@ -107,7 +112,7 @@ export function Content({
         <ul className={classes.list}>
           <li>
             Make sure that you have downloaded and backed up each Secret Key
-            file.{' '}
+            file <b>securely</b>.{' '}
             <Link
               classes={{ root: classes.MuiLink }}
               component="button"
