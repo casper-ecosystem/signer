@@ -439,22 +439,27 @@ export default class SigningManager extends events.EventEmitter {
         throw new Error('Message or public key was null/undefined');
 
       let activeKeyPair = this.appState.activeUserAccount?.keyPair;
-      if (!activeKeyPair) throw new Error('No active account');
-      if (
-        this.appState.userAccounts.some(
-          account => account.keyPair.publicKey.toHex() === signingPublicKey
-        )
-      ) {
-        // The provided key matches one of the keys in the vault.
-        if (activeKeyPair.publicKey.toHex() !== signingPublicKey) {
-          // But it is not set as the Active Key and therefore the signing is cancelled.
-          throw new Error(
-            'Provided key is not set as Active Key - please set it and try again.'
-          );
+      // If the Signer is locked then the account data is unavailable to perform these checks
+      // resulting in them always throwing the errors.
+      // We can check the key matches once the Signer opens and is unlocked.
+      if (this.appState.isUnlocked) {
+        if (!activeKeyPair) throw new Error('No active account');
+        if (
+          this.appState.userAccounts.some(
+            account => account.keyPair.publicKey.toHex() === signingPublicKey
+          )
+        ) {
+          // The provided key matches one of the keys in the vault.
+          if (activeKeyPair.publicKey.toHex() !== signingPublicKey) {
+            // But it is not set as the Active Key and therefore the signing is cancelled.
+            throw new Error(
+              'Provided key is not set as Active Key - please set it and try again.'
+            );
+          }
+        } else {
+          // The provided key didn't match any of the keys in the vault.
+          throw new Error('Provided key is not present in vault.');
         }
-      } else {
-        // The provided key didn't match any of the keys in the vault.
-        throw new Error('Provided key is not present in vault.');
       }
 
       const messageId = this.createId();
@@ -492,14 +497,35 @@ export default class SigningManager extends events.EventEmitter {
             case SigningStatus.signed:
               if (processedMessage.messageBytes) {
                 this.appState.unsignedMessages.remove(processedMessage);
-                if (activeKeyPair !== this.appState.activeUserAccount?.keyPair)
-                  return reject(
-                    new Error('Active account changed during signing.')
-                  );
                 if (!activeKeyPair)
                   return reject(
                     new Error('No Active Key set - set it and try again.')
                   );
+
+                // Check if the provided key matches the active key stored in Signer
+                if (
+                  signingPublicKey !==
+                  this.appState.activeUserAccount?.keyPair.accountHex()
+                )
+                  return reject(
+                    new Error(
+                      'Active account key does not match provided signing key'
+                    )
+                  );
+
+                // If the request was made when the Signer was locked then the activeKeyPair will be null
+                // so we need to run this check only if the keypair was retrieved i.e. if the Signer was unlocked.
+                if (activeKeyPair) {
+                  // Check if the active key is the same now as it was when the request was initiated
+                  // Needs to be stringified as they are not the same object we're just checking their values match
+                  if (
+                    JSON.stringify(activeKeyPair) !==
+                    JSON.stringify(this.appState.activeUserAccount?.keyPair)
+                  )
+                    return reject(
+                      new Error('Active account changed during signing.')
+                    );
+                }
                 const signature = signFormattedMessage(
                   activeKeyPair,
                   processedMessage.messageBytes
