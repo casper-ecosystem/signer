@@ -10,9 +10,9 @@ import { setupInjectPageAPIServer } from '../lib/rpc/Provider';
 import PopupManager from './PopupManager';
 
 const appState = new AppState();
-const popupManager = new PopupManager();
+const popupManager = new PopupManager(appState);
 const accountController = new AccountController(appState);
-const signingManager = new SigningManager(appState);
+const signingManager = new SigningManager(appState, popupManager);
 const connectionManager = new ConnectionManager(appState);
 
 initialize().catch(console.log);

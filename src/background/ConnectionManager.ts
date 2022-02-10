@@ -32,7 +32,7 @@ export default class ConnectionManager {
   private store: Bucket<ConnectionManagerStore>;
 
   constructor(private appState: AppState) {
-    this.popupManager = new PopupManager();
+    this.popupManager = new PopupManager(appState);
     this.appState = appState;
 
     this.store = getBucket<ConnectionManagerStore>('store');
