@@ -170,7 +170,7 @@ class SignDeployPage extends React.Component<
           style={{
             flexGrow: 1,
             marginTop: '-30px',
-            width: '100%'
+            width: '100vw'
           }}
         >
           <Typography align={'center'} variant={'h6'}>
