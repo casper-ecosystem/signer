@@ -30,12 +30,10 @@ class SigningContainer {
 
   async signDeploy(deployId: number) {
     await this.backgroundManager.signDeploy(deployId);
-    // this.closeWindow();
   }
 
   async cancel(deployId: number) {
     await this.backgroundManager.rejectSignDeploy(deployId);
-    // this.closeWindow();
   }
 
   async approveSigningMessage(messageId: number) {
