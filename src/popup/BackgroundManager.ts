@@ -5,6 +5,7 @@ import { action } from 'mobx';
 import ErrorContainer from './container/ErrorContainer';
 import { KeyPairWithAlias } from '../@types/models';
 import { DeployData } from '../background/SigningManager';
+import { PurposeForOpening } from '../shared';
 
 export class BackgroundManager {
   private rpc: Rpc;
@@ -228,6 +229,19 @@ export class BackgroundManager {
   public configureTimeout(durationMins: number) {
     return this.errors.withCapture(
       this.rpc.call<void>('account.configureTimeout', durationMins)
+    );
+  }
+
+  public callOpenPopup(purposeForOpening: PurposeForOpening) {
+    return this.errors.withCapture(
+      this.rpc.call<void>('popup.openPopup', purposeForOpening)
+    );
+  }
+
+  public callClosePopup(signingId?: number) {
+    // first parameter is undefined to cover the optional windowId arg
+    return this.errors.withCapture(
+      this.rpc.call<void>('popup.closePopup', undefined, signingId)
     );
   }
 }

@@ -2,6 +2,7 @@ import { getBucket, Bucket } from '@extend-chrome/storage';
 import { AppState } from '../lib/MemStore';
 import PopupManager from '../background/PopupManager';
 import { updateStatusEvent } from './utils';
+import { PurposeForOpening } from '../shared';
 
 export interface Tab {
   tabId: number;
@@ -31,7 +32,7 @@ export default class ConnectionManager {
   private store: Bucket<ConnectionManagerStore>;
 
   constructor(private appState: AppState) {
-    this.popupManager = new PopupManager();
+    this.popupManager = new PopupManager(appState);
     this.appState = appState;
 
     this.store = getBucket<ConnectionManagerStore>('store');
@@ -79,7 +80,7 @@ export default class ConnectionManager {
 
   public requestConnection() {
     this.appState.connectionRequested = true;
-    this.popupManager.openPopup('connect');
+    this.popupManager.openPopup(PurposeForOpening.Connect);
   }
 
   public resetConnectionRequest() {

@@ -7,10 +7,12 @@ import SigningManager from './SigningManager';
 import ConnectionManager from './ConnectionManager';
 import { updateBadge } from './utils';
 import { setupInjectPageAPIServer } from '../lib/rpc/Provider';
+import PopupManager from './PopupManager';
 
 const appState = new AppState();
+const popupManager = new PopupManager(appState);
 const accountController = new AccountController(appState);
-const signingManager = new SigningManager(appState);
+const signingManager = new SigningManager(appState, popupManager);
 const connectionManager = new ConnectionManager(appState);
 
 initialize().catch(console.log);
@@ -168,4 +170,6 @@ async function setupPopupAPIServer() {
     'account.configureTimeout',
     accountController.configureTimeout.bind(accountController)
   );
+  rpc.register('popup.openPopup', popupManager.openPopup.bind(popupManager));
+  rpc.register('popup.closePopup', popupManager.closePopup.bind(popupManager));
 }

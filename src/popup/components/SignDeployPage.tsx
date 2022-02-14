@@ -28,6 +28,7 @@ import {
   numberWithSpaces,
   motesToCSPR
 } from '../../background/utils';
+import PopupContainer from '../container/PopupContainer';
 
 const styles = () => ({
   tooltip: {
@@ -49,6 +50,7 @@ const CsprTooltip = withStyles({
 interface Props extends RouteComponentProps {
   signingContainer: SigningContainer;
   authContainer: AccountManager;
+  popupContainer: PopupContainer;
   classes: Record<keyof ReturnType<typeof styles>, string>;
 }
 
@@ -164,12 +166,18 @@ class SignDeployPage extends React.Component<
     if (this.state.deployToSign && this.props.authContainer.isUnLocked) {
       const deployId = this.props.signingContainer.deployToSign?.id;
       return (
-        <div style={{ flexGrow: 1, marginTop: '-30px' }}>
+        <div
+          style={{
+            flexGrow: 1,
+            marginTop: '-30px',
+            width: '100vw'
+          }}
+        >
           <Typography align={'center'} variant={'h6'}>
             Signature Request
           </Typography>
           <TableContainer>
-            <Table style={{ maxWidth: '100%' }}>
+            <Table style={{ width: '90%' }}>
               <TableBody>
                 {this.state.genericRows.map((row: any) =>
                   row.key === 'Amount' || row.key === 'Payment' ? (
@@ -367,7 +375,9 @@ class SignDeployPage extends React.Component<
                   variant="contained"
                   color="secondary"
                   onClick={() => {
-                    this.props.signingContainer.cancel(deployId!);
+                    this.props.signingContainer.cancel(deployId!).then(() => {
+                      this.props.popupContainer.callClosePopup();
+                    });
                   }}
                 >
                   Cancel
@@ -379,7 +389,7 @@ class SignDeployPage extends React.Component<
                     this.props.signingContainer
                       .signDeploy(deployId!)
                       .then(() => {
-                        window.close();
+                        this.props.popupContainer.callClosePopup();
                       })
                   }
                   variant="contained"

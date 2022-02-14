@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "1.4.8",
+  "version": "1.4.9",
   "name": "CasperLabs Signer",
   "author": "https://casperlabs.io",
   "description": "CasperLabs Signer tool for signing transactions on the blockchain.",
@@ -45,7 +45,12 @@
         "*://*.gitcoin.co/*",
         "*://gitcoin.co/*",
         "*://*.casperpunks.io/*",
-        "*://*.fuzhouchain.io/*"
+        "*://*.fuzhouchain.io/*",
+        "*://*.wise.art/*",
+        "*://*.cerby.fi/*",
+        "*://wiseswap.net/*",
+        "*://*.wiseswap.net/*",
+        "*://*.caspercommunity.io/*"
       ],
       "js": [
         "./scripts/content/content.js"
