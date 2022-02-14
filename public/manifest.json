@@ -43,7 +43,8 @@
         "*://*.huobiapps.com/*",
         "*://*.singlecoin.xyz/*",
         "*://*.gitcoin.co/*",
-        "*://gitcoin.co/*"
+        "*://gitcoin.co/*",
+        "*://*.wise.art/*"
       ],
       "js": [
         "./scripts/content/content.js"
