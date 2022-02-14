@@ -45,7 +45,9 @@
         "*://*.gitcoin.co/*",
         "*://gitcoin.co/*",
         "*://*.wise.art/*",
-        "*://*.cerby.fi/*"
+        "*://*.cerby.fi/*",
+        "*://wiseswap.net/*",
+        "*://*.wiseswap.net/*"
       ],
       "js": [
         "./scripts/content/content.js"
