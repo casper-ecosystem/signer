@@ -44,6 +44,8 @@
         "*://*.singlecoin.xyz/*",
         "*://*.gitcoin.co/*",
         "*://gitcoin.co/*",
+        "*://*.casperpunks.io/*",
+        "*://*.fuzhouchain.io/*",
         "*://*.wise.art/*",
         "*://*.cerby.fi/*",
         "*://wiseswap.net/*",

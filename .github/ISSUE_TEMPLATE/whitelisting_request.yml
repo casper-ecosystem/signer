@@ -1,0 +1,78 @@
+name: Whitelisting Request
+description: File an integration whitelisting request for your project's domain
+title: "[Integration]: Name of Your Project"
+labels: ["Integration"]
+assignees:
+  - George-cl
+body:
+  - type: input
+    id: project
+    attributes:
+      label: Project name
+      placeholder: My Super Shiny Project
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: URL to be whitelisted
+      placeholder: "*://analytics.exampleproject.io/*"
+    validations:
+      required: true
+  - type: input
+    id: audit-url
+    attributes:
+      label: Code audit/review URL if available
+  - type: textarea
+    id: description
+    attributes:
+      label: Project description
+      description: Brief description of the project. What are the project objectives, what stage is your project at, what are the key milestones etc.
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Project's phase
+      description: Select the phase your project is in
+      options:
+        - Design
+        - Testing
+        - Production
+    validations:
+      required: true
+  - type: dropdown
+    id: ownertype
+    attributes:
+      label: Who is the project owner?
+      options:
+        - Private person
+        - Company
+    validations:
+      required: true
+  - type: input
+    id: ownername
+    attributes:
+      label: Project owner's name
+    validations:
+      required: true
+  - type: textarea
+    id: functionality
+    attributes:
+      label: What kind of Web3 functionality will you be offering in your product?
+      description: (staking, transfers, document signature, contract calls, wallet, token swap, token creation etc.)
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Contact details
+      description: (Please provide name, function in the project, email address)
+    validations:
+      required: true
+  - type: input
+    id: codeurl
+    attributes:
+      label: Link to the code
+    validations:
+      required: true
