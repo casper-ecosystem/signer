@@ -47,7 +47,8 @@
         "*://*.wise.art/*",
         "*://*.cerby.fi/*",
         "*://wiseswap.net/*",
-        "*://*.wiseswap.net/*"
+        "*://*.wiseswap.net/*",
+        "*://*.caspercommunity.io/*"
       ],
       "js": [
         "./scripts/content/content.js"
