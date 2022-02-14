@@ -45,6 +45,10 @@ export default class PopupManager {
           let windowWidth = window.width ?? popupDimensions.defaultWidth;
           let xOffset = window.left ?? 0;
           let yOffset = window.top ?? 0;
+          let popupWidth =
+            purposeForOpening === PurposeForOpening.SignDeploy
+              ? popupDimensions.expandedWidth
+              : popupDimensions.defaultWidth;
           browser.windows
             .create({
               url:
@@ -56,12 +60,8 @@ export default class PopupManager {
                 purposeForOpening === PurposeForOpening.SignDeploy
                   ? popupDimensions.expandedHeight
                   : popupDimensions.defaultHeight,
-              width: popupDimensions.defaultWidth,
-              left:
-                windowWidth +
-                xOffset -
-                popupDimensions.defaultWidth -
-                popupBuffer.right,
+              width: popupWidth,
+              left: windowWidth + xOffset - popupWidth - popupBuffer.right,
               top: yOffset + popupBuffer.top
             })
             .then(newPopup => {
