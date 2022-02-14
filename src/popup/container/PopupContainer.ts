@@ -10,7 +10,7 @@ export default class PopupContainer {
     await this.backgroundManager.callOpenPopup(purposeForOpening);
   };
 
-  callClosePopup = async () => {
-    await this.backgroundManager.callClosePopup();
+  callClosePopup = async (signingId?: number) => {
+    await this.backgroundManager.callClosePopup(signingId);
   };
 }

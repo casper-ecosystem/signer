@@ -1,7 +1,7 @@
-// size of the popup
-
+import SigningManager from './SigningManager';
 import { browser } from 'webextension-polyfill-ts';
 import { PurposeForOpening, popupDimensions } from '../shared';
+import { AppState } from '../lib/MemStore';
 
 // Pads around popup window
 const popupBuffer = {
@@ -12,6 +12,7 @@ const popupBuffer = {
 interface PopupWindow {
   windowId: number;
   purposeForOpening: PurposeForOpening;
+  signingId?: number;
 }
 
 // this acts as a singleton
@@ -22,14 +23,20 @@ let popupWindow: PopupWindow | null = null;
  * Provide inject and background a way to show popup.
  */
 export default class PopupManager {
-  constructor() {
+  private signingManager: SigningManager;
+
+  constructor(appstate: AppState) {
+    this.signingManager = new SigningManager(appstate, this);
     browser.windows.onRemoved.addListener(async windowId => {
-      if (popupWindow?.windowId !== windowId) return;
+      if (windowId !== popupWindow?.windowId) return;
+      if (windowId === popupWindow?.windowId && popupWindow.signingId) {
+        await this.cancelUnsignedItem(popupWindow.signingId);
+      }
       popupWindow = null;
     });
   }
 
-  async openPopup(purposeForOpening: PurposeForOpening) {
+  async openPopup(purposeForOpening: PurposeForOpening, signingId?: number) {
     if (!popupWindow) {
       // No popup window open
       browser.windows
@@ -61,7 +68,8 @@ export default class PopupManager {
               if (newPopup.id) {
                 popupWindow = {
                   windowId: newPopup.id,
-                  purposeForOpening
+                  purposeForOpening,
+                  signingId
                 };
               }
             });
@@ -108,8 +116,9 @@ export default class PopupManager {
     }
   }
 
-  async closePopup(windowId?: number) {
+  async closePopup(windowId?: number, signingId?: number) {
     try {
+      if (signingId) this.cancelUnsignedItem(signingId);
       if (windowId) {
         await browser.windows.remove(windowId);
       } else {
@@ -123,6 +132,28 @@ export default class PopupManager {
       popupWindow = null;
     } catch (error) {
       throw error;
+    }
+  }
+
+  private async cancelUnsignedItem(signingId: number) {
+    if (!popupWindow) return;
+    try {
+      switch (popupWindow.purposeForOpening) {
+        case PurposeForOpening.SignDeploy:
+          await this.signingManager.rejectSignDeploy(signingId);
+          break;
+        case PurposeForOpening.SignMessage:
+          await this.signingManager.cancelSigningMessage(signingId);
+          break;
+        default:
+          break;
+      }
+    } catch (err) {
+      console.info(
+        `Signer: Cancelled ${popupWindow.purposeForOpening
+          .substring(4)
+          .toLowerCase()} signing due to window closure.`
+      );
     }
   }
 }
