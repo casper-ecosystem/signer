@@ -41,9 +41,10 @@ export function updateStatusEvent(appState: AppState, msg: eventType) {
         isUnlocked,
         isConnected: isUnlocked ? savedSite.isConnected : null,
         activeKey:
-          isConnected && activeUserAccount
-            ? activeUserAccount.keyPair.publicKey.toHex()
-            : null
+          (isConnected &&
+            activeUserAccount &&
+            activeUserAccount.keyPair.publicKey.toHex()) ||
+          null
       }
     });
   }
