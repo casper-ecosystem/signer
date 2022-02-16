@@ -3,7 +3,7 @@ description: File an integration whitelisting request for your project's domain
 title: "[Integration]: Name of Your Project"
 labels: ["Integration"]
 assignees:
-  - George-cl
+  - devendran-m
 body:
   - type: input
     id: project
