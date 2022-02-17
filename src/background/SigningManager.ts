@@ -23,6 +23,7 @@ import {
   CLTuple3
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
+
 type ArgDict = { [key: string]: string | string[] };
 
 export interface messageWithID {
@@ -408,15 +409,15 @@ export default class SigningManager extends events.EventEmitter {
 
   private parseDeployArg(arg: CLValue): any {
     if (!(arg instanceof CLValue)) {
-      console.log(arg);
       throw new Error('Argument should be a CLValue, received: ' + typeof arg);
     }
-    let tag = arg.clType().tag;
+    const tag = arg.clType().tag;
     switch (tag) {
       case CLTypeTag.Unit:
         return String('CLValue Unit');
+
       case CLTypeTag.Key:
-        let key = arg as CLKey;
+        const key = arg as CLKey;
         if (key.isAccount()) {
           return this.parseDeployArg(key.value() as CLAccountHash);
         }
@@ -427,10 +428,12 @@ export default class SigningManager extends events.EventEmitter {
           return this.parseDeployArg(key.value() as CLByteArray);
         }
         throw new Error('Failed to parse key argument');
+
       case CLTypeTag.URef:
         return (arg as CLURef).toFormattedStr();
+
       case CLTypeTag.Option:
-        let option = arg as CLOption<CLValue>;
+        const option = arg as CLOption<CLValue>;
         if (option.isSome()) {
           return this.parseDeployArg(option.value().unwrap());
         } else {
@@ -440,40 +443,49 @@ export default class SigningManager extends events.EventEmitter {
             ` ${option.clType().toString().split(' ')[1]}`
           );
         }
+
       case CLTypeTag.List:
-        let list = (arg as CLList<CLValue>).value();
-        let parsedList = list.map(listMember => {
+        const list = (arg as CLList<CLValue>).value();
+        const parsedList = list.map(listMember => {
           return this.parseDeployArg(listMember);
         });
         return parsedList;
+
       case CLTypeTag.ByteArray:
-        let bytes = (arg as CLByteArray).value();
+        const bytes = (arg as CLByteArray).value();
         return this.parseBytesToString(bytes);
+
       case CLTypeTag.Result:
-        let result = arg as CLResult<CLType, CLType>;
-        let status = result.isOk() ? 'OK: ' : 'ERR: ';
-        let parsed = this.parseDeployArg(result.value().val);
+        const result = arg as CLResult<CLType, CLType>;
+        const status = result.isOk() ? 'OK: ' : 'ERR: ';
+        const parsed = this.parseDeployArg(result.value().val);
         return status + parsed;
+
       case CLTypeTag.Map:
-        let map = arg as CLMap<CLValue, CLValue>;
+        const map = arg as CLMap<CLValue, CLValue>;
         return map.value().toString();
+
       case CLTypeTag.Tuple1:
-        let tupleOne = arg as CLTuple1;
+        const tupleOne = arg as CLTuple1;
         return this.parseDeployArg(tupleOne.value()[0]);
+
       case CLTypeTag.Tuple2:
-        let tupleTwo = arg as CLTuple2;
-        let parsedTupleTwo = tupleTwo.value().map(member => {
+        const tupleTwo = arg as CLTuple2;
+        const parsedTupleTwo = tupleTwo.value().map(member => {
           return this.parseDeployArg(member);
         });
         return parsedTupleTwo;
+
       case CLTypeTag.Tuple3:
-        let tupleThree = arg as CLTuple3;
-        let parsedTupleThree = tupleThree.value().map(member => {
+        const tupleThree = arg as CLTuple3;
+        const parsedTupleThree = tupleThree.value().map(member => {
           return this.parseDeployArg(member);
         });
         return parsedTupleThree;
+
       case CLTypeTag.PublicKey:
         return (arg as CLPublicKey).toHex();
+
       default:
         // Special handling as there is no CLTypeTag for CLAccountHash
         if (arg instanceof CLAccountHash)
