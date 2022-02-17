@@ -32,6 +32,12 @@ import {
 import PopupContainer from '../container/PopupContainer';
 import { popupDimensions } from '../../shared/constants';
 
+interface SigningDataRow {
+  key: string;
+  value: string;
+  tooltipContent?: string;
+}
+
 const signingTooltipFontSize = '.9rem';
 const styles = () => ({
   tooltip: {
@@ -67,16 +73,8 @@ interface Props extends RouteComponentProps {
 class SignDeployPage extends React.Component<
 Props,
 {
-  genericRows: {
-    key: string;
-    value: any;
-    title: any;
-  }[];
-  deploySpecificRows: {
-    key: string;
-    value: any;
-    title: any;
-  }[];
+  genericRows: SigningDataRow[];
+  deploySpecificRows: SigningDataRow[];
   deployToSign: deployWithID | null;
   argsExpanded: boolean;
 }
@@ -111,7 +109,7 @@ Props,
     const deployData = await this.props.signingContainer.parseDeployData(
       deployToSign.id
     );
-    const baseRows = [
+    const baseRows: SigningDataRow[] = [
       this.createRow(
         'Signing Key',
         truncateString(deployData.signingKey, 6, 6),
@@ -149,12 +147,12 @@ Props,
       */
       this.createRow(
         'Transaction Fee',
-        `${numberWithSpaces(deployData.payment)} motes`,
-        `${motesToCSPR(deployData.payment)} CSPR`
+        `${numberWithSpaces(deployData.payment.toString())} motes`,
+        `${motesToCSPR(deployData.payment.toString())} CSPR`
       ),
       this.createRow('Deploy Type', deployData.deployType)
     ];
-    let argRows = [];
+    let argRows: SigningDataRow[] = [];
     for (let [key, value] of Object.entries(deployData.deployArgs)) {
       let row = this.createRow(
         key,
@@ -276,7 +274,7 @@ Props,
                               ) : (
                                 <Tooltip
                                   key={index}
-                                  title={row.title ? row.title : ''}
+                                  title={row.tooltipContent ?? ''}
                                   classes={{
                                     tooltip: this.props.classes.tooltip
                                   }}
@@ -345,7 +343,7 @@ Props,
                                   return (
                                     <Tooltip
                                       key={index}
-                                      title={row.title ? row.title : ''}
+                                      title={row.tooltipContent ?? ''}
                                       classes={{
                                         tooltip: this.props.classes.tooltip
                                       }}
