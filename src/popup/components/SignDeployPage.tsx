@@ -192,7 +192,6 @@ class SignDeployPage extends React.Component<
                       key={row.key}
                       title={row.title ? row.title : ''}
                       placement="top"
-                      TransitionComponent={Zoom}
                     >
                       <TableRow key={row.key}>
                         <TableCell
@@ -211,7 +210,6 @@ class SignDeployPage extends React.Component<
                       title={row.title ? row.title : ''}
                       classes={{ tooltip: this.props.classes.tooltip }}
                       placement="top"
-                      TransitionComponent={Zoom}
                     >
                       <TableRow key={row.key}>
                         <TableCell
@@ -254,7 +252,6 @@ class SignDeployPage extends React.Component<
                                   key={index}
                                   title={`${motesToCSPR(row.value)} CSPR`}
                                   placement="top"
-                                  TransitionComponent={Zoom}
                                 >
                                   <TableRow key={index}>
                                     <TableCell
@@ -277,7 +274,6 @@ class SignDeployPage extends React.Component<
                                     tooltip: this.props.classes.tooltip
                                   }}
                                   placement="top"
-                                  TransitionComponent={Zoom}
                                 >
                                   <TableRow>
                                     <TableCell style={{ fontWeight: 'bold' }}>
@@ -346,7 +342,6 @@ class SignDeployPage extends React.Component<
                                         tooltip: this.props.classes.tooltip
                                       }}
                                       placement="top"
-                                      TransitionComponent={Zoom}
                                     >
                                       <TableRow>
                                         <TableCell
