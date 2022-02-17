@@ -437,11 +437,12 @@ export default class SigningManager extends events.EventEmitter {
         if (option.isSome()) {
           return this.parseDeployArg(option.value().unwrap());
         } else {
-          // Prints 'None (<inner CLType()>)'
-          return (
-            option.value().toString() +
-            ` ${option.clType().toString().split(' ')[1]}`
-          );
+          // This will be None due to the above logic
+          const optionValue = option.value().toString();
+          // This will be the inner CLType of the CLOption e.g. '(bool)'
+          const optionCLType = option.clType().toString().split(' ')[1];
+          // The format ends up looking like `None (bool)`
+          return `${optionValue} ${optionCLType}`;
         }
 
       case CLTypeTag.List:
