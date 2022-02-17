@@ -62,10 +62,11 @@ export function truncateString(
   );
 }
 
-export function numberWithSpaces(num: number) {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+export function numberWithSpaces(numberString: string) {
+  // Adds a space in after 3 digits
+  return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
-export function motesToCSPR(motes: number) {
-  return motes / 1000000000;
+export function motesToCSPR(motes: string) {
+  return +motes / 1000000000;
 }
