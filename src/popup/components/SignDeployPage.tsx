@@ -185,7 +185,8 @@ class SignDeployPage extends React.Component<
             <Table style={{ width: '90%' }}>
               <TableBody>
                 {this.state.genericRows.map((row: any) =>
-                  row.key === 'Amount' || row.key === 'Payment' ? (
+                  // If the row displays Motes convert it to CSPR in the tooltip
+                  ['Amount', 'Payment', 'Transaction Fee'].includes(row.key) ? (
                     <CsprTooltip
                       key={row.key}
                       title={row.title ? row.title : ''}
