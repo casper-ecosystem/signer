@@ -57,7 +57,7 @@ export interface DeployData {
   deployType: string;
   gasPrice: number;
   payment: number;
-  deployArgs: Object;
+  deployArgs: ArgDict;
 }
 
 enum SigningStatus {
