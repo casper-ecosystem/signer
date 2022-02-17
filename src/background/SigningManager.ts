@@ -457,9 +457,9 @@ export default class SigningManager extends events.EventEmitter {
 
       case CLTypeTag.Result:
         const result = arg as CLResult<CLType, CLType>;
-        const status = result.isOk() ? 'OK: ' : 'ERR: ';
+        const status = result.isOk() ? 'OK:' : 'ERR:';
         const parsed = this.parseDeployArg(result.value().val);
-        return status + parsed;
+        return `${status} ${parsed}`;
 
       case CLTypeTag.Map:
         const map = arg as CLMap<CLValue, CLValue>;
