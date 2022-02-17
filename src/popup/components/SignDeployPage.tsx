@@ -38,7 +38,7 @@ interface SigningDataRow {
   tooltipContent?: string;
 }
 
-const signingTooltipFontSize = '.9rem';
+const signingTooltipFontSize = '.8rem';
 const styles = () => ({
   tooltip: {
     fontSize: signingTooltipFontSize,
@@ -55,7 +55,10 @@ const styles = () => ({
 
 const CsprTooltip = withStyles({
   tooltip: {
-    fontSize: signingTooltipFontSize,
+    // This has a different font size because the content is smaller.
+    // Increasing the above tooltips to use this size means that
+    // keys run over into 3 lines when the sit nicely within 2 at .8rem
+    fontSize: '.9rem',
     textAlign: 'center' as const,
     margin: '10px 0 0 0',
     width: 'fit-content'
