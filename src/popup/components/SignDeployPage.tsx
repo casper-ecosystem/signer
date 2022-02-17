@@ -31,24 +31,27 @@ import {
 } from '../../background/utils';
 import { popupDimensions } from '../../shared/constants';
 
+const signingTooltipFontSize = '.9rem';
 const styles = () => ({
   tooltip: {
-    fontSize: '.8rem',
-    width: '260px',
-    margin: '10px 0 0 0'
+    fontSize: signingTooltipFontSize,
+    textAlign: 'center' as const,
+    margin: '10px 0 0 0',
+    width: '260px'
   },
   listItemTooltip: {
-    fontSize: '.8rem',
+    fontSize: signingTooltipFontSize,
+    textAlign: 'center' as const,
     marginRight: '60px'
   }
 });
 
 const CsprTooltip = withStyles({
   tooltip: {
-    fontSize: '1rem',
-    width: 'fit-content',
+    fontSize: signingTooltipFontSize,
+    textAlign: 'center' as const,
     margin: '10px 0 0 0',
-    textAlign: 'center'
+    width: 'fit-content'
   }
 })(Tooltip);
 
