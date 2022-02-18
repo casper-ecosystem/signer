@@ -18,8 +18,7 @@ import {
   TableContainer,
   TableRow,
   Tooltip,
-  Typography,
-  Zoom
+  Typography
 } from '@material-ui/core';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
@@ -30,7 +29,6 @@ import {
   motesToCSPR
 } from '../../background/utils';
 import PopupContainer from '../container/PopupContainer';
-import { popupDimensions } from '../../shared/constants';
 
 interface SigningDataRow {
   key: string;
@@ -57,7 +55,7 @@ const CsprTooltip = withStyles({
   tooltip: {
     // This has a different font size because the content is smaller.
     // Increasing the above tooltips to use this size means that
-    // keys run over into 3 lines when the sit nicely within 2 at .8rem
+    // keys run over into 3 lines when they sit nicely within 2 at .8rem
     fontSize: '.9rem',
     textAlign: 'center' as const,
     margin: '10px 0 0 0',
@@ -74,13 +72,13 @@ interface Props extends RouteComponentProps {
 
 @observer
 class SignDeployPage extends React.Component<
-Props,
-{
-  genericRows: SigningDataRow[];
-  deploySpecificRows: SigningDataRow[];
-  deployToSign: deployWithID | null;
-  argsExpanded: boolean;
-}
+  Props,
+  {
+    genericRows: SigningDataRow[];
+    deploySpecificRows: SigningDataRow[];
+    deployToSign: deployWithID | null;
+    argsExpanded: boolean;
+  }
 > {
   constructor(props: Props) {
     super(props);
@@ -157,13 +155,14 @@ Props,
     ];
     let argRows: SigningDataRow[] = [];
     for (let [key, value] of Object.entries(deployData.deployArgs)) {
-      let row = this.createRow(
-        key,
-        !Array.isArray(value) && value.length > 15
-          ? truncateString(value, 6, 6)
-          : value,
-        !Array.isArray(value) && value.length > 12 ? value : undefined
-      );
+      let row;
+      // Checks if it's an array or a short string
+      if (Array.isArray(value) || value.length < 13) {
+        row = this.createRow(key, value);
+      } else {
+        // If it's a long string then we truncate it but show the full string in the tooltip
+        row = this.createRow(key, truncateString(value, 6, 6), value);
+      }
       argRows.push(row);
     }
     this.setState({
@@ -358,35 +357,35 @@ Props,
                                           {isNaN(+row.value)
                                             ? Array.isArray(row.value)
                                               ? row.value.map(listItem => {
-                                                return (
-                                                  <ul>
-                                                    {!Array.isArray(
-                                                      listItem
-                                                    ) &&
+                                                  return (
+                                                    <ul>
+                                                      {!Array.isArray(
+                                                        listItem
+                                                      ) &&
                                                       listItem.length > 15 ? (
-                                                      <Tooltip
-                                                        title={listItem.toString()}
-                                                        placement="top"
-                                                        classes={{
-                                                          tooltip:
-                                                            this.props.classes
-                                                              .listItemTooltip
-                                                        }}
-                                                      >
-                                                        <p>
-                                                          {truncateString(
-                                                            listItem,
-                                                            6,
-                                                            6
-                                                          )}
-                                                        </p>
-                                                      </Tooltip>
-                                                    ) : (
-                                                      listItem
-                                                    )}
-                                                  </ul>
-                                                );
-                                              })
+                                                        <Tooltip
+                                                          title={listItem.toString()}
+                                                          placement="top"
+                                                          classes={{
+                                                            tooltip:
+                                                              this.props.classes
+                                                                .listItemTooltip
+                                                          }}
+                                                        >
+                                                          <p>
+                                                            {truncateString(
+                                                              listItem,
+                                                              6,
+                                                              6
+                                                            )}
+                                                          </p>
+                                                        </Tooltip>
+                                                      ) : (
+                                                        listItem
+                                                      )}
+                                                    </ul>
+                                                  );
+                                                })
                                               : row.value
                                             : numberWithSpaces(row.value)}
                                         </TableCell>
