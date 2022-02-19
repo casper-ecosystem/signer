@@ -41,6 +41,19 @@ interface SigningDataRow {
 }
 
 const truncationLengthCutoff = 13;
+const isLongValue = (value: string) => {
+  return (
+    // Long enough to warrant truncating it
+    value.length > truncationLengthCutoff
+  );
+};
+const isCSPRValueByKey = (key: string) => {
+  return ['Amount', 'Payment', 'Transaction Fee'].includes(key);
+};
+const shouldNotTruncate = (key: string) => {
+  return ['Timestamp', 'Chain Name'].includes(key);
+};
+
 const signingTooltipFontSize = '.8rem';
 const styles = () => ({
   tooltip: {
@@ -135,7 +148,7 @@ class SignDeployPage extends React.Component<
 
   parseRow(row: SigningDataRow): SigningDataRow {
     // Special case for items that should not be truncated for readability e.g. Timestamp
-    if (this.shouldNotTruncate(row.key)) {
+    if (shouldNotTruncate(row.key)) {
       return row;
     }
     // The value is a list e.g. a CLList or CLTuple
@@ -145,17 +158,16 @@ class SignDeployPage extends React.Component<
 
     // The value is a stringified number e.g. an amount in motes
     if (isNumberish(row.value)) {
-      const isLongNumber = row.value.length > 15;
-
       // If the number is particularly long then truncate it
-      const value = isLongNumber
+      const value = isLongValue(row.value)
         ? truncateString(row.value, 6, 6)
         : numberWithSpaces(row.value);
 
-      // If the number represents Motes then display the CSPR value in the tooltip, if it was truncated show the full number
-      const tooltipContent = this.isCSPRValueByKey(row.key)
+      // If the number represents Motes then display the CSPR value in the tooltip,
+      // if it was truncated show the full number
+      const tooltipContent = isCSPRValueByKey(row.key)
         ? `${motesToCSPR(row.value)} CSPR`
-        : isLongNumber
+        : isLongValue(row.value)
         ? row.value
         : '';
 
@@ -176,7 +188,7 @@ class SignDeployPage extends React.Component<
     }
 
     // The value is a long string e.g. a key or hash
-    if (this.tooltipContentRequired(row.value)) {
+    if (isLongValue(row.value)) {
       return {
         key: row.key,
         value: truncateString(row.value, 6, 6),
@@ -187,15 +199,7 @@ class SignDeployPage extends React.Component<
     return row;
   }
 
-  isCSPRValueByKey(key: string): boolean {
-    return ['Amount', 'Payment', 'Transaction Fee'].includes(key);
-  }
-
-  shouldNotTruncate(key: string): boolean {
-    return ['Timestamp', 'Chain Name'].includes(key);
-  }
-
-  createRow(
+  createRowData(
     key: string,
     value: string | string[],
     tooltipContent?: string
@@ -203,17 +207,8 @@ class SignDeployPage extends React.Component<
     return { key, value, tooltipContent };
   }
 
-  tooltipContentRequired(value: string | string[]): boolean {
-    return (
-      // Not an array
-      !Array.isArray(value) &&
-      // Long enough to warrant truncating it
-      value.length > truncationLengthCutoff
-    );
-  }
-
   createTooltippedRow(row: SigningDataRow) {
-    const isMotesValue = this.isCSPRValueByKey(row.key);
+    const isMotesValue = isCSPRValueByKey(row.key);
     return (
       <Tooltip
         title={row.tooltipContent ?? ''}
@@ -255,7 +250,6 @@ class SignDeployPage extends React.Component<
   }
 
   createTooltippedListItem(row: SigningDataRow) {
-    console.log(row);
     return (
       <Tooltip
         title={row.tooltipContent ?? ''}
