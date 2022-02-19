@@ -48,25 +48,3 @@ export function updateStatusEvent(appState: AppState, msg: eventType) {
     });
   }
 }
-
-export function truncateString(
-  longString: string,
-  startChunk: number,
-  endChunk: number
-): string {
-  if (!longString) throw new Error('Error parsing long string.');
-  return (
-    longString.substring(0, startChunk) +
-    '...' +
-    longString.substring(longString.length - endChunk)
-  );
-}
-
-export function numberWithSpaces(numberString: string) {
-  // Adds a space in after 3 digits
-  return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-}
-
-export function motesToCSPR(motes: string) {
-  return (+motes / 1000000000).toString();
-}

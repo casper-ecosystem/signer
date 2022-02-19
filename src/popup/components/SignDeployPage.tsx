@@ -23,14 +23,14 @@ import {
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { deployWithID } from '../../background/SigningManager';
-// TODO: Move these to /shared/common
+import PopupContainer from '../container/PopupContainer';
 import {
+  isNumberish,
+  isURefString,
   truncateString,
   numberWithSpaces,
   motesToCSPR
-} from '../../background/utils';
-import PopupContainer from '../container/PopupContainer';
-import { isNumberish, isURefString } from '../../shared';
+} from '../../shared';
 
 type RowValue = string | string[];
 
