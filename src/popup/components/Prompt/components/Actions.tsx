@@ -21,17 +21,17 @@ const useStyles = makeStyles(styles);
 interface Props {
   closeHandler: () => void;
   goBackHandler: () => void;
-  isInitialPageShown: boolean;
+  isOnInitialScreen: boolean;
 }
 
 export function Actions({
   closeHandler,
   goBackHandler,
-  isInitialPageShown
+  isOnInitialScreen
 }: Props): JSX.Element {
   const classes = useStyles();
 
-  if (!isInitialPageShown) {
+  if (!isOnInitialScreen) {
     return (
       <div className={classes.backButtonStyle}>
         <Button fullWidth onClick={goBackHandler}>

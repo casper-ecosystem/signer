@@ -56,18 +56,18 @@ const useStyles = makeStyles(styles);
 
 interface Props {
   authContainer: AccountManager;
-  isInitialPageShown: boolean;
+  isOnInitialScreen: boolean;
   setIsInitialPageShown: (value: boolean) => void;
 }
 
 export function Content({
   authContainer,
-  isInitialPageShown,
+  isOnInitialScreen,
   setIsInitialPageShown
 }: Props): JSX.Element {
   const classes = useStyles();
 
-  if (!isInitialPageShown) {
+  if (!isOnInitialScreen) {
     return (
       <DialogContent classes={{ root: classes.MuiDialogContent }}>
         <DialogContentText classes={{ root: classes.MuiTypography }}>
