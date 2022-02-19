@@ -60,9 +60,9 @@ const App = observer((props: AppProps) => {
   const closeHandler = createCloseHandler(props.accountManager);
 
   const {
-    securityCheckupHeader,
-    securityCheckupContent,
-    securityCheckupActions
+    renderSecurityCheckupHeader,
+    renderSecurityCheckupContent,
+    renderSecurityCheckupActions
   } = createSecurityCheckupContents({
     closeHandler,
     setSecurityCheckupPageIndex,
@@ -74,9 +74,9 @@ const App = observer((props: AppProps) => {
     <div>
       <SecurityCheckupPrompt
         isOpened={isTimeToSecurityCheckup}
-        renderHeader={() => securityCheckupHeader}
-        renderContent={() => securityCheckupContent}
-        renderActions={() => securityCheckupActions}
+        renderHeader={renderSecurityCheckupHeader}
+        renderContent={renderSecurityCheckupContent}
+        renderActions={renderSecurityCheckupActions}
       />
       <AnalyticsProvider />
       <MainAppBar

@@ -19,38 +19,48 @@ export function createSecurityCheckupContents({
   accountManager,
   closeHandler
 }: Props) {
-  switch (securityCheckupPageIndex) {
-    case 0:
-      return {
-        securityCheckupHeader: <HeaderPageOne />,
-        securityCheckupContent: (
-          <ContentPageOne
-            setSecurityCheckupPageIndex={setSecurityCheckupPageIndex}
-          />
-        ),
-        securityCheckupActions: <ActionsPageOne closeHandler={closeHandler} />
-      };
-    case 1:
-      return {
-        securityCheckupHeader: <HeaderPageTwo />,
-        securityCheckupContent: (
-          <ContentPageTwo accountManager={accountManager} />
-        ),
-        securityCheckupActions: (
-          <ActionsPageTwo
-            setSecurityCheckupPageIndex={setSecurityCheckupPageIndex}
-          />
-        )
-      };
-    default:
-      return {
-        securityCheckupHeader: <HeaderPageOne />,
-        securityCheckupContent: (
-          <ContentPageOne
-            setSecurityCheckupPageIndex={setSecurityCheckupPageIndex}
-          />
-        ),
-        securityCheckupActions: <ActionsPageOne closeHandler={closeHandler} />
-      };
-  }
+  return {
+    renderSecurityCheckupHeader: () => {
+      switch (securityCheckupPageIndex) {
+        case 0:
+          return <HeaderPageOne />;
+        case 1:
+          return <HeaderPageTwo />;
+        default:
+          return <HeaderPageOne />;
+      }
+    },
+    renderSecurityCheckupContent: () => {
+      switch (securityCheckupPageIndex) {
+        case 0:
+          return (
+            <ContentPageOne
+              setSecurityCheckupPageIndex={setSecurityCheckupPageIndex}
+            />
+          );
+        case 1:
+          return <ContentPageTwo accountManager={accountManager} />;
+        default:
+          return (
+            <ContentPageOne
+              setSecurityCheckupPageIndex={setSecurityCheckupPageIndex}
+            />
+          );
+      }
+    },
+    renderSecurityCheckupActions: () => {
+      switch (securityCheckupPageIndex) {
+        case 0:
+          return <ActionsPageOne closeHandler={closeHandler} />;
+        case 1:
+          return (
+            <ActionsPageTwo
+              setSecurityCheckupPageIndex={setSecurityCheckupPageIndex}
+            />
+          );
+        default:
+          return <ActionsPageOne closeHandler={closeHandler} />;
+      }
+    }
+  };
 }
