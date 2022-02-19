@@ -56,8 +56,8 @@ export interface DeployData {
   timestamp: string;
   chainName: string;
   deployType: string;
-  gasPrice: number;
-  payment: number;
+  gasPrice: string;
+  payment: string;
   deployArgs: ArgDict;
 }
 
@@ -338,12 +338,12 @@ export default class SigningManager extends events.EventEmitter {
       const type = deployWithID.deploy.isTransfer()
         ? 'Transfer'
         : deployWithID.deploy.session.isModuleBytes()
-          ? 'WASM-Based Deploy'
-          : deployWithID.deploy.session.isStoredContractByHash() ||
-            deployWithID.deploy.session.isStoredContractByName()
-            ? 'Contract Call'
-            : // is Stored Versioned Contract
-            'Contract Package Call';
+        ? 'WASM-Based Deploy'
+        : deployWithID.deploy.session.isStoredContractByHash() ||
+          deployWithID.deploy.session.isStoredContractByName()
+        ? 'Contract Call'
+        : // is Stored Versioned Contract
+          'Contract Package Call';
 
       let deployArgs: ArgDict = {};
       if (deployWithID.deploy.session.transfer) {
@@ -396,7 +396,7 @@ export default class SigningManager extends events.EventEmitter {
         bodyHash: encodeBase16(header.bodyHash),
         chainName: header.chainName,
         timestamp: new Date(header.timestamp).toLocaleString(),
-        gasPrice: header.gasPrice,
+        gasPrice: header.gasPrice.toString(),
         payment: payment,
         deployType: type,
         deployArgs: deployArgs
@@ -618,9 +618,10 @@ export default class SigningManager extends events.EventEmitter {
     let activeKeyPair = this.appState.activeUserAccount.keyPair;
     if (!messageWithId.messageBytes || !messageWithId.messageString) {
       messageWithId.error = new Error(
-        `Cannot sign message: ${!messageWithId.messageBytes
-          ? 'message bytes were null'
-          : !messageWithId.messageString
+        `Cannot sign message: ${
+          !messageWithId.messageBytes
+            ? 'message bytes were null'
+            : !messageWithId.messageString
             ? 'message string was null'
             : ''
         }`

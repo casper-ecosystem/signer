@@ -68,5 +68,5 @@ export function numberWithSpaces(numberString: string) {
 }
 
 export function motesToCSPR(motes: string) {
-  return +motes / 1000000000;
+  return (+motes / 1000000000).toString();
 }

@@ -23,45 +23,45 @@ import {
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { deployWithID } from '../../background/SigningManager';
+// TODO: Move these to /shared/common
 import {
   truncateString,
   numberWithSpaces,
   motesToCSPR
 } from '../../background/utils';
 import PopupContainer from '../container/PopupContainer';
+import { isNumberish, isURefString } from '../../shared';
+
+type RowValue = string | string[];
 
 interface SigningDataRow {
   key: string;
-  value: string;
+  value: RowValue;
   tooltipContent?: string;
 }
 
+const truncationLengthCutoff = 13;
 const signingTooltipFontSize = '.8rem';
 const styles = () => ({
   tooltip: {
     fontSize: signingTooltipFontSize,
     textAlign: 'center' as const,
     margin: '10px 0 0 0',
-    width: '260px'
+    maxWidth: '300px',
+    width: 'fit-content'
   },
   listItemTooltip: {
     fontSize: signingTooltipFontSize,
     textAlign: 'center' as const,
     marginRight: '60px'
-  }
-});
-
-const CsprTooltip = withStyles({
-  tooltip: {
-    // This has a different font size because the content is smaller.
-    // Increasing the above tooltips to use this size means that
-    // keys run over into 3 lines when they sit nicely within 2 at .8rem
+  },
+  csprToolTip: {
     fontSize: '.9rem',
     textAlign: 'center' as const,
     margin: '10px 0 0 0',
     width: 'fit-content'
   }
-})(Tooltip);
+});
 
 interface Props extends RouteComponentProps {
   signingContainer: SigningContainer;
@@ -102,67 +102,28 @@ class SignDeployPage extends React.Component<
     }
   }
 
-  createRow(key: string, value: any, title?: any) {
-    return { key, value, title };
-  }
-
   async generateDeployInfo(deployToSign: deployWithID) {
     const deployData = await this.props.signingContainer.parseDeployData(
       deployToSign.id
     );
-    const baseRows: SigningDataRow[] = [
-      this.createRow(
-        'Signing Key',
-        truncateString(deployData.signingKey, 6, 6),
-        deployData.signingKey
-      ),
-      this.createRow(
-        'Account',
-        truncateString(deployData.account, 6, 6),
-        deployData.account
-      ),
-      this.createRow(
-        'Deploy Hash',
-        truncateString(deployData.deployHash, 6, 6),
-        deployData.deployHash
-      ),
-      // this.createRow(
-      //   'Body Hash',
-      //   truncateString(deployData.bodyHash, 6, 6),
-      //   deployData.bodyHash
-      // ),
-      this.createRow('Timestamp', deployData.timestamp),
-      this.createRow('Chain Name', deployData.chainName),
-      /*
-        Gas Price refers to how much a caller is willing to pay per unit of gas.
-      
-        Currently there is no logic in place to prioritise those willing to pay more
-        meaning there is no reason to set it higher than 1.
-        
-        In cspr.live Gas Price is fixed at 1 and the user has no visibility of it.
-        
-        Until Gas Price impacts contract execution I will omit it from the deploy data
-        screen to reduce confusion for users.
-      
-      this.createRow('Gas Price', `${deployData.gasPrice} motes`),
-      */
-      this.createRow(
-        'Transaction Fee',
-        `${numberWithSpaces(deployData.payment.toString())} motes`,
-        `${motesToCSPR(deployData.payment.toString())} CSPR`
-      ),
-      this.createRow('Deploy Type', deployData.deployType)
-    ];
+    // Filters out non-generic and irrelevant data points, also re-orders.
+    const orderedGenericData = {
+      'Signing Key': deployData.signingKey,
+      Account: deployData.account,
+      'Deploy Hash': deployData.deployHash,
+      Timestamp: deployData.timestamp,
+      'Chain Name': deployData.chainName,
+      Payment: deployData.payment,
+      'Deploy Type': deployData.deployType
+    };
+    let baseRows: SigningDataRow[] = [];
+    for (let [key, value] of Object.entries(orderedGenericData)) {
+      const row = this.parseRow({ key, value });
+      baseRows.push(row);
+    }
     let argRows: SigningDataRow[] = [];
     for (let [key, value] of Object.entries(deployData.deployArgs)) {
-      let row;
-      // Checks if it's an array or a short string
-      if (Array.isArray(value) || value.length < 13) {
-        row = this.createRow(key, value);
-      } else {
-        // If it's a long string then we truncate it but show the full string in the tooltip
-        row = this.createRow(key, truncateString(value, 6, 6), value);
-      }
+      let row = this.parseRow({ key, value });
       argRows.push(row);
     }
     this.setState({
@@ -170,6 +131,140 @@ class SignDeployPage extends React.Component<
       deploySpecificRows: argRows,
       argsExpanded: argRows.length < 4
     });
+  }
+
+  parseRow(row: SigningDataRow): SigningDataRow {
+    // Special case for items that should not be truncated for readability e.g. Timestamp
+    if (this.shouldNotTruncate(row.key)) {
+      return row;
+    }
+    // The value is a list e.g. a CLList or CLTuple
+    if (Array.isArray(row.value)) {
+      return row;
+    }
+
+    // The value is a stringified number e.g. an amount in motes
+    if (isNumberish(row.value)) {
+      const isLongNumber = row.value.length > 15;
+
+      // If the number is particularly long then truncate it
+      const value = isLongNumber
+        ? truncateString(row.value, 6, 6)
+        : numberWithSpaces(row.value);
+
+      // If the number represents Motes then display the CSPR value in the tooltip, if it was truncated show the full number
+      const tooltipContent = this.isCSPRValueByKey(row.key)
+        ? `${motesToCSPR(row.value)} CSPR`
+        : isLongNumber
+        ? row.value
+        : '';
+
+      return {
+        key: row.key,
+        value,
+        tooltipContent
+      };
+    }
+
+    // The value is formatted string URef, due to the standard prefix and suffix we show more of the unique data
+    if (isURefString(row.value)) {
+      return {
+        key: row.key,
+        value: truncateString(row.value, 9, 9),
+        tooltipContent: row.value
+      };
+    }
+
+    // The value is a long string e.g. a key or hash
+    if (this.tooltipContentRequired(row.value)) {
+      return {
+        key: row.key,
+        value: truncateString(row.value, 6, 6),
+        tooltipContent: row.value
+      };
+    }
+    // For anything else return it as is
+    return row;
+  }
+
+  isCSPRValueByKey(key: string): boolean {
+    return ['Amount', 'Payment', 'Transaction Fee'].includes(key);
+  }
+
+  shouldNotTruncate(key: string): boolean {
+    return ['Timestamp', 'Chain Name'].includes(key);
+  }
+
+  createRow(
+    key: string,
+    value: string | string[],
+    tooltipContent?: string
+  ): SigningDataRow {
+    return { key, value, tooltipContent };
+  }
+
+  tooltipContentRequired(value: string | string[]): boolean {
+    return (
+      // Not an array
+      !Array.isArray(value) &&
+      // Long enough to warrant truncating it
+      value.length > truncationLengthCutoff
+    );
+  }
+
+  createTooltippedRow(row: SigningDataRow) {
+    const isMotesValue = this.isCSPRValueByKey(row.key);
+    return (
+      <Tooltip
+        title={row.tooltipContent ?? ''}
+        placement="top"
+        classes={{
+          tooltip: isMotesValue
+            ? this.props.classes.csprToolTip
+            : this.props.classes.tooltip
+        }}
+      >
+        <TableRow>
+          <TableCell style={{ fontWeight: 'bold' }}>{row.key}</TableCell>
+          <TableCell align="right">
+            {
+              /**
+               * Checks if the string represents a list so it can be displayed properly
+               */
+              Array.isArray(row.value) ? (
+                <ul style={{ listStyleType: 'none' }}>
+                  {row.value.map(item => {
+                    {
+                      /* 
+                        Utilises the parseRow method to properly parse the inner value and then display it
+                      */
+                    }
+                    return this.createTooltippedListItem(
+                      this.parseRow({ key: row.key, value: item })
+                    );
+                  })}
+                </ul>
+              ) : (
+                row.value
+              )
+            }
+          </TableCell>
+        </TableRow>
+      </Tooltip>
+    );
+  }
+
+  createTooltippedListItem(row: SigningDataRow) {
+    console.log(row);
+    return (
+      <Tooltip
+        title={row.tooltipContent ?? ''}
+        placement="top"
+        classes={{ tooltip: this.props.classes.listItemTooltip }}
+      >
+        <li>{row.value}</li>
+      </Tooltip>
+    );
   }
 
   render() {
@@ -189,45 +284,17 @@ class SignDeployPage extends React.Component<
           <TableContainer>
             <Table style={{ width: '90%' }}>
               <TableBody>
-                {this.state.genericRows.map((row: any) =>
-                  // If the row displays Motes convert it to CSPR in the tooltip
-                  ['Amount', 'Payment', 'Transaction Fee'].includes(row.key) ? (
-                    <CsprTooltip
-                      key={row.key}
-                      title={row.title ? row.title : ''}
-                      placement="top"
-                    >
-                      <TableRow key={row.key}>
-                        <TableCell
-                          component="th"
-                          scope="row"
-                          style={{ fontWeight: 'bold' }}
-                        >
-                          {row.key}
-                        </TableCell>
-                        <TableCell align="right">{row.value}</TableCell>
-                      </TableRow>
-                    </CsprTooltip>
-                  ) : (
-                    <Tooltip
-                      key={row.key}
-                      title={row.title ? row.title : ''}
-                      classes={{ tooltip: this.props.classes.tooltip }}
-                      placement="top"
-                    >
-                      <TableRow key={row.key}>
-                        <TableCell
-                          component="th"
-                          scope="row"
-                          style={{ fontWeight: 'bold' }}
-                        >
-                          {row.key}
-                        </TableCell>
-                        <TableCell align="right">{row.value}</TableCell>
-                      </TableRow>
-                    </Tooltip>
-                  )
-                )}
+                {/* 
+                  Displays the data generic to all deploys
+                */}
+                {this.state.genericRows.map((row: SigningDataRow) => {
+                  // If the row displays Motes use the CSPR specific tooltip styling
+                  return this.createTooltippedRow(row);
+                })}
+                {/* 
+                  Deploy Specific Arguments
+                  Special handling for native transfers
+                */}
                 {this.state.genericRows.some(
                   row => row.key === 'Deploy Type' && row.value === 'Transfer'
                 ) ? (
@@ -250,47 +317,8 @@ class SignDeployPage extends React.Component<
                       >
                         <Table size="small">
                           <TableBody>
-                            {this.state.deploySpecificRows.map((row, index) => {
-                              return row.key === 'Amount' ? (
-                                <CsprTooltip
-                                  key={index}
-                                  title={`${motesToCSPR(row.value)} CSPR`}
-                                  placement="top"
-                                >
-                                  <TableRow key={index}>
-                                    <TableCell
-                                      component="th"
-                                      scope="row"
-                                      style={{ fontWeight: 'bold' }}
-                                    >
-                                      {row.key}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      {`${numberWithSpaces(row.value)} motes`}
-                                    </TableCell>
-                                  </TableRow>
-                                </CsprTooltip>
-                              ) : (
-                                <Tooltip
-                                  key={index}
-                                  title={row.tooltipContent ?? ''}
-                                  classes={{
-                                    tooltip: this.props.classes.tooltip
-                                  }}
-                                  placement="top"
-                                >
-                                  <TableRow>
-                                    <TableCell style={{ fontWeight: 'bold' }}>
-                                      {row.key}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      {isNaN(+row.value)
-                                        ? row.value
-                                        : numberWithSpaces(row.value)}
-                                    </TableCell>
-                                  </TableRow>
-                                </Tooltip>
-                              );
+                            {this.state.deploySpecificRows.map(row => {
+                              return this.createTooltippedRow(row);
                             })}
                           </TableBody>
                         </Table>
@@ -298,6 +326,9 @@ class SignDeployPage extends React.Component<
                     </TableRow>
                   </>
                 ) : (
+                  /**
+                   *  Deploy specific arguments
+                   */
                   <>
                     <TableRow>
                       <TableCell
@@ -336,64 +367,9 @@ class SignDeployPage extends React.Component<
                         >
                           <Table size="small">
                             <TableBody>
-                              {this.state.deploySpecificRows.map(
-                                (row, index) => {
-                                  return (
-                                    <Tooltip
-                                      key={index}
-                                      title={row.tooltipContent ?? ''}
-                                      classes={{
-                                        tooltip: this.props.classes.tooltip
-                                      }}
-                                      placement="top"
-                                    >
-                                      <TableRow>
-                                        <TableCell
-                                          style={{ fontWeight: 'bold' }}
-                                        >
-                                          {row.key}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                          {isNaN(+row.value)
-                                            ? Array.isArray(row.value)
-                                              ? row.value.map(listItem => {
-                                                  return (
-                                                    <ul>
-                                                      {!Array.isArray(
-                                                        listItem
-                                                      ) &&
-                                                      listItem.length > 15 ? (
-                                                        <Tooltip
-                                                          title={listItem.toString()}
-                                                          placement="top"
-                                                          classes={{
-                                                            tooltip:
-                                                              this.props.classes
-                                                                .listItemTooltip
-                                                          }}
-                                                        >
-                                                          <p>
-                                                            {truncateString(
-                                                              listItem,
-                                                              6,
-                                                              6
-                                                            )}
-                                                          </p>
-                                                        </Tooltip>
-                                                      ) : (
-                                                        listItem
-                                                      )}
-                                                    </ul>
-                                                  );
-                                                })
-                                              : row.value
-                                            : numberWithSpaces(row.value)}
-                                        </TableCell>
-                                      </TableRow>
-                                    </Tooltip>
-                                  );
-                                }
-                              )}
+                              {this.state.deploySpecificRows.map(row => {
+                                return this.createTooltippedRow(row);
+                              })}
                             </TableBody>
                           </Table>
                         </Collapse>
