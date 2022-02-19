@@ -41,18 +41,11 @@ interface SigningDataRow {
 }
 
 const truncationLengthCutoff = 13;
-const isLongValue = (value: string) => {
-  return (
-    // Long enough to warrant truncating it
-    value.length > truncationLengthCutoff
-  );
-};
-const isCSPRValueByKey = (key: string) => {
-  return ['Amount', 'Payment', 'Transaction Fee'].includes(key);
-};
-const shouldNotTruncate = (key: string) => {
-  return ['Timestamp', 'Chain Name'].includes(key);
-};
+const isLongValue = (value: string) => value.length > truncationLengthCutoff;
+const isCSPRValueByKey = (key: string) =>
+  ['Amount', 'Payment', 'Transaction Fee'].includes(key);
+const shouldNotTruncate = (key: string) =>
+  ['Timestamp', 'Chain Name'].includes(key);
 
 const signingTooltipFontSize = '.8rem';
 const styles = () => ({
@@ -163,13 +156,15 @@ class SignDeployPage extends React.Component<
         ? truncateString(row.value, 6, 6)
         : numberWithSpaces(row.value);
 
-      // If the number represents Motes then display the CSPR value in the tooltip,
-      // if it was truncated show the full number
-      const tooltipContent = isCSPRValueByKey(row.key)
-        ? `${motesToCSPR(row.value)} CSPR`
-        : isLongValue(row.value)
-        ? row.value
-        : '';
+      let tooltipContent = '';
+      // If the number represents Motes then display the CSPR value in the tooltip
+      if (isCSPRValueByKey(row.key)) {
+        tooltipContent = `${motesToCSPR(row.value)} CSPR`;
+      }
+      // If the number was truncated show it fully in the tooltip
+      if (isLongValue(row.value)) {
+        tooltipContent = row.value;
+      }
 
       return {
         key: row.key,
