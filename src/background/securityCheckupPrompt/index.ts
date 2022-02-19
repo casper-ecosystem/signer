@@ -2,17 +2,17 @@ import { storage } from '@extend-chrome/storage';
 
 import { SecurityCheckupTimestamp } from './types';
 import {
-  securityCheckupFieldName,
+  securityCheckupStorageKey,
   securityCheckupTimeInterval
 } from './securityCheckupSettings';
 
-export async function setSecurityCheckupTimestamp() {
-  return storage.local.set({ [securityCheckupFieldName]: Date.now() });
+export async function resetSecurityCheckupTimestamp() {
+  return storage.local.set({ [securityCheckupStorageKey]: Date.now() });
 }
 
 export async function getSecurityCheckupTimestamp(): Promise<SecurityCheckupTimestamp | null> {
-  const { [securityCheckupFieldName]: lastCheckupDate } =
-    await storage.local.get(securityCheckupFieldName);
+  const { [securityCheckupStorageKey]: lastCheckupDate } =
+    await storage.local.get(securityCheckupStorageKey);
 
   if (!lastCheckupDate) {
     return null;
@@ -22,14 +22,14 @@ export async function getSecurityCheckupTimestamp(): Promise<SecurityCheckupTime
 }
 
 export function removeSecurityCheckupTimestamp() {
-  storage.local.remove(securityCheckupFieldName);
+  storage.local.remove(securityCheckupStorageKey);
 }
 
 export function initSecurityCheckupTimestamp() {
-  return setSecurityCheckupTimestamp();
+  return resetSecurityCheckupTimestamp();
 }
 
-export async function checkDateToSecurityCheckup(): Promise<boolean> {
+export async function isTimeToSecurityCheckup(): Promise<boolean> {
   const lastCheckupDate = await getSecurityCheckupTimestamp();
 
   if (!lastCheckupDate) {

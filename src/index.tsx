@@ -21,7 +21,7 @@ import { ThemeProvider } from '@material-ui/core';
 const appState = new AppState();
 const errorsContainer = new ErrorContainer();
 const backgroundManager = new BackgroundManager(appState, errorsContainer);
-const authContainer = new AccountManager(
+const accountManager = new AccountManager(
   errorsContainer,
   backgroundManager,
   appState
@@ -39,7 +39,7 @@ ReactDOM.render(
     <HashRouter>
       <App
         errors={errorsContainer}
-        authContainer={authContainer}
+        accountManager={accountManager}
         homeContainer={homeContainer}
         signingContainer={signingContainer}
         connectSignerContainer={connectSignerContainer}

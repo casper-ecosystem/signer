@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { HeaderPageOne, HeaderPageTwo } from './components/Header';
 import { ContentPageOne, ContentPageTwo } from './components/Content';
 import { ActionsPageOne, ActionsPageTwo } from './components/Actions';
@@ -5,41 +7,50 @@ import { ActionsPageOne, ActionsPageTwo } from './components/Actions';
 import AccountManager from '../../../container/AccountManager';
 
 interface Props {
-  promptPageIndex: number;
-  setPromptPageIndex: (page: number) => void;
-  authContainer: AccountManager;
+  securityCheckupPageIndex: number;
+  setSecurityCheckupPageIndex: (page: number) => void;
+  accountManager: AccountManager;
   closeHandler: () => Promise<void>;
 }
 
 export function createSecurityCheckupContents({
-  promptPageIndex,
-  setPromptPageIndex,
-  authContainer,
+  securityCheckupPageIndex,
+  setSecurityCheckupPageIndex,
+  accountManager,
   closeHandler
 }: Props) {
-  switch (promptPageIndex) {
+  switch (securityCheckupPageIndex) {
     case 0:
       return {
-        Header: <HeaderPageOne />,
-        Content: ContentPageOne,
-        Actions: ActionsPageOne
+        securityCheckupHeader: <HeaderPageOne />,
+        securityCheckupContent: (
+          <ContentPageOne
+            setSecurityCheckupPageIndex={setSecurityCheckupPageIndex}
+          />
+        ),
+        securityCheckupActions: <ActionsPageOne closeHandler={closeHandler} />
       };
     case 1:
       return {
-        Header: null,
-        Content: null,
-        Actions: null
+        securityCheckupHeader: <HeaderPageTwo />,
+        securityCheckupContent: (
+          <ContentPageTwo accountManager={accountManager} />
+        ),
+        securityCheckupActions: (
+          <ActionsPageTwo
+            setSecurityCheckupPageIndex={setSecurityCheckupPageIndex}
+          />
+        )
       };
     default:
       return {
-        Header: null,
-        Content: null,
-        Actions: null
+        securityCheckupHeader: <HeaderPageOne />,
+        securityCheckupContent: (
+          <ContentPageOne
+            setSecurityCheckupPageIndex={setSecurityCheckupPageIndex}
+          />
+        ),
+        securityCheckupActions: <ActionsPageOne closeHandler={closeHandler} />
       };
   }
-  return {
-    Header: [HeaderPageOne, HeaderPageTwo],
-    Content: [ContentPageOne, ContentPageTwo],
-    Actions: [ActionsPageOne, ActionsPageTwo]
-  };
 }

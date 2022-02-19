@@ -75,8 +75,8 @@ class AccountManager {
   }
 
   @action
-  async resetSecurityCheckupFlag() {
-    return await this.backgroundManager.resetSecurityCheckupFlag();
+  async resetSecurityCheckup() {
+    return await this.backgroundManager.resetSecurityCheckup();
   }
 
   async isBackedUp(alias: string) {

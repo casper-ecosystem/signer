@@ -1,5 +1,7 @@
-import React from 'react';
-import { Dialog, withStyles, WithStyles } from '@material-ui/core';
+import React, { ReactNode } from 'react';
+import { Dialog } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
+import { Header, Content, Actions } from './components';
 
 const styles = {
   dialogPaper: {
@@ -11,29 +13,30 @@ const styles = {
   }
 };
 
-interface Props extends WithStyles<typeof styles> {
+const useStyles = makeStyles(styles);
+
+interface Props {
   isOpened: boolean;
-  Header: React.FC;
-  Content: React.FC;
-  Actions: React.FC;
+  renderHeader(): JSX.Element;
+  renderContent(): JSX.Element;
+  renderActions(): JSX.Element;
 }
 
-function Prompt({
-  classes,
+export function Prompt({
   isOpened,
-  Header,
-  Content,
-  Actions
+  renderHeader,
+  renderContent,
+  renderActions
 }: Props): JSX.Element {
+  const classes = useStyles();
+
   return (
     <Dialog fullWidth classes={{ paper: classes.dialogPaper }} open={isOpened}>
       <div className="prompt-container">
-        <Header />
-        <Content />
-        <Actions />
+        <Header>{renderHeader()}</Header>
+        <Content>{renderContent()}</Content>
+        <Actions>{renderActions()}</Actions>
       </div>
     </Dialog>
   );
 }
-
-export default withStyles(styles)(Prompt);

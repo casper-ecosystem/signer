@@ -15,8 +15,8 @@ import { KeyPairWithAlias } from '../@types/models';
 import { saveAs } from 'file-saver';
 import { updateStatusEvent } from './utils';
 import {
-  checkDateToSecurityCheckup,
-  setSecurityCheckupTimestamp,
+  isTimeToSecurityCheckup,
+  resetSecurityCheckupTimestamp,
   removeSecurityCheckupTimestamp
 } from './securityCheckupPrompt';
 // import KeyEncoder from 'key-encoder';
@@ -264,7 +264,7 @@ class AuthController {
     }
     this.persistVault();
 
-    if (!this.appState.userAccounts.length) {
+    if (this.appState.userAccounts.length === 0) {
       removeSecurityCheckupTimestamp();
     }
   }
@@ -529,7 +529,7 @@ class AuthController {
   }
 
   @action.bound
-  resetIsTimeToSecurityCheckupFlag() {
+  resetIsTimeToSecurityCheckup() {
     this.appState.isTimeToSecurityCheckup = false;
   }
 
@@ -577,16 +577,16 @@ class AuthController {
 
     updateStatusEvent(this.appState, 'unlocked');
 
-    const isTimeToCheck = await checkDateToSecurityCheckup();
+    const isTimeToCheck = await isTimeToSecurityCheckup();
 
-    if (!this.appState.userAccounts.length) {
+    if (this.appState.userAccounts.length === 0) {
       return;
     }
 
     this.appState.isTimeToSecurityCheckup = isTimeToCheck;
 
     if (isTimeToCheck) {
-      await setSecurityCheckupTimestamp();
+      await resetSecurityCheckupTimestamp();
     }
   }
 

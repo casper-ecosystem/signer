@@ -42,7 +42,7 @@ const styles = (theme: Theme) =>
   });
 
 interface Props extends RouteComponentProps, WithStyles<typeof styles> {
-  authContainer: AccountManager;
+  accountManager: AccountManager;
   errors: ErrorContainer;
   action: 'Import' | 'Create';
   connectionContainer: ConnectSignerContainer;
@@ -78,7 +78,7 @@ class AccountPage extends React.Component<Props, State> {
       return;
     }
 
-    const names = this.props.authContainer.userAccounts.map(
+    const names = this.props.accountManager.userAccounts.map(
       account => account.alias
     );
     if (names.includes(formData.name.$)) {
@@ -103,7 +103,7 @@ class AccountPage extends React.Component<Props, State> {
       // OK
       async () => {
         try {
-          await this.props.authContainer.downloadPemFiles(alias);
+          await this.props.accountManager.downloadPemFiles(alias);
         } catch (error) {
           return this.props.errors.capture(
             Promise.reject(new Error('Failed to download keys'))
@@ -113,10 +113,10 @@ class AccountPage extends React.Component<Props, State> {
       // CANCEL
       async () => {
         try {
-          await this.props.authContainer.removeUserAccount(alias);
+          await this.props.accountManager.removeUserAccount(alias);
           if (
             this.props.connectionContainer.connectionRequested &&
-            !this.props.authContainer.userAccounts.length
+            !this.props.accountManager.userAccounts.length
           ) {
             await this.props.connectionContainer.resetConnectionRequest();
           }
@@ -137,7 +137,7 @@ class AccountPage extends React.Component<Props, State> {
   }
 
   async _onSubmit(source: method) {
-    await this.props.authContainer.importUserAccount(
+    await this.props.accountManager.importUserAccount(
       this.accountForm.name.$,
       this.accountForm.secretKeyBase64.value,
       this.accountForm.algorithm.$,

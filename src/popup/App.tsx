@@ -24,12 +24,17 @@ import { useIdleTimer } from 'react-idle-timer';
 import { SignMessagePage } from './components/SignMessagePage';
 import { ConfigureTimeoutPage } from './components/ConfigureTimeout';
 import PopupContainer from './container/PopupContainer';
-import { Prompt } from './components/Prompt';
-import { createPromptSubComponents } from './components/Prompt/securityCheckup';
+import SecurityCheckupPrompt, {
+  Header,
+  Content,
+  Actions
+} from './components/Prompt';
+import { createSecurityCheckupContents } from './components/Prompt/securityCheckup/createSecurityCheckupContents';
+import { HeaderPageOne } from './components/Prompt/securityCheckup/components/Header';
 
 export interface AppProps {
   errors: ErrorContainer;
-  authContainer: AccountManager;
+  accountManager: AccountManager;
   popupContainer: PopupContainer;
   homeContainer: HomeContainer;
   signingContainer: SigningContainer;
@@ -37,36 +42,45 @@ export interface AppProps {
 }
 
 const App = observer((props: AppProps) => {
-  const [isInitialPageShown, setIsInitialPageShown] = useState(true);
+  const [securityCheckupPageIndex, setSecurityCheckupPageIndex] = useState(0);
 
   const lockOnIdle = () => {
-    if (props.authContainer.isUnLocked) props.authContainer.lock();
+    if (props.accountManager.isUnLocked) props.accountManager.lock();
   };
 
   useIdleTimer({
-    timeout: 1000 * 60 * props.authContainer.idleTimeoutMins,
+    timeout: 1000 * 60 * props.accountManager.idleTimeoutMins,
     onIdle: lockOnIdle,
     debounce: 500
   });
 
-  const { isTimeToSecurityCheckup } = props.authContainer;
-  const closeHandler = props.authContainer.resetSecurityCheckupFlag.bind(
-    props.authContainer
-  );
+  const { isTimeToSecurityCheckup } = props.accountManager;
+  const createCloseHandler = (accountManager: AccountManager) => () =>
+    accountManager.resetSecurityCheckup();
+  const closeHandler = createCloseHandler(props.accountManager);
 
-  const promptSubComponents = createPromptSubComponents({
-    isInitialPageShown,
-    setIsInitialPageShown,
-    authContainer: props.authContainer,
-    closeHandler
+  const {
+    securityCheckupHeader,
+    securityCheckupContent,
+    securityCheckupActions
+  } = createSecurityCheckupContents({
+    closeHandler,
+    setSecurityCheckupPageIndex,
+    securityCheckupPageIndex,
+    accountManager: props.accountManager
   });
 
   return (
     <div>
-      <Prompt isOpened={isTimeToSecurityCheckup} {...promptSubComponents} />
+      <SecurityCheckupPrompt
+        isOpened={isTimeToSecurityCheckup}
+        renderHeader={() => securityCheckupHeader}
+        renderContent={() => securityCheckupContent}
+        renderActions={() => securityCheckupActions}
+      />
       <AnalyticsProvider />
       <MainAppBar
-        authContainer={props.authContainer}
+        accountManager={props.accountManager}
         connectionContainer={props.connectSignerContainer}
       />
       <Container>
@@ -77,7 +91,7 @@ const App = observer((props: AppProps) => {
             path={Pages.Home}
             render={_ => (
               <Home
-                authContainer={props.authContainer}
+                accountManager={props.accountManager}
                 homeContainer={props.homeContainer}
                 connectionContainer={props.connectSignerContainer}
                 signingContainer={props.signingContainer}
@@ -91,7 +105,7 @@ const App = observer((props: AppProps) => {
             path={Pages.AccountManagement}
             render={_ => (
               <AccountManagementPage
-                authContainer={props.authContainer}
+                accountManager={props.accountManager}
                 connectionContainer={props.connectSignerContainer}
                 errorsContainer={props.errors}
               />
@@ -103,7 +117,7 @@ const App = observer((props: AppProps) => {
             render={_ => (
               <ConnectedSitesPage
                 connectionContainer={props.connectSignerContainer}
-                authContainer={props.authContainer}
+                accountManager={props.accountManager}
               />
             )}
           />
@@ -114,7 +128,7 @@ const App = observer((props: AppProps) => {
               <AccountPage
                 errors={props.errors}
                 action={'Import'}
-                authContainer={props.authContainer}
+                accountManager={props.accountManager}
                 connectionContainer={props.connectSignerContainer}
               />
             )}
@@ -126,7 +140,7 @@ const App = observer((props: AppProps) => {
               <AccountPage
                 errors={props.errors}
                 action={'Create'}
-                authContainer={props.authContainer}
+                accountManager={props.accountManager}
                 connectionContainer={props.connectSignerContainer}
               />
             )}
@@ -137,7 +151,7 @@ const App = observer((props: AppProps) => {
             render={_ => (
               <SignDeployPage
                 signingContainer={props.signingContainer}
-                authContainer={props.authContainer}
+                accountManager={props.accountManager}
                 popupContainer={props.popupContainer}
               />
             )}
@@ -155,7 +169,7 @@ const App = observer((props: AppProps) => {
             render={_ => (
               <ConnectSignerPage
                 connectSignerContainer={props.connectSignerContainer}
-                authContainer={props.authContainer}
+                accountManager={props.accountManager}
               />
             )}
           />
@@ -163,7 +177,7 @@ const App = observer((props: AppProps) => {
             path={Pages.ConfigureTimeout}
             exact
             render={_ => (
-              <ConfigureTimeoutPage accountManager={props.authContainer} />
+              <ConfigureTimeoutPage accountManager={props.accountManager} />
             )}
           />
         </Switch>

@@ -45,9 +45,9 @@ export class BackgroundManager {
     this.appState.isTimeToSecurityCheckup = appState.isTimeToSecurityCheckup;
   }
 
-  public resetSecurityCheckupFlag() {
+  public resetSecurityCheckup() {
     return this.errors.withCapture(
-      this.rpc.call<void>('account.resetSecurityCheckupFlag')
+      this.rpc.call<void>('account.resetSecurityCheckup')
     );
   }
 

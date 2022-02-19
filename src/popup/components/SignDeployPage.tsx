@@ -49,7 +49,7 @@ const CsprTooltip = withStyles({
 
 interface Props extends RouteComponentProps {
   signingContainer: SigningContainer;
-  authContainer: AccountManager;
+  accountManager: AccountManager;
   popupContainer: PopupContainer;
   classes: Record<keyof ReturnType<typeof styles>, string>;
 }
@@ -163,7 +163,7 @@ class SignDeployPage extends React.Component<
   }
 
   render() {
-    if (this.state.deployToSign && this.props.authContainer.isUnLocked) {
+    if (this.state.deployToSign && this.props.accountManager.isUnLocked) {
       const deployId = this.props.signingContainer.deployToSign?.id;
       return (
         <div

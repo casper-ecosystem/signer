@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { DialogTitle, makeStyles } from '@material-ui/core';
 
 const styles = {
@@ -12,19 +12,15 @@ const styles = {
 const useStyles = makeStyles(styles);
 
 interface Props {
-  isOnInitialScreen: boolean;
+  children: ReactNode;
 }
 
-export function Header({ isOnInitialScreen }: Props): JSX.Element {
+export function Header({ children }: Props): JSX.Element {
   const classes = useStyles();
-
-  if (!isOnInitialScreen) {
-    return <></>;
-  }
 
   return (
     <DialogTitle classes={{ root: classes.MuiDialogTitle }}>
-      Protect your funds
+      {children}
     </DialogTitle>
   );
 }
