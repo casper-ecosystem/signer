@@ -25,12 +25,8 @@ import { SignMessagePage } from './components/SignMessagePage';
 import { ConfigureTimeoutPage } from './components/ConfigureTimeout';
 import PopupContainer from './container/PopupContainer';
 import SecurityCheckupPrompt, {
-  Header,
-  Content,
-  Actions
+  createSecurityCheckupContents
 } from './components/Prompt';
-import { createSecurityCheckupContents } from './components/Prompt/securityCheckup/createSecurityCheckupContents';
-import { HeaderPageOne } from './components/Prompt/securityCheckup/components/Header';
 
 export interface AppProps {
   errors: ErrorContainer;

@@ -27,7 +27,7 @@ export function createSecurityCheckupContents({
         case 1:
           return <HeaderPageTwo />;
         default:
-          return <HeaderPageOne />;
+          return <></>;
       }
     },
     renderSecurityCheckupContent: () => {
@@ -41,11 +41,7 @@ export function createSecurityCheckupContents({
         case 1:
           return <ContentPageTwo accountManager={accountManager} />;
         default:
-          return (
-            <ContentPageOne
-              setSecurityCheckupPageIndex={setSecurityCheckupPageIndex}
-            />
-          );
+          return <></>;
       }
     },
     renderSecurityCheckupActions: () => {
@@ -59,7 +55,7 @@ export function createSecurityCheckupContents({
             />
           );
         default:
-          return <ActionsPageOne closeHandler={closeHandler} />;
+          return <></>;
       }
     }
   };

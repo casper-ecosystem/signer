@@ -7,7 +7,44 @@ import {
 
 const styles = {
   MuiDialogContent: {
-    padding: '4px 10px'
+    padding: '4px 10px',
+
+    '& .MuiLink-button': {
+      color: '#e6332a',
+      lineHeight: '0'
+    },
+
+    '& p': {
+      marginTop: '8px',
+      marginBlockEnd: '0'
+    },
+
+    '& ul': {
+      marginTop: '8px',
+      paddingLeft: '18px',
+      marginBlockStart: '6px',
+      marginBlockEnd: '0'
+    },
+
+    '& .MuiList-root': {
+      marginBottom: '30px',
+      paddingTop: '0',
+
+      '& .MuiListItem-root': {
+        paddingTop: '0',
+        paddingLeft: '0'
+      },
+
+      '& .MuiListItemText-root': {
+        marginTop: '6px',
+        marginBottom: '6px',
+        paddingTop: '0',
+
+        '& .MuiTypography-body1': {
+          fontSize: '14px'
+        }
+      }
+    }
   },
   MuiTypography: {
     fontSize: '14px',
