@@ -4,6 +4,9 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Header, Content, Actions } from './components';
 
 const styles = {
+  promptContainer: {
+    padding: '10px'
+  },
   dialogPaper: {
     minHeight: '90vh',
     maxHeight: '90vh',
@@ -32,7 +35,7 @@ export function Prompt({
 
   return (
     <Dialog fullWidth classes={{ paper: classes.dialogPaper }} open={isOpened}>
-      <div className="prompt-container">
+      <div className={classes.promptContainer}>
         <Header>{renderHeader()}</Header>
         <Content>{renderContent()}</Content>
         <Actions>{renderActions()}</Actions>
