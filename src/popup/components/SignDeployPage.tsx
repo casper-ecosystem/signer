@@ -37,9 +37,10 @@ type RowValue = string | string[];
 interface SigningDataRow {
   key: string;
   value: RowValue;
-  tooltipContent?: string;
+  tooltipContent: string;
 }
 
+const blankTooltip = '';
 const truncationLengthCutoff = 13;
 const isLongValue = (value: string) => value.length > truncationLengthCutoff;
 const isCSPRValueByKey = (key: string) =>
@@ -124,12 +125,12 @@ class SignDeployPage extends React.Component<
     };
     let baseRows: SigningDataRow[] = [];
     for (let [key, value] of Object.entries(orderedGenericData)) {
-      const row = this.parseRow({ key, value });
+      const row = this.parseRow({ key, value, tooltipContent: blankTooltip });
       baseRows.push(row);
     }
     let argRows: SigningDataRow[] = [];
     for (let [key, value] of Object.entries(deployData.deployArgs)) {
-      let row = this.parseRow({ key, value });
+      const row = this.parseRow({ key, value, tooltipContent: blankTooltip });
       argRows.push(row);
     }
     this.setState({
@@ -152,61 +153,49 @@ class SignDeployPage extends React.Component<
     // The value is a stringified number e.g. an amount in motes
     if (isNumberish(row.value)) {
       // If the number is particularly long then truncate it
-      const value = isLongValue(row.value)
+      row.value = isLongValue(row.value)
         ? truncateString(row.value, 6, 6)
         : numberWithSpaces(row.value);
 
-      let tooltipContent = '';
       // If the number represents Motes then display the CSPR value in the tooltip
       if (isCSPRValueByKey(row.key)) {
-        tooltipContent = `${motesToCSPR(row.value)} CSPR`;
+        row.tooltipContent = `${motesToCSPR(row.value)} CSPR`;
       }
       // If the number was truncated show it fully in the tooltip
       if (isLongValue(row.value)) {
-        tooltipContent = row.value;
+        row.tooltipContent = row.value;
       }
 
-      return {
-        key: row.key,
-        value,
-        tooltipContent
-      };
+      return row;
     }
 
-    // The value is formatted string URef, due to the standard prefix and suffix we show more of the unique data
+    // The value is formatted string URef
     if (isURefString(row.value)) {
-      return {
-        key: row.key,
-        value: truncateString(row.value, 9, 9),
-        tooltipContent: row.value
-      };
+      // Due to the standard prefix and suffix we use longer chunks to show more of the unique data
+      row.value = truncateString(row.value, 9, 9);
+      // The main value is truncated so display the full string in the tooltip
+      row.tooltipContent = row.value;
+
+      return row;
     }
 
     // The value is a long string e.g. a key or hash
     if (isLongValue(row.value)) {
-      return {
-        key: row.key,
-        value: truncateString(row.value, 6, 6),
-        tooltipContent: row.value
-      };
-    }
-    // For anything else return it as is
-    return row;
-  }
+      row.value = truncateString(row.value, 6, 6);
+      // The main value is truncated so display the full string in the tooltip
+      row.tooltipContent = row.value;
 
-  createRowData(
-    key: string,
-    value: string | string[],
-    tooltipContent?: string
-  ): SigningDataRow {
-    return { key, value, tooltipContent };
+      return row;
+    }
+
+    return row;
   }
 
   createTooltippedRow(row: SigningDataRow) {
     const isMotesValue = isCSPRValueByKey(row.key);
     return (
       <Tooltip
-        title={row.tooltipContent ?? ''}
+        title={row.tooltipContent}
         placement="top"
         classes={{
           tooltip: isMotesValue
@@ -230,7 +219,11 @@ class SignDeployPage extends React.Component<
                       */
                     }
                     return this.createTooltippedListItem(
-                      this.parseRow({ key: row.key, value: item })
+                      this.parseRow({
+                        key: row.key,
+                        value: item,
+                        tooltipContent: blankTooltip
+                      })
                     );
                   })}
                 </ul>
