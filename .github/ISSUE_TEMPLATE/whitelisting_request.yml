@@ -76,3 +76,16 @@ body:
       label: Link to the code
     validations:
       required: true
+    - type: dropdown
+    id: isEnterprise
+    attributes:
+      label: Is this a project by an enterprise partner of Casper Association or CasperLabs?
+      options:
+        - Yes
+        - No
+    validations:
+      required: true
+    - type: input
+    id: isDxD
+    attributes:
+      label: Grant/proposal number if this is a project funded by the DEVxDAO
