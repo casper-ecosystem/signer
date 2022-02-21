@@ -39,11 +39,7 @@ const TooltippedTableRow = (props: TooltippedTableRowProps) => {
                     value: item,
                     tooltipContent: BlankTooltipContent
                   };
-                  {
-                    /* 
-                                            Utilises the parseRow method to properly parse the inner value and then display it
-                                        */
-                  }
+                  // Utilises the parseRow method to properly parse the inner value and then display it
                   return <TooltippedListItem data={parseRow(listItemData)} />;
                 })}
               </ul>
