@@ -3,4 +3,4 @@ export { Header } from './components/Header';
 export { Content } from './components/Content';
 export { Actions } from './components/Actions';
 
-export { createSecurityCheckupRenderFunctions } from './securityCheckup/createSecurityCheckupContents';
+export { useSecurityCheckupRenderFunctions } from './securityCheckup/useSecurityCheckupRenderFunctions';

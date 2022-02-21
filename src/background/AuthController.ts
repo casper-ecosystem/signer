@@ -577,12 +577,11 @@ class AuthController {
 
     updateStatusEvent(this.appState, 'unlocked');
 
-    const isTimeToCheck = await isTimeToSecurityCheckup();
-
     if (this.appState.userAccounts.length === 0) {
       return;
     }
 
+    const isTimeToCheck = await isTimeToSecurityCheckup();
     this.appState.isTimeToSecurityCheckup = isTimeToCheck;
 
     if (isTimeToCheck) {

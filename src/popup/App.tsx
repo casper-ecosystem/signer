@@ -25,7 +25,7 @@ import { SignMessagePage } from './components/SignMessagePage';
 import { ConfigureTimeoutPage } from './components/ConfigureTimeout';
 import PopupContainer from './container/PopupContainer';
 import SecurityCheckupPrompt, {
-  createSecurityCheckupRenderFunctions
+  useSecurityCheckupRenderFunctions
 } from './components/Prompt';
 
 export interface AppProps {
@@ -55,11 +55,7 @@ const App = observer((props: AppProps) => {
     accountManager.resetSecurityCheckup();
   const closeHandler = createCloseHandler(props.accountManager);
 
-  const {
-    renderSecurityCheckupHeader,
-    renderSecurityCheckupContent,
-    renderSecurityCheckupActions
-  } = createSecurityCheckupRenderFunctions({
+  const securityCheckupRenderFunctions = useSecurityCheckupRenderFunctions({
     closeHandler,
     setSecurityCheckupPageIndex,
     securityCheckupPageIndex,
@@ -70,9 +66,7 @@ const App = observer((props: AppProps) => {
     <div>
       <SecurityCheckupPrompt
         isOpened={isTimeToSecurityCheckup}
-        renderHeader={renderSecurityCheckupHeader}
-        renderContent={renderSecurityCheckupContent}
-        renderActions={renderSecurityCheckupActions}
+        {...securityCheckupRenderFunctions}
       />
       <AnalyticsProvider />
       <MainAppBar
