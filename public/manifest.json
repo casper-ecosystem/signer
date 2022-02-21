@@ -56,7 +56,10 @@
         "*://*.dhfi.io/*",
         "*://*.dhfi.io/*",
         "*://*.minorityprogrammers.com/*",
-        "*://minorityprogrammers.com/*"
+        "*://minorityprogrammers.com/*",
+        "*://*.dotoracle.network/*",
+        "*://*.arcadia.agency/*",
+        "*://*.arcadiamgroup.com/*"
       ],
       "js": [
         "./scripts/content/content.js"
