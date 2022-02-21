@@ -1,11 +1,10 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import { Redirect, RouteComponentProps, withRouter } from 'react-router';
-import SigningContainer from '../container/SigningContainer';
+import SigningContainer, { parseRow } from '../container/SigningContainer';
 import Pages from './Pages';
 import { browser } from 'webextension-polyfill-ts';
 import AccountManager from '../container/AccountManager';
-import { withStyles } from '@material-ui/core/styles';
 import {
   Box,
   Button,
@@ -17,64 +16,19 @@ import {
   TableCell,
   TableContainer,
   TableRow,
-  Tooltip,
   Typography
 } from '@material-ui/core';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { deployWithID } from '../../background/SigningManager';
 import PopupContainer from '../container/PopupContainer';
-import {
-  isNumberish,
-  isURefString,
-  truncateString,
-  numberWithSpaces,
-  motesToCSPR
-} from '../../shared';
-
-type RowValue = string | string[];
-
-interface SigningDataRow {
-  key: string;
-  value: RowValue;
-  tooltipContent: string;
-}
-
-const blankTooltip = '';
-const truncationLengthCutoff = 13;
-const isLongValue = (value: string) => value.length > truncationLengthCutoff;
-const isCSPRValueByKey = (key: string) =>
-  ['Amount', 'Payment', 'Transaction Fee'].includes(key);
-const shouldNotTruncate = (key: string) =>
-  ['Timestamp', 'Chain Name'].includes(key);
-
-const signingTooltipFontSize = '.8rem';
-const styles = () => ({
-  tooltip: {
-    fontSize: signingTooltipFontSize,
-    textAlign: 'center' as const,
-    margin: '10px 0 0 0',
-    maxWidth: '300px',
-    width: 'fit-content'
-  },
-  listItemTooltip: {
-    fontSize: signingTooltipFontSize,
-    textAlign: 'center' as const,
-    marginRight: '60px'
-  },
-  csprToolTip: {
-    fontSize: '.9rem',
-    textAlign: 'center' as const,
-    margin: '10px 0 0 0',
-    width: 'fit-content'
-  }
-});
+import { SigningDataRow } from '../../shared';
+import { BlankTooltipContent, TooltippedTableRow } from './Tooltipped';
 
 interface Props extends RouteComponentProps {
   signingContainer: SigningContainer;
   authContainer: AccountManager;
   popupContainer: PopupContainer;
-  classes: Record<keyof ReturnType<typeof styles>, string>;
 }
 
 @observer
@@ -125,12 +79,12 @@ class SignDeployPage extends React.Component<
     };
     let baseRows: SigningDataRow[] = [];
     for (let [key, value] of Object.entries(orderedGenericData)) {
-      const row = this.parseRow({ key, value, tooltipContent: blankTooltip });
+      const row = parseRow({ key, value, tooltipContent: BlankTooltipContent });
       baseRows.push(row);
     }
     let argRows: SigningDataRow[] = [];
     for (let [key, value] of Object.entries(deployData.deployArgs)) {
-      const row = this.parseRow({ key, value, tooltipContent: blankTooltip });
+      const row = parseRow({ key, value, tooltipContent: BlankTooltipContent });
       argRows.push(row);
     }
     this.setState({
@@ -138,115 +92,6 @@ class SignDeployPage extends React.Component<
       deploySpecificRows: argRows,
       argsExpanded: argRows.length < 4
     });
-  }
-
-  parseRow(row: SigningDataRow): SigningDataRow {
-    // Special case for items that should not be truncated for readability e.g. Timestamp
-    if (shouldNotTruncate(row.key)) {
-      return row;
-    }
-    // The value is a list e.g. a CLList or CLTuple
-    if (Array.isArray(row.value)) {
-      return row;
-    }
-
-    // The value is a stringified number e.g. an amount in motes
-    if (isNumberish(row.value)) {
-      // If the number is particularly long then truncate it
-      row.value = isLongValue(row.value)
-        ? truncateString(row.value, 6, 6)
-        : numberWithSpaces(row.value);
-
-      // If the number represents Motes then display the CSPR value in the tooltip
-      if (isCSPRValueByKey(row.key)) {
-        row.tooltipContent = `${motesToCSPR(row.value)} CSPR`;
-      }
-      // If the number was truncated show it fully in the tooltip
-      if (isLongValue(row.value)) {
-        row.tooltipContent = row.value;
-      }
-
-      return row;
-    }
-
-    // The value is formatted string URef
-    if (isURefString(row.value)) {
-      // Due to the standard prefix and suffix we use longer chunks to show more of the unique data
-      row.value = truncateString(row.value, 9, 9);
-      // The main value is truncated so display the full string in the tooltip
-      row.tooltipContent = row.value;
-
-      return row;
-    }
-
-    // The value is a long string e.g. a key or hash
-    if (isLongValue(row.value)) {
-      row.value = truncateString(row.value, 6, 6);
-      // The main value is truncated so display the full string in the tooltip
-      row.tooltipContent = row.value;
-
-      return row;
-    }
-
-    return row;
-  }
-
-  createTooltippedRow(row: SigningDataRow) {
-    const isMotesValue = isCSPRValueByKey(row.key);
-    return (
-      <Tooltip
-        title={row.tooltipContent}
-        placement="top"
-        classes={{
-          tooltip: isMotesValue
-            ? this.props.classes.csprToolTip
-            : this.props.classes.tooltip
-        }}
-      >
-        <TableRow>
-          <TableCell style={{ fontWeight: 'bold' }}>{row.key}</TableCell>
-          <TableCell align="right">
-            {
-              /**
-               * Checks if the string represents a list so it can be displayed properly
-               */
-              Array.isArray(row.value) ? (
-                <ul style={{ listStyleType: 'none' }}>
-                  {row.value.map(item => {
-                    {
-                      /* 
-                        Utilises the parseRow method to properly parse the inner value and then display it
-                      */
-                    }
-                    return this.createTooltippedListItem(
-                      this.parseRow({
-                        key: row.key,
-                        value: item,
-                        tooltipContent: blankTooltip
-                      })
-                    );
-                  })}
-                </ul>
-              ) : (
-                row.value
-              )
-            }
-          </TableCell>
-        </TableRow>
-      </Tooltip>
-    );
-  }
-
-  createTooltippedListItem(row: SigningDataRow) {
-    return (
-      <Tooltip
-        title={row.tooltipContent ?? ''}
-        placement="top"
-        classes={{ tooltip: this.props.classes.listItemTooltip }}
-      >
-        <li>{row.value}</li>
-      </Tooltip>
-    );
   }
 
   render() {
@@ -269,10 +114,9 @@ class SignDeployPage extends React.Component<
                 {/* 
                   Displays the data generic to all deploys
                 */}
-                {this.state.genericRows.map((row: SigningDataRow) => {
-                  // If the row displays Motes use the CSPR specific tooltip styling
-                  return this.createTooltippedRow(row);
-                })}
+                {this.state.genericRows.map(row => (
+                  <TooltippedTableRow data={row} />
+                ))}
                 {/* 
                   Deploy Specific Arguments
                   Special handling for native transfers
@@ -299,9 +143,9 @@ class SignDeployPage extends React.Component<
                       >
                         <Table size="small">
                           <TableBody>
-                            {this.state.deploySpecificRows.map(row => {
-                              return this.createTooltippedRow(row);
-                            })}
+                            {this.state.deploySpecificRows.map(row => (
+                              <TooltippedTableRow data={row} />
+                            ))}
                           </TableBody>
                         </Table>
                       </TableCell>
@@ -349,9 +193,9 @@ class SignDeployPage extends React.Component<
                         >
                           <Table size="small">
                             <TableBody>
-                              {this.state.deploySpecificRows.map(row => {
-                                return this.createTooltippedRow(row);
-                              })}
+                              {this.state.deploySpecificRows.map(row => (
+                                <TooltippedTableRow data={row} />
+                              ))}
                             </TableBody>
                           </Table>
                         </Collapse>
@@ -411,4 +255,4 @@ class SignDeployPage extends React.Component<
   }
 }
 
-export default withStyles(styles)(withRouter(SignDeployPage));
+export default withRouter(SignDeployPage);
