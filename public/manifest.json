@@ -54,7 +54,9 @@
         "*://*.dhfi.online/*",
         "*://dhfi.online/*",
         "*://*.dhfi.io/*",
-        "*://*.dhfi.io/*"
+        "*://*.dhfi.io/*",
+        "*://*.minorityprogrammers.com/*",
+        "*://minorityprogrammers.com/*"
       ],
       "js": [
         "./scripts/content/content.js"
