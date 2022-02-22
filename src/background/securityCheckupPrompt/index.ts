@@ -34,10 +34,7 @@ export async function isTimeToSecurityCheckup(): Promise<boolean> {
 
   if (!lastCheckupDate) {
     await initSecurityCheckupTimestamp();
-    // Doesn't show security checkup prompt for initial time.
-    // Because, obviously extension is running by new user and account was created recently
-    // and user has 'downloaded Secret' Key recently
-    return false;
+    return true;
   }
 
   return Date.now() - lastCheckupDate >= securityCheckupTimeInterval;

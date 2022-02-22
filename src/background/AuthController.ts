@@ -17,7 +17,8 @@ import { updateStatusEvent } from './utils';
 import {
   isTimeToSecurityCheckup,
   resetSecurityCheckupTimestamp,
-  removeSecurityCheckupTimestamp
+  removeSecurityCheckupTimestamp,
+  initSecurityCheckupTimestamp
 } from './securityCheckupPrompt';
 // import KeyEncoder from 'key-encoder';
 
@@ -238,6 +239,10 @@ class AuthController {
     this.appState.activeUserAccount =
       this.appState.userAccounts[this.appState.userAccounts.length - 1];
     this.persistVault();
+
+    if (this.appState.userAccounts.length === 1) {
+      await initSecurityCheckupTimestamp();
+    }
   }
 
   @action

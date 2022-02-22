@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { HeaderPageOne, HeaderPageTwo } from './components/Header';
 import { ContentPageOne, ContentPageTwo } from './components/Content';
@@ -7,8 +7,6 @@ import { ActionsPageOne, ActionsPageTwo } from './components/Actions';
 import AccountManager from '../../../container/AccountManager';
 
 interface Props {
-  securityCheckupPageIndex: number;
-  setSecurityCheckupPageIndex: (page: number) => void;
   accountManager: AccountManager;
   closeHandler: () => Promise<void>;
 }
@@ -20,11 +18,11 @@ export interface SecurityCheckupRenderFunctions {
 }
 
 export function useSecurityCheckupRenderFunctions({
-  securityCheckupPageIndex,
-  setSecurityCheckupPageIndex,
   accountManager,
   closeHandler
 }: Props): SecurityCheckupRenderFunctions {
+  const [securityCheckupPageIndex, setSecurityCheckupPageIndex] = useState(0);
+
   if (securityCheckupPageIndex === 1) {
     return {
       renderHeader: () => <HeaderPageTwo />,

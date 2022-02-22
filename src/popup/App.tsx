@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 // see https://github.com/mobxjs/mobx-react-lite/#observer-batching
 import 'mobx-react-lite/batchingForReactDom';
 import './App.scss';
@@ -38,8 +38,6 @@ export interface AppProps {
 }
 
 const App = observer((props: AppProps) => {
-  const [securityCheckupPageIndex, setSecurityCheckupPageIndex] = useState(0);
-
   const lockOnIdle = () => {
     if (props.accountManager.isUnLocked) props.accountManager.lock();
   };
@@ -57,8 +55,6 @@ const App = observer((props: AppProps) => {
 
   const securityCheckupRenderFunctions = useSecurityCheckupRenderFunctions({
     closeHandler,
-    setSecurityCheckupPageIndex,
-    securityCheckupPageIndex,
     accountManager: props.accountManager
   });
 
