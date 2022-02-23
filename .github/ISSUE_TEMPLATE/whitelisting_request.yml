@@ -76,7 +76,7 @@ body:
       label: Link to the code
     validations:
       required: true
-    - type: dropdown
+  - type: dropdown
     id: isEnterprise
     attributes:
       label: Is this a project by an enterprise partner of Casper Association or CasperLabs?
@@ -85,7 +85,7 @@ body:
         - No
     validations:
       required: true
-    - type: input
+  - type: input
     id: isDxD
     attributes:
       label: Grant/proposal number if this is a project funded by the DEVxDAO
