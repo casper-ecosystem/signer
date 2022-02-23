@@ -81,8 +81,8 @@ body:
     attributes:
       label: Is this a project by an enterprise partner of Casper Association or CasperLabs?
       options:
-        - Yes
-        - No
+        - 'Yes'
+        - 'No'
     validations:
       required: true
   - type: input
