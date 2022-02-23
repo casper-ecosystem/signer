@@ -8,7 +8,7 @@ You can find the latest version on the [Chrome Web Store](https://chrome.google.
 
 ## Integrating with the Casper Signer
 
-To integrate your website with the Casper Signer on Mainnet, you need to go through an [approval process](https://github.com/casper-ecosystem/signer/issues/new?assignees=George-cl&labels=Integration&template=whitelisting_request.yml&title=%5BIntegration%5D%3A+Name+of+Your+Project).
+To integrate your website with the Casper Signer on Mainnet, you need to go through an [approval process](https://github.com/casper-ecosystem/signer/issues/new?assignees=devendran-m&labels=Integration&template=whitelisting_request.yml&title=%5BIntegration%5D%3A+Name+of+Your+Project).
 
 ## Architecture 
 
@@ -34,7 +34,7 @@ Thus you need to set up the content script for each page in question and call in
 
 ### 4. Inject Script
 
-The fourth component is the inject script, `inject.ts`, which runs inside the context of the web page integrated with the Casper Singer. Remember from the previous step that the content script calls the inject script, which creates a global instance of the `CasperLabsPluginHelper`, and the web page can call `window.casperlabsHelper`.
+The fourth component is the inject script, `inject.ts`, which runs inside the context of the web page integrated with the Casper Signer. Remember from the previous step that the content script calls the inject script, which creates a global instance of the `CasperLabsPluginHelper`, and the web page can call `window.casperlabsHelper`.
 
 ## Developing Locally
 
