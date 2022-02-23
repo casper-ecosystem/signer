@@ -406,7 +406,7 @@ export default class SigningManager extends events.EventEmitter {
     }
   }
 
-  private parseDeployArg(arg: CLValue): any {
+  private parseDeployArg(arg: CLValue): string | string[] {
     if (!(arg instanceof CLValue)) {
       throw new Error('Argument should be a CLValue, received: ' + typeof arg);
     }
@@ -446,8 +446,8 @@ export default class SigningManager extends events.EventEmitter {
 
       case CLTypeTag.List:
         const list = (arg as CLList<CLValue>).value();
-        const parsedList = list.map(listMember => {
-          return this.parseDeployArg(listMember);
+        const parsedList = list.map(member => {
+          return this.sanitiseNestedLists(member);
         });
         return parsedList;
 
@@ -472,14 +472,14 @@ export default class SigningManager extends events.EventEmitter {
       case CLTypeTag.Tuple2:
         const tupleTwo = arg as CLTuple2;
         const parsedTupleTwo = tupleTwo.value().map(member => {
-          return this.parseDeployArg(member);
+          return this.sanitiseNestedLists(member);
         });
         return parsedTupleTwo;
 
       case CLTypeTag.Tuple3:
         const tupleThree = arg as CLTuple3;
         const parsedTupleThree = tupleThree.value().map(member => {
-          return this.parseDeployArg(member);
+          return this.sanitiseNestedLists(member);
         });
         return parsedTupleThree;
 
@@ -492,6 +492,22 @@ export default class SigningManager extends events.EventEmitter {
           return this.parseBytesToString(arg.value());
         return arg.value().toString();
     }
+  }
+
+  /**
+   * This implementation allows for catching lists of lists.
+   * The UI isn't set up for handling nested lists.
+   *
+   * @param value The CLValue that could possibly be a CLList.
+   * @returns The stringified CLValue, if it is a CLList it will return '<vectorType>[...]'
+   */
+  private sanitiseNestedLists(value: CLValue): string {
+    const parsedValue = this.parseDeployArg(value);
+    if (Array.isArray(parsedValue)) {
+      const parsedType = (value as CLList<CLValue>).vectorType;
+      return `<${parsedType}>[...]`;
+    }
+    return parsedValue;
   }
 
   /**
