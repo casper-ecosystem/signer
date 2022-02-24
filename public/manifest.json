@@ -50,7 +50,16 @@
         "*://*.cerby.fi/*",
         "*://wiseswap.net/*",
         "*://*.wiseswap.net/*",
-        "*://*.caspercommunity.io/*"
+        "*://*.caspercommunity.io/*",
+        "*://*.dhfi.online/*",
+        "*://dhfi.online/*",
+        "*://*.dhfi.io/*",
+        "*://*.dhfi.io/*",
+        "*://*.minorityprogrammers.com/*",
+        "*://minorityprogrammers.com/*",
+        "*://*.dotoracle.network/*",
+        "*://*.arcadia.agency/*",
+        "*://*.arcadiamgroup.com/*"
       ],
       "js": [
         "./scripts/content/content.js"
