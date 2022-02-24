@@ -218,10 +218,12 @@ class SignDeployPage extends React.Component<
                 <Button
                   variant="contained"
                   color="secondary"
-                  onClick={() => {
-                    this.props.signingContainer.cancel(deployId!).then(() => {
-                      this.props.popupContainer.callClosePopup();
-                    });
+                  onClick={async () => {
+                    await this.props.signingContainer.cancel(deployId!);
+                    await this.props.popupContainer.callClosePopup();
+                    // This is required in the case that the user avoids the popup and instead
+                    // interacts with the default extension window.
+                    window.close();
                   }}
                 >
                   Cancel
@@ -229,13 +231,13 @@ class SignDeployPage extends React.Component<
               </Grid>
               <Grid item>
                 <Button
-                  onClick={() =>
-                    this.props.signingContainer
-                      .signDeploy(deployId!)
-                      .then(() => {
-                        this.props.popupContainer.callClosePopup();
-                      })
-                  }
+                  onClick={async () => {
+                    await this.props.signingContainer.signDeploy(deployId!);
+                    await this.props.popupContainer.callClosePopup();
+                    // This is required in the case that the user avoids the popup and instead
+                    // interacts with the default extension window.
+                    window.close();
+                  }}
                   variant="contained"
                   color="primary"
                   style={{
