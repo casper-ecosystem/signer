@@ -5,16 +5,27 @@ import {
   DeployUtil,
   encodeBase16,
   CLPublicKey,
-  CLPublicKeyType,
-  CLByteArrayType,
-  CLAccountHashType,
   formatMessageWithHeaders,
   signFormattedMessage,
-  CLTypeTag
+  CLTypeTag,
+  CLValue,
+  CLKey,
+  CLURef,
+  CLByteArray,
+  CLAccountHash,
+  CLList,
+  CLOption,
+  CLResult,
+  CLType,
+  CLMap,
+  CLTuple1,
+  CLTuple2,
+  CLTuple3
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
 import { PurposeForOpening } from '../shared';
-type argDict = { [key: string]: string };
+
+type ArgDict = { [key: string]: string | string[] };
 
 export interface messageWithID {
   id: number;
@@ -45,9 +56,9 @@ export interface DeployData {
   timestamp: string;
   chainName: string;
   deployType: string;
-  gasPrice: number;
-  payment: number;
-  deployArgs: Object;
+  gasPrice: string;
+  payment: string;
+  deployArgs: ArgDict;
 }
 
 enum SigningStatus {
@@ -334,7 +345,7 @@ export default class SigningManager extends events.EventEmitter {
         : // is Stored Versioned Contract
           'Contract Package Call';
 
-      let deployArgs: argDict = {};
+      let deployArgs: ArgDict = {};
       if (deployWithID.deploy.session.transfer) {
         deployArgs = this.parseTransferData(
           deployWithID.deploy.session.transfer,
@@ -343,17 +354,7 @@ export default class SigningManager extends events.EventEmitter {
       } else if (deployWithID.deploy.session.moduleBytes) {
         deployWithID.deploy.session.moduleBytes.args.args.forEach(
           (argument, key) => {
-            if (argument.clType() instanceof CLPublicKeyType) {
-              deployArgs[key] = (argument as CLPublicKey).toHex();
-            } else if (
-              argument.clType() instanceof CLByteArrayType ||
-              argument.clType() instanceof CLAccountHashType
-            ) {
-              deployArgs[key] = encodeBase16(argument.value());
-            } else {
-              // if not a PublicKey or ByteArray
-              deployArgs[key] = argument.value().toString();
-            }
+            deployArgs[key] = this.parseDeployArg(argument);
           }
         );
         deployArgs['Module Bytes'] =
@@ -381,17 +382,7 @@ export default class SigningManager extends events.EventEmitter {
         try {
           // Credit to Killian Hascoët (@KillianH on GH) for inspiring this initial implementation for arg parsing.
           storedContract.args.args.forEach((argument, key) => {
-            if (argument.clType() instanceof CLPublicKeyType) {
-              deployArgs[key] = (argument as CLPublicKey).toHex();
-            } else if (
-              argument.clType() instanceof CLByteArrayType ||
-              argument.clType() instanceof CLAccountHashType
-            ) {
-              deployArgs[key] = encodeBase16(argument.value());
-            } else {
-              // if not a PublicKey or ByteArray
-              deployArgs[key] = argument.value().toString();
-            }
+            deployArgs[key] = this.parseDeployArg(argument);
           });
           deployArgs['Entry Point'] = storedContract.entryPoint;
         } catch (err) {
@@ -405,7 +396,7 @@ export default class SigningManager extends events.EventEmitter {
         bodyHash: encodeBase16(header.bodyHash),
         chainName: header.chainName,
         timestamp: new Date(header.timestamp).toLocaleString(),
-        gasPrice: header.gasPrice,
+        gasPrice: header.gasPrice.toString(),
         payment: payment,
         deployType: type,
         deployArgs: deployArgs
@@ -413,6 +404,118 @@ export default class SigningManager extends events.EventEmitter {
     } else {
       throw new Error('Invalid Deploy');
     }
+  }
+
+  private parseDeployArg(arg: CLValue): string | string[] {
+    if (!(arg instanceof CLValue)) {
+      throw new Error('Argument should be a CLValue, received: ' + typeof arg);
+    }
+    const tag = arg.clType().tag;
+    switch (tag) {
+      case CLTypeTag.Unit:
+        return String('CLValue Unit');
+
+      case CLTypeTag.Key:
+        const key = arg as CLKey;
+        if (key.isAccount()) {
+          return this.parseDeployArg(key.value() as CLAccountHash);
+        }
+        if (key.isURef()) {
+          return this.parseDeployArg(key.value() as CLURef);
+        }
+        if (key.isHash()) {
+          return this.parseDeployArg(key.value() as CLByteArray);
+        }
+        throw new Error('Failed to parse key argument');
+
+      case CLTypeTag.URef:
+        return (arg as CLURef).toFormattedStr();
+
+      case CLTypeTag.Option:
+        const option = arg as CLOption<CLValue>;
+        if (option.isSome()) {
+          return this.parseDeployArg(option.value().unwrap());
+        } else {
+          // This will be None due to the above logic
+          const optionValue = option.value().toString();
+          // This will be the inner CLType of the CLOption e.g. '(bool)'
+          const optionCLType = option.clType().toString().split(' ')[1];
+          // The format ends up looking like `None (bool)`
+          return `${optionValue} ${optionCLType}`;
+        }
+
+      case CLTypeTag.List:
+        const list = (arg as CLList<CLValue>).value();
+        const parsedList = list.map(member => {
+          return this.sanitiseNestedLists(member);
+        });
+        return parsedList;
+
+      case CLTypeTag.ByteArray:
+        const bytes = (arg as CLByteArray).value();
+        return this.parseBytesToString(bytes);
+
+      case CLTypeTag.Result:
+        const result = arg as CLResult<CLType, CLType>;
+        const status = result.isOk() ? 'OK:' : 'ERR:';
+        const parsed = this.parseDeployArg(result.value().val);
+        return `${status} ${parsed}`;
+
+      case CLTypeTag.Map:
+        const map = arg as CLMap<CLValue, CLValue>;
+        return map.value().toString();
+
+      case CLTypeTag.Tuple1:
+        const tupleOne = arg as CLTuple1;
+        return this.parseDeployArg(tupleOne.value()[0]);
+
+      case CLTypeTag.Tuple2:
+        const tupleTwo = arg as CLTuple2;
+        const parsedTupleTwo = tupleTwo.value().map(member => {
+          return this.sanitiseNestedLists(member);
+        });
+        return parsedTupleTwo;
+
+      case CLTypeTag.Tuple3:
+        const tupleThree = arg as CLTuple3;
+        const parsedTupleThree = tupleThree.value().map(member => {
+          return this.sanitiseNestedLists(member);
+        });
+        return parsedTupleThree;
+
+      case CLTypeTag.PublicKey:
+        return (arg as CLPublicKey).toHex();
+
+      default:
+        // Special handling as there is no CLTypeTag for CLAccountHash
+        if (arg instanceof CLAccountHash)
+          return this.parseBytesToString(arg.value());
+        return arg.value().toString();
+    }
+  }
+
+  /**
+   * This implementation allows for catching lists of lists.
+   * The UI isn't set up for handling nested lists.
+   *
+   * @param value The CLValue that could possibly be a CLList.
+   * @returns The stringified CLValue, if it is a CLList it will return '<vectorType>[...]'
+   */
+  private sanitiseNestedLists(value: CLValue): string {
+    const parsedValue = this.parseDeployArg(value);
+    if (Array.isArray(parsedValue)) {
+      const parsedType = (value as CLList<CLValue>).vectorType;
+      return `<${parsedType}>[...]`;
+    }
+    return parsedValue;
+  }
+
+  /**
+   * Byte arrays cannot be displayed on the FE without converting them to strings.
+   * We hex encode them for this reason.
+   */
+  private parseBytesToString(bytes: Uint8Array): string {
+    return encodeBase16(bytes);
   }
 
   /**
@@ -617,7 +720,7 @@ export default class SigningManager extends events.EventEmitter {
     providedPublicKeyHex: string
   ) {
     const pkHex = providedPublicKeyHex.toLowerCase();
-    const transferArgs: argDict = {};
+    const transferArgs: ArgDict = {};
 
     const targetArg = transferDeploy?.getArgByName('target')!;
 
