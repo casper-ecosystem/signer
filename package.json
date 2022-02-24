@@ -1,5 +1,5 @@
 {
-  "name": "Casper Signer",
+  "name": "casper-signer",
   "version": "1.4.9",
   "private": true,
   "dependencies": {
