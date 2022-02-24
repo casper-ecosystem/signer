@@ -27,8 +27,17 @@ class CasperLabsPluginHelper {
     return this.call<void>('removeSite');
   }
 
-  async sign(deploy: JSON, sourcePublicKey: string, targetPublicKey: string) {
-    return this.call<string>('sign', deploy, sourcePublicKey, targetPublicKey);
+  async sign(
+    deploy: JSON,
+    signingPublicKeyHex: string,
+    targetPublicKeyHex?: string
+  ) {
+    return this.call<string>(
+      'sign',
+      deploy,
+      signingPublicKeyHex,
+      targetPublicKeyHex
+    );
   }
 
   async signMessage(message: string, signingPublicKey: string) {

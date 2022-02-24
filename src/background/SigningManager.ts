@@ -43,7 +43,7 @@ export interface deployWithID {
   status: SigningStatus;
   deploy: DeployUtil.Deploy | undefined;
   signingKey: string;
-  targetKey: string;
+  targetKey?: string;
   error?: Error;
   pushed?: boolean;
 }
@@ -155,8 +155,8 @@ export default class SigningManager extends events.EventEmitter {
    */
   public addUnsignedDeployToQueue(
     deployJson: any,
-    sourcePublicKey: string,
-    targetPublicKey: string
+    signingPublicKeyHex: string,
+    targetPublicKeyHex?: string
   ): number {
     const id: number = this.createId();
     try {
@@ -167,8 +167,8 @@ export default class SigningManager extends events.EventEmitter {
           status: SigningStatus.unsigned,
           // Should be safe to unwrap here since Result was ok
           deploy: innerDeploy.unwrap(),
-          signingKey: sourcePublicKey,
-          targetKey: targetPublicKey
+          signingKey: signingPublicKeyHex,
+          targetKey: targetPublicKeyHex
         });
       } else {
         innerDeploy.mapErr(err => {
@@ -184,13 +184,14 @@ export default class SigningManager extends events.EventEmitter {
   /**
    * Signs unsigned deploys from the app's queue
    * @param {any} deploy JSON representation of a deploy - can be constructed using the `DeployUtil.deployToJSON()` method.
-   * @param {string} publicKey in hex format with algorithm prefix byte.
+   * @param {string} signingPublicKeyHex the hex-formatted public key that corresponds to the secret key you'd like to use for signing.
+   * @param {string} targetPublicKeyHex include this if you want the Signer to verify it against an account hash in the deploy.
    * @returns {DeployJson} Signed JSON representation of the given deploy.
    */
   public signDeploy(
     deploy: { deploy: JsonTypes },
-    sourcePublicKeyHex: string, // hex-encoded PublicKey bytes with algo prefix
-    targetPublicKeyHex: string
+    signingPublicKeyHex: string,
+    targetPublicKeyHex?: string
   ): Promise<{ deploy: JsonTypes }> {
     return new Promise((resolve, reject) => {
       // TODO: Need to abstract it to reusable method
@@ -207,7 +208,7 @@ export default class SigningManager extends events.EventEmitter {
       // Adding the deploy to the queue will update the extension state and UI
       const deployId = this.addUnsignedDeployToQueue(
         deploy,
-        sourcePublicKeyHex,
+        signingPublicKeyHex,
         targetPublicKeyHex
       );
 
@@ -717,33 +718,52 @@ export default class SigningManager extends events.EventEmitter {
 
   private parseTransferData(
     transferDeploy: DeployUtil.Transfer,
-    providedPublicKeyHex: string
+    providedTarget?: string
   ) {
-    const pkHex = providedPublicKeyHex.toLowerCase();
     const transferArgs: ArgDict = {};
 
-    const targetArg = transferDeploy?.getArgByName('target')!;
+    // Target can either be a hex formatted public key or an account hash
+    const targetFromDeploy = transferDeploy?.getArgByName('target')!;
+    let targetFromDeployHex;
 
-    let targetToDisplay;
-
-    // If deploy is created using older version of SDK
-    // confirm hash of provided public key matches target account hash from deploy
-    if (targetArg.clType().tag === CLTypeTag.ByteArray) {
-      targetToDisplay = encodeBase16(targetArg.value());
-      this.verifyTargetAccountMatch(pkHex, targetToDisplay);
-    }
-
-    // If deploy is created using version of SDK gte then 2.7.0
-    // In fact this logic can be removed in future as well as pkHex param
-    if (targetArg.clType().tag === CLTypeTag.PublicKey) {
-      if ((targetArg as CLPublicKey).toHex() !== pkHex) {
+    switch (targetFromDeploy.clType().tag) {
+      // If deploy is created using older version of SDK
+      // confirm hash of provided public key matches target account hash from deploy
+      case CLTypeTag.ByteArray: {
+        targetFromDeployHex = encodeBase16(targetFromDeploy.value());
+        // Requester has provided a public key to compare against the target in the deploy
+        if (providedTarget) {
+          let providedTargetLower = providedTarget.toLowerCase();
+          this.verifyTargetAccountMatch(
+            providedTargetLower,
+            targetFromDeployHex
+          );
+        }
+        transferArgs[`Recipient (Hash)`] = targetFromDeployHex;
+        break;
+      }
+      // If deploy is created using version of SDK gte than 2.7.0
+      // In fact this logic can be removed in future as well as pkHex param
+      case CLTypeTag.PublicKey: {
+        targetFromDeployHex = (targetFromDeploy as CLPublicKey).toHex();
+        // Requester has provided a public key to compare against the target in the deploy
+        if (providedTarget) {
+          if (targetFromDeployHex !== providedTarget) {
+            throw new Error(
+              "Provided target public key doesn't match the one in the deploy"
+            );
+          }
+        }
+        transferArgs['Recipient (Key)'] = targetFromDeployHex;
+        break;
+      }
+      default: {
         throw new Error(
-          "Provided target public key doesn't match the one in deploy"
+          'Target from deploy was neither AccountHash or PublicKey'
         );
       }
     }
 
-    const recipient = pkHex;
     const amount = transferDeploy?.getArgByName('amount')!.value().toString();
     const id = transferDeploy
       ?.getArgByName('id')!
@@ -752,10 +772,6 @@ export default class SigningManager extends events.EventEmitter {
       .value()
       .toString();
 
-    if (targetToDisplay) {
-      transferArgs[`Recipient (Hash)`] = targetToDisplay;
-    }
-    transferArgs['Recipient (Key)'] = recipient;
     transferArgs['Amount'] = amount;
     transferArgs['Transfer ID'] = id;
 
