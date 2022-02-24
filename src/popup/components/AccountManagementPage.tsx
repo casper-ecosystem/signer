@@ -51,7 +51,7 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
 });
 
 interface Props extends RouteComponentProps {
-  authContainer: AccountManager;
+  accountManager: AccountManager;
   connectionContainer: ConnectSignerContainer;
   errorsContainer: ErrorContainer;
 }
@@ -73,7 +73,7 @@ class AccountManagementPage extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    const aliases = props.authContainer.userAccounts.map(account => {
+    const aliases = props.accountManager.userAccounts.map(account => {
       return account.alias;
     });
     this.renameAccountForm = new RenameAccountFormData(aliases);
@@ -98,10 +98,10 @@ class AccountManagementPage extends React.Component<Props, State> {
   };
 
   handleViewKey = async (accountName: string) => {
-    let hexKey = await this.props.authContainer.getPublicKeyHexByAlias(
+    let hexKey = await this.props.accountManager.getPublicKeyHexByAlias(
       accountName
     );
-    let hash = await this.props.authContainer.getAccountHashByAlias(
+    let hash = await this.props.accountManager.getAccountHashByAlias(
       accountName
     );
     this.setState({
@@ -113,7 +113,7 @@ class AccountManagementPage extends React.Component<Props, State> {
   };
 
   handleDownloadKeys = async (alias: string) => {
-    return await this.props.authContainer.downloadPemFiles(alias);
+    return await this.props.accountManager.downloadPemFiles(alias);
   };
 
   handleCopyMessage = (event?: React.SyntheticEvent, reason?: string) => {
@@ -137,7 +137,7 @@ class AccountManagementPage extends React.Component<Props, State> {
     let alias = this.renameAccountForm.name.$;
     if (account && alias) {
       this.props.errorsContainer.capture(
-        this.props.authContainer.renameUserAccount(account.alias, alias)
+        this.props.accountManager.renameUserAccount(account.alias, alias)
       );
       this.handleClose();
     }
@@ -149,14 +149,14 @@ class AccountManagementPage extends React.Component<Props, State> {
       return;
     }
 
-    this.props.authContainer.reorderAccount(
+    this.props.accountManager.reorderAccount(
       result.source.index,
       result.destination.index
     );
   };
 
   handleClickRemove = async (name: string) => {
-    let backedUp = await this.props.authContainer.isBackedUp(name);
+    let backedUp = await this.props.accountManager.isBackedUp(name);
     !backedUp
       ? confirm(
           <div className="text-danger">Back up account</div>,
@@ -174,7 +174,7 @@ class AccountManagementPage extends React.Component<Props, State> {
           'Cancel',
           {}
         ).then(
-          async () => await this.props.authContainer.downloadPemFiles(name)
+          async () => await this.props.accountManager.downloadPemFiles(name)
         )
       : confirm(
           <div className="text-danger">Remove account</div>,
@@ -191,13 +191,13 @@ class AccountManagementPage extends React.Component<Props, State> {
               'I understand I will need the key files to recover this account'
           }
         ).then(
-          async () => await this.props.authContainer.removeUserAccount(name)
+          async () => await this.props.accountManager.removeUserAccount(name)
         );
   };
 
   render() {
-    return !this.props.authContainer.isUnLocked ||
-      !this.props.authContainer.userAccounts[0] ? (
+    return !this.props.accountManager.isUnLocked ||
+      !this.props.accountManager.userAccounts[0] ? (
       <Redirect to={Pages.Home} />
     ) : (
       <React.Fragment>
@@ -209,7 +209,7 @@ class AccountManagementPage extends React.Component<Props, State> {
                   // TODO: fix this (deprecated RootRef)
                   <RootRef rootRef={provided.innerRef}>
                     <List>
-                      {this.props.authContainer.userAccounts.map(
+                      {this.props.accountManager.userAccounts.map(
                         (item, index) => (
                           <Draggable
                             key={item.alias}

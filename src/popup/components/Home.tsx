@@ -73,7 +73,7 @@ const styles = (theme: Theme) =>
   });
 
 interface Props extends RouteComponentProps, WithStyles<typeof styles> {
-  authContainer: AccountManager;
+  accountManager: AccountManager;
   homeContainer: HomeContainer;
   connectionContainer: ConnectSignerContainer;
   signingContainer: SigningContainer;
@@ -89,7 +89,7 @@ class Home extends React.Component<
   constructor(props: Props) {
     super(props);
     this.state = {
-      remainingMins: this.props.authContainer.remainingMins,
+      remainingMins: this.props.accountManager.remainingMins,
       helpAnchorEl: null
     };
   }
@@ -121,7 +121,7 @@ class Home extends React.Component<
   // }
 
   componentDidUpdate() {
-    if (this.props.authContainer.isLockedOut) {
+    if (this.props.accountManager.isLockedOut) {
       this.props.errors.dismissLast();
       this.props.homeContainer.homeForm.$.setPasswordField.reset();
     }
@@ -245,7 +245,7 @@ class Home extends React.Component<
                   onClick={async () => {
                     const password =
                       this.props.homeContainer.homeForm.$.setPasswordField.$;
-                    await this.props.authContainer.createNewVault(password);
+                    await this.props.accountManager.createNewVault(password);
                     this.props.homeContainer.homeForm.$.setPasswordField.reset();
                     this.props.homeContainer.homeForm.$.confirmPasswordField.reset();
                   }}
@@ -270,25 +270,25 @@ class Home extends React.Component<
           justify={'flex-start'}
           alignItems={'center'}
         >
-          {this.props.authContainer.userAccounts.length > 0 ? (
+          {this.props.accountManager.userAccounts.length > 0 ? (
             <Grid item className={this.props.classes.alignCenter}>
               <img src={logo} alt="logo" width={120} />
-              {this.props.authContainer.userAccounts.length > 1 ? (
+              {this.props.accountManager.userAccounts.length > 1 ? (
                 <Typography variant={'h6'} align={'center'}>
-                  You have {this.props.authContainer.userAccounts.length}{' '}
+                  You have {this.props.accountManager.userAccounts.length}{' '}
                   account keys
                 </Typography>
               ) : (
                 <Typography variant={'h6'} align={'center'}>
-                  You have {this.props.authContainer.userAccounts.length}{' '}
+                  You have {this.props.accountManager.userAccounts.length}{' '}
                   account key
                 </Typography>
               )}
-              {this.props.authContainer.activeUserAccount && (
+              {this.props.accountManager.activeUserAccount && (
                 <Typography variant={'h6'} align={'center'}>
                   Active key:{' '}
                   <span style={{ wordBreak: 'break-all' }}>
-                    {this.props.authContainer.activeUserAccount.alias}
+                    {this.props.accountManager.activeUserAccount.alias}
                   </span>
                 </Typography>
               )}
@@ -355,7 +355,7 @@ class Home extends React.Component<
         checkboxText: 'I have read and understand the above.'
       }
     ).then(() => {
-      this.props.authContainer.resetVault();
+      this.props.accountManager.resetVault();
       this.props.errors.dismissLast();
       this.props.homeContainer.homeForm.$.setPasswordField.reset();
     });
@@ -364,7 +364,7 @@ class Home extends React.Component<
   async tryUnlock() {
     let password = this.props.homeContainer.homeForm.$.unlockPasswordField.$;
     try {
-      await this.props.authContainer.unlock(password);
+      await this.props.accountManager.unlock(password);
       this.props.homeContainer.homeForm.$.unlockPasswordField.reset();
       this.props.errors.dismissLast();
     } catch (e) {
@@ -410,11 +410,11 @@ class Home extends React.Component<
                   type={'password'}
                 />
               </FormControl>
-              {this.props.authContainer.remainingUnlockAttempts < 5 && (
+              {this.props.accountManager.remainingUnlockAttempts < 5 && (
                 <FormControl fullWidth style={{ marginTop: '.5rem' }}>
                   <Typography variant={'subtitle1'}>
                     Attempts remaining:{' '}
-                    {this.props.authContainer.remainingUnlockAttempts}
+                    {this.props.accountManager.remainingUnlockAttempts}
                   </Typography>
                 </FormControl>
               )}
@@ -453,12 +453,12 @@ class Home extends React.Component<
 
   renderLockedOut() {
     if (
-      this.props.authContainer.isLockedOut &&
-      !this.props.authContainer.lockoutTimerStarted
+      this.props.accountManager.isLockedOut &&
+      !this.props.accountManager.lockoutTimerStarted
     ) {
       // 5 minute timer before resetting lockout
-      this.props.authContainer.startLockoutTimer(
-        this.props.authContainer.timerDuration
+      this.props.accountManager.startLockoutTimer(
+        this.props.accountManager.timerDuration
       );
     }
     return (
@@ -470,22 +470,22 @@ class Home extends React.Component<
         </Typography>
         <Typography variant={'h6'}>
           Please try again in{' '}
-          {Math.round(this.props.authContainer.remainingMins)} minute
-          {this.props.authContainer.remainingMins <= 1 ? '.' : 's.'}
+          {Math.round(this.props.accountManager.remainingMins)} minute
+          {this.props.accountManager.remainingMins <= 1 ? '.' : 's.'}
         </Typography>
       </div>
     );
   }
 
   render() {
-    if (this.props.authContainer.hasCreatedVault) {
-      if (this.props.authContainer.isUnLocked) {
+    if (this.props.accountManager.hasCreatedVault) {
+      if (this.props.accountManager.isUnLocked) {
         if (
           !this.props.connectionContainer.connectionStatus &&
           this.props.connectionContainer.connectionRequested
         ) {
           // Not connected and there is a request to connect
-          if (this.props.authContainer.userAccounts.length < 1) {
+          if (this.props.accountManager.userAccounts.length < 1) {
             // Don't prompt for connection if there are no accounts
             return this.renderAccountLists();
           } else {
@@ -504,7 +504,7 @@ class Home extends React.Component<
           }
         }
       } else {
-        if (this.props.authContainer.isLockedOut) {
+        if (this.props.accountManager.isLockedOut) {
           return this.renderLockedOut();
         } else {
           return this.renderUnlock();

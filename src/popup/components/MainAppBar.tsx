@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 interface Props {
-  authContainer: AccountManager;
+  accountManager: AccountManager;
   connectionContainer: ConnectSignerContainer;
 }
 
@@ -53,7 +53,7 @@ export const MainAppBar = observer((props: Props) => {
     connectedSites.some(
       site => site.url === currentTab.url && site.isConnected
     );
-  if (props.authContainer.hasCreatedVault && props.authContainer.isUnLocked) {
+  if (props.accountManager.hasCreatedVault && props.accountManager.isUnLocked) {
     return (
       <>
         <AppBar
@@ -68,7 +68,7 @@ export const MainAppBar = observer((props: Props) => {
             <Tooltip
               title={
                 props.connectionContainer.integratedSite
-                  ? props.authContainer.userAccounts.length
+                  ? props.accountManager.userAccounts.length
                     ? 'Toggle Connection to Site'
                     : 'Add an Account to Connect'
                   : 'This site is not integrated with Signer'
@@ -80,7 +80,7 @@ export const MainAppBar = observer((props: Props) => {
                   className={classes.toggleButton}
                   disabled={
                     !props.connectionContainer.integratedSite ||
-                    !props.authContainer.userAccounts.length
+                    !props.accountManager.userAccounts.length
                   }
                   variant="outlined"
                   color={connected ? 'primary' : 'default'}
@@ -103,7 +103,7 @@ export const MainAppBar = observer((props: Props) => {
                 </Button>
               </span>
             </Tooltip>
-            <MoreMenu authContainer={props.authContainer} />
+            <MoreMenu accountManager={props.accountManager} />
           </Toolbar>
         </AppBar>
         <div className={classes.toolbarMargin}></div>

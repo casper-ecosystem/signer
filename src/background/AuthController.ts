@@ -14,6 +14,12 @@ import { AppState } from '../lib/MemStore';
 import { KeyPairWithAlias } from '../@types/models';
 import { saveAs } from 'file-saver';
 import { updateStatusEvent } from './utils';
+import {
+  isTimeToSecurityCheckup,
+  resetSecurityCheckupTimestamp,
+  removeSecurityCheckupTimestamp,
+  initSecurityCheckupTimestamp
+} from './securityCheckupPrompt';
 // import KeyEncoder from 'key-encoder';
 
 interface TimerStore {
@@ -79,6 +85,7 @@ class AuthController {
         clearTimeout(this.timer);
       }
       port.onDisconnect.addListener(() => {
+        this.appState.isTimeToSecurityCheckup = false;
         this.timer = setTimeout(() => {
           if (this.isUnlocked) this.lock();
         }, 1000 * 60 * this.appState.idleTimeoutMins);
@@ -232,6 +239,10 @@ class AuthController {
     this.appState.activeUserAccount =
       this.appState.userAccounts[this.appState.userAccounts.length - 1];
     this.persistVault();
+
+    if (this.appState.userAccounts.length === 1) {
+      await initSecurityCheckupTimestamp();
+    }
   }
 
   @action
@@ -257,6 +268,10 @@ class AuthController {
           : null;
     }
     this.persistVault();
+
+    if (this.appState.userAccounts.length === 0) {
+      removeSecurityCheckupTimestamp();
+    }
   }
 
   async downloadAccountKeys(alias: string) {
@@ -513,6 +528,16 @@ class AuthController {
     return encodeBase64(hashedBytes);
   }
 
+  @computed
+  get isTimeToSecurityCheckup(): boolean {
+    return this.appState.isTimeToSecurityCheckup;
+  }
+
+  @action.bound
+  resetIsTimeToSecurityCheckup() {
+    this.appState.isTimeToSecurityCheckup = false;
+  }
+
   /*
    * user can lock the plugin manually, and then user need to use
    * password to unlock, so that the plugin won't be used by others
@@ -556,6 +581,17 @@ class AuthController {
       : 2;
 
     updateStatusEvent(this.appState, 'unlocked');
+
+    if (this.appState.userAccounts.length === 0) {
+      return;
+    }
+
+    const isTimeToCheck = await isTimeToSecurityCheckup();
+    this.appState.isTimeToSecurityCheckup = isTimeToCheck;
+
+    if (isTimeToCheck) {
+      await resetSecurityCheckupTimestamp();
+    }
   }
 
   @action

@@ -10,7 +10,7 @@ import confirmConnect from './ConfirmConnect';
 
 interface Props extends RouteComponentProps {
   connectSignerContainer: ConnectSignerContainer;
-  authContainer: AccountManager;
+  accountManager: AccountManager;
 }
 
 @observer
@@ -26,8 +26,8 @@ class ConnectSignerPage extends React.Component<Props, {}> {
 
   render() {
     if (!this.props.connectSignerContainer.connectionStatus) {
-      return !this.props.authContainer.isUnLocked ||
-        !this.props.authContainer.userAccounts.length ? (
+      return !this.props.accountManager.isUnLocked ||
+        !this.props.accountManager.userAccounts.length ? (
         <Redirect to={Pages.Home} />
       ) : (
         <div style={{ flexGrow: 1 }}>
