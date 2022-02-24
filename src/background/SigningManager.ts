@@ -144,8 +144,8 @@ export default class SigningManager extends events.EventEmitter {
    */
   public addUnsignedDeployToQueue(
     deployJson: any,
-    sourcePublicKey: string,
-    targetPublicKey?: string
+    signingPublicKeyHex: string,
+    targetPublicKeyHex?: string
   ): number {
     const id: number = this.createId();
     try {
@@ -156,8 +156,8 @@ export default class SigningManager extends events.EventEmitter {
           status: SigningStatus.unsigned,
           // Should be safe to unwrap here since Result was ok
           deploy: innerDeploy.unwrap(),
-          signingKey: sourcePublicKey,
-          targetKey: targetPublicKey
+          signingKey: signingPublicKeyHex,
+          targetKey: targetPublicKeyHex
         });
       } else {
         innerDeploy.mapErr(err => {
