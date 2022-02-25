@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
   "version": "1.4.9",
-  "name": "CasperLabs Signer",
-  "author": "https://casperlabs.io",
-  "description": "CasperLabs Signer tool for signing transactions on the blockchain.",
+  "name": "casper-signer",
+  "author": "https://casper.network",
+  "description": "Casper Signer is the official non-custodial wallet that allows you to manage private keys and sign transactions on Casper Network",
   "content_security_policy": "script-src 'self' 'unsafe-eval' https://ssl.google-analytics.com; object-src 'self';",
   "icons": {
     "16": "logo16.png",
@@ -77,6 +77,6 @@
       "128": "logo128.png",
       "192": "logo192.png"
     },
-    "default_title": "CasperLabs Signer"
+    "default_title": "Casper Signer"
   }
 }
