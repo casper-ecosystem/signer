@@ -145,8 +145,10 @@ const MoreMenu = observer((props: Props) => {
             <TimerIcon className={classes.menuIcon} />
             <ListItemText primary="Timeout" />
             <Typography variant="overline">
-              {props.accountManager.idleTimeoutMins} min
-              {props.accountManager.idleTimeoutMins === 1 ? '' : 's'}
+              {props.accountManager.idleTimeoutMins === 1440
+                ? '1 day'
+                : `${props.accountManager.idleTimeoutMins}
+                ${props.accountManager.idleTimeoutMins === 1 ? 'min' : 'mins'}`}
             </Typography>
           </ListItem>
           <ListItem
