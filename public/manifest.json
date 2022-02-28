@@ -50,7 +50,8 @@
         "*://*.cerby.fi/*",
         "*://wiseswap.net/*",
         "*://*.wiseswap.net/*",
-        "*://*.caspercommunity.io/*"
+        "*://*.caspercommunity.io/*",
+        "*://*.minorityprogrammers.com/*",
       ],
       "js": [
         "./scripts/content/content.js"
