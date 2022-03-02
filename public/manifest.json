@@ -25,6 +25,8 @@
         "*://*.make.services/*",
         "*://cspr.live/*",
         "*://*.cspr.live/*",
+        "*://casper.live/*",
+        "*://*.casper.live/*",
         "*://casperholders.io/*",
         "*://*.casperholders.io/*",
         "*://casperholders.com/*",
