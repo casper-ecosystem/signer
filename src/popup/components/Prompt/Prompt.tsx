@@ -8,9 +8,9 @@ const styles = {
     padding: '10px'
   },
   dialogPaper: {
-    minHeight: '90vh',
-    maxHeight: '90vh',
-    height: '90vh',
+    minHeight: '95vh',
+    maxHeight: '95vh',
+    height: '95vh',
     margin: '16px',
     width: 'calc(100% - 32px)'
   }

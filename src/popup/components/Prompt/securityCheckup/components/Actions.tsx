@@ -7,7 +7,12 @@ interface ActionsPageOneProps {
 
 export function ActionsPageOne({ closeHandler }: ActionsPageOneProps) {
   return (
-    <Button fullWidth onClick={closeHandler}>
+    <Button
+      variant="contained"
+      color="primary"
+      fullWidth
+      onClick={closeHandler}
+    >
       I have backed up all my accounts
     </Button>
   );
@@ -21,7 +26,12 @@ export function ActionsPageTwo({
   setSecurityCheckupPageIndex
 }: ActionsPageTwoProps) {
   return (
-    <Button fullWidth onClick={() => setSecurityCheckupPageIndex(0)}>
+    <Button
+      variant="contained"
+      color="secondary"
+      fullWidth
+      onClick={() => setSecurityCheckupPageIndex(0)}
+    >
       Back
     </Button>
   );
