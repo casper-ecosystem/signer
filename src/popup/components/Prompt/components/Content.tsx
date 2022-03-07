@@ -7,10 +7,10 @@ import {
 
 const styles = {
   MuiDialogContent: {
-    padding: '4px 10px',
+    padding: '4px 10px 26px',
 
     '& .MuiLink-button': {
-      color: '#e6332a',
+      color: 'var(--cspr-red)',
       lineHeight: '0'
     },
 
@@ -27,8 +27,8 @@ const styles = {
     },
 
     '& .MuiList-root': {
-      marginBottom: '30px',
       paddingTop: '0',
+      paddingBottom: '20px',
 
       '& .MuiListItem-root': {
         paddingTop: '0',

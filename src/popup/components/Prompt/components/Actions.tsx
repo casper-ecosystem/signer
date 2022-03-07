@@ -4,10 +4,29 @@ import { makeStyles } from '@material-ui/core';
 const styles = {
   buttonContainerStyle: {
     position: 'fixed' as const,
-    bottom: '42px',
+    bottom: '20px',
     width: '228px',
     marginLeft: '10px',
-    marginRight: '10px'
+    marginRight: '10px',
+    marginBottom: '10px',
+
+    '& .MuiButton-containedPrimary': {
+      backgroundColor: 'var(--cspr-red)',
+      color: 'white',
+      '&$disabled': {
+        backgroundColor: 'white',
+        color: 'grey'
+      }
+    },
+
+    '& .MuiButton-containedSecondary': {
+      backgroundColor: 'var(--cspr-dark-blue)',
+      color: 'white',
+      '&$disabled': {
+        backgroundColor: 'white',
+        color: 'grey'
+      }
+    }
   }
 };
 
