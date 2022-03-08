@@ -5,16 +5,27 @@ import {
   DeployUtil,
   encodeBase16,
   CLPublicKey,
-  CLPublicKeyType,
-  CLByteArrayType,
-  CLAccountHashType,
   formatMessageWithHeaders,
   signFormattedMessage,
-  CLTypeTag
+  CLTypeTag,
+  CLValue,
+  CLKey,
+  CLURef,
+  CLByteArray,
+  CLAccountHash,
+  CLList,
+  CLOption,
+  CLResult,
+  CLType,
+  CLMap,
+  CLTuple1,
+  CLTuple2,
+  CLTuple3
 } from 'casper-js-sdk';
 import { JsonTypes } from 'typedjson';
 import { PurposeForOpening } from '../shared';
-type argDict = { [key: string]: string };
+
+type ArgDict = { [key: string]: string | string[] };
 
 export interface messageWithID {
   id: number;
@@ -32,7 +43,7 @@ export interface deployWithID {
   status: SigningStatus;
   deploy: DeployUtil.Deploy | undefined;
   signingKey: string;
-  targetKey: string;
+  targetKey?: string;
   error?: Error;
   pushed?: boolean;
 }
@@ -45,9 +56,9 @@ export interface DeployData {
   timestamp: string;
   chainName: string;
   deployType: string;
-  gasPrice: number;
-  payment: number;
-  deployArgs: Object;
+  gasPrice: string;
+  payment: string;
+  deployArgs: ArgDict;
 }
 
 enum SigningStatus {
@@ -144,8 +155,8 @@ export default class SigningManager extends events.EventEmitter {
    */
   public addUnsignedDeployToQueue(
     deployJson: any,
-    sourcePublicKey: string,
-    targetPublicKey: string
+    signingPublicKeyHex: string,
+    targetPublicKeyHex?: string
   ): number {
     const id: number = this.createId();
     try {
@@ -156,8 +167,8 @@ export default class SigningManager extends events.EventEmitter {
           status: SigningStatus.unsigned,
           // Should be safe to unwrap here since Result was ok
           deploy: innerDeploy.unwrap(),
-          signingKey: sourcePublicKey,
-          targetKey: targetPublicKey
+          signingKey: signingPublicKeyHex,
+          targetKey: targetPublicKeyHex
         });
       } else {
         innerDeploy.mapErr(err => {
@@ -173,13 +184,14 @@ export default class SigningManager extends events.EventEmitter {
   /**
    * Signs unsigned deploys from the app's queue
    * @param {any} deploy JSON representation of a deploy - can be constructed using the `DeployUtil.deployToJSON()` method.
-   * @param {string} publicKey in hex format with algorithm prefix byte.
+   * @param {string} signingPublicKeyHex the hex-formatted public key that corresponds to the secret key you'd like to use for signing.
+   * @param {string} targetPublicKeyHex include this if you want the Signer to verify it against an account hash in the deploy.
    * @returns {DeployJson} Signed JSON representation of the given deploy.
    */
   public signDeploy(
     deploy: { deploy: JsonTypes },
-    sourcePublicKeyHex: string, // hex-encoded PublicKey bytes with algo prefix
-    targetPublicKeyHex: string
+    signingPublicKeyHex: string,
+    targetPublicKeyHex?: string
   ): Promise<{ deploy: JsonTypes }> {
     return new Promise((resolve, reject) => {
       // TODO: Need to abstract it to reusable method
@@ -196,7 +208,7 @@ export default class SigningManager extends events.EventEmitter {
       // Adding the deploy to the queue will update the extension state and UI
       const deployId = this.addUnsignedDeployToQueue(
         deploy,
-        sourcePublicKeyHex,
+        signingPublicKeyHex,
         targetPublicKeyHex
       );
 
@@ -334,7 +346,7 @@ export default class SigningManager extends events.EventEmitter {
         : // is Stored Versioned Contract
           'Contract Package Call';
 
-      let deployArgs: argDict = {};
+      let deployArgs: ArgDict = {};
       if (deployWithID.deploy.session.transfer) {
         deployArgs = this.parseTransferData(
           deployWithID.deploy.session.transfer,
@@ -343,17 +355,7 @@ export default class SigningManager extends events.EventEmitter {
       } else if (deployWithID.deploy.session.moduleBytes) {
         deployWithID.deploy.session.moduleBytes.args.args.forEach(
           (argument, key) => {
-            if (argument.clType() instanceof CLPublicKeyType) {
-              deployArgs[key] = (argument as CLPublicKey).toHex();
-            } else if (
-              argument.clType() instanceof CLByteArrayType ||
-              argument.clType() instanceof CLAccountHashType
-            ) {
-              deployArgs[key] = encodeBase16(argument.value());
-            } else {
-              // if not a PublicKey or ByteArray
-              deployArgs[key] = argument.value().toString();
-            }
+            deployArgs[key] = this.parseDeployArg(argument);
           }
         );
         deployArgs['Module Bytes'] =
@@ -381,17 +383,7 @@ export default class SigningManager extends events.EventEmitter {
         try {
           // Credit to Killian Hascoët (@KillianH on GH) for inspiring this initial implementation for arg parsing.
           storedContract.args.args.forEach((argument, key) => {
-            if (argument.clType() instanceof CLPublicKeyType) {
-              deployArgs[key] = (argument as CLPublicKey).toHex();
-            } else if (
-              argument.clType() instanceof CLByteArrayType ||
-              argument.clType() instanceof CLAccountHashType
-            ) {
-              deployArgs[key] = encodeBase16(argument.value());
-            } else {
-              // if not a PublicKey or ByteArray
-              deployArgs[key] = argument.value().toString();
-            }
+            deployArgs[key] = this.parseDeployArg(argument);
           });
           deployArgs['Entry Point'] = storedContract.entryPoint;
         } catch (err) {
@@ -405,7 +397,7 @@ export default class SigningManager extends events.EventEmitter {
         bodyHash: encodeBase16(header.bodyHash),
         chainName: header.chainName,
         timestamp: new Date(header.timestamp).toLocaleString(),
-        gasPrice: header.gasPrice,
+        gasPrice: header.gasPrice.toString(),
         payment: payment,
         deployType: type,
         deployArgs: deployArgs
@@ -413,6 +405,118 @@ export default class SigningManager extends events.EventEmitter {
     } else {
       throw new Error('Invalid Deploy');
     }
+  }
+
+  private parseDeployArg(arg: CLValue): string | string[] {
+    if (!(arg instanceof CLValue)) {
+      throw new Error('Argument should be a CLValue, received: ' + typeof arg);
+    }
+    const tag = arg.clType().tag;
+    switch (tag) {
+      case CLTypeTag.Unit:
+        return String('CLValue Unit');
+
+      case CLTypeTag.Key:
+        const key = arg as CLKey;
+        if (key.isAccount()) {
+          return this.parseDeployArg(key.value() as CLAccountHash);
+        }
+        if (key.isURef()) {
+          return this.parseDeployArg(key.value() as CLURef);
+        }
+        if (key.isHash()) {
+          return this.parseDeployArg(key.value() as CLByteArray);
+        }
+        throw new Error('Failed to parse key argument');
+
+      case CLTypeTag.URef:
+        return (arg as CLURef).toFormattedStr();
+
+      case CLTypeTag.Option:
+        const option = arg as CLOption<CLValue>;
+        if (option.isSome()) {
+          return this.parseDeployArg(option.value().unwrap());
+        } else {
+          // This will be None due to the above logic
+          const optionValue = option.value().toString();
+          // This will be the inner CLType of the CLOption e.g. '(bool)'
+          const optionCLType = option.clType().toString().split(' ')[1];
+          // The format ends up looking like `None (bool)`
+          return `${optionValue} ${optionCLType}`;
+        }
+
+      case CLTypeTag.List:
+        const list = (arg as CLList<CLValue>).value();
+        const parsedList = list.map(member => {
+          return this.sanitiseNestedLists(member);
+        });
+        return parsedList;
+
+      case CLTypeTag.ByteArray:
+        const bytes = (arg as CLByteArray).value();
+        return this.parseBytesToString(bytes);
+
+      case CLTypeTag.Result:
+        const result = arg as CLResult<CLType, CLType>;
+        const status = result.isOk() ? 'OK:' : 'ERR:';
+        const parsed = this.parseDeployArg(result.value().val);
+        return `${status} ${parsed}`;
+
+      case CLTypeTag.Map:
+        const map = arg as CLMap<CLValue, CLValue>;
+        return map.value().toString();
+
+      case CLTypeTag.Tuple1:
+        const tupleOne = arg as CLTuple1;
+        return this.parseDeployArg(tupleOne.value()[0]);
+
+      case CLTypeTag.Tuple2:
+        const tupleTwo = arg as CLTuple2;
+        const parsedTupleTwo = tupleTwo.value().map(member => {
+          return this.sanitiseNestedLists(member);
+        });
+        return parsedTupleTwo;
+
+      case CLTypeTag.Tuple3:
+        const tupleThree = arg as CLTuple3;
+        const parsedTupleThree = tupleThree.value().map(member => {
+          return this.sanitiseNestedLists(member);
+        });
+        return parsedTupleThree;
+
+      case CLTypeTag.PublicKey:
+        return (arg as CLPublicKey).toHex();
+
+      default:
+        // Special handling as there is no CLTypeTag for CLAccountHash
+        if (arg instanceof CLAccountHash)
+          return this.parseBytesToString(arg.value());
+        return arg.value().toString();
+    }
+  }
+
+  /**
+   * This implementation allows for catching lists of lists.
+   * The UI isn't set up for handling nested lists.
+   *
+   * @param value The CLValue that could possibly be a CLList.
+   * @returns The stringified CLValue, if it is a CLList it will return '<vectorType>[...]'
+   */
+  private sanitiseNestedLists(value: CLValue): string {
+    const parsedValue = this.parseDeployArg(value);
+    if (Array.isArray(parsedValue)) {
+      const parsedType = (value as CLList<CLValue>).vectorType;
+      return `<${parsedType}>[...]`;
+    }
+    return parsedValue;
+  }
+
+  /**
+   * Byte arrays cannot be displayed on the FE without converting them to strings.
+   * We hex encode them for this reason.
+   */
+  private parseBytesToString(bytes: Uint8Array): string {
+    return encodeBase16(bytes);
   }
 
   /**
@@ -436,22 +540,27 @@ export default class SigningManager extends events.EventEmitter {
         throw new Error('Message or public key was null/undefined');
 
       let activeKeyPair = this.appState.activeUserAccount?.keyPair;
-      if (!activeKeyPair) throw new Error('No active account');
-      if (
-        this.appState.userAccounts.some(
-          account => account.keyPair.publicKey.toHex() === signingPublicKey
-        )
-      ) {
-        // The provided key matches one of the keys in the vault.
-        if (activeKeyPair.publicKey.toHex() !== signingPublicKey) {
-          // But it is not set as the Active Key and therefore the signing is cancelled.
-          throw new Error(
-            'Provided key is not set as Active Key - please set it and try again.'
-          );
+      // If the Signer is locked then the account data is unavailable to perform these checks
+      // resulting in them always throwing the errors.
+      // We can check the key matches once the Signer opens and is unlocked.
+      if (this.appState.isUnlocked) {
+        if (!activeKeyPair) throw new Error('No active account');
+        if (
+          this.appState.userAccounts.some(
+            account => account.keyPair.publicKey.toHex() === signingPublicKey
+          )
+        ) {
+          // The provided key matches one of the keys in the vault.
+          if (activeKeyPair.publicKey.toHex() !== signingPublicKey) {
+            // But it is not set as the Active Key and therefore the signing is cancelled.
+            throw new Error(
+              'Provided key is not set as Active Key - please set it and try again.'
+            );
+          }
+        } else {
+          // The provided key didn't match any of the keys in the vault.
+          throw new Error('Provided key is not present in vault.');
         }
-      } else {
-        // The provided key didn't match any of the keys in the vault.
-        throw new Error('Provided key is not present in vault.');
       }
 
       const messageId = this.createId();
@@ -489,14 +598,35 @@ export default class SigningManager extends events.EventEmitter {
             case SigningStatus.signed:
               if (processedMessage.messageBytes) {
                 this.appState.unsignedMessages.remove(processedMessage);
-                if (activeKeyPair !== this.appState.activeUserAccount?.keyPair)
-                  return reject(
-                    new Error('Active account changed during signing.')
-                  );
                 if (!activeKeyPair)
                   return reject(
                     new Error('No Active Key set - set it and try again.')
                   );
+
+                // Check if the provided key matches the active key stored in Signer
+                if (
+                  signingPublicKey !==
+                  this.appState.activeUserAccount?.keyPair.accountHex()
+                )
+                  return reject(
+                    new Error(
+                      'Active account key does not match provided signing key'
+                    )
+                  );
+
+                // If the request was made when the Signer was locked then the activeKeyPair will be null
+                // so we need to run this check only if the keypair was retrieved i.e. if the Signer was unlocked.
+                if (activeKeyPair) {
+                  // Check if the active key is the same now as it was when the request was initiated
+                  // Needs to be stringified as they are not the same object we're just checking their values match
+                  if (
+                    JSON.stringify(activeKeyPair) !==
+                    JSON.stringify(this.appState.activeUserAccount?.keyPair)
+                  )
+                    return reject(
+                      new Error('Active account changed during signing.')
+                    );
+                }
                 const signature = signFormattedMessage(
                   activeKeyPair,
                   processedMessage.messageBytes
@@ -588,33 +718,52 @@ export default class SigningManager extends events.EventEmitter {
 
   private parseTransferData(
     transferDeploy: DeployUtil.Transfer,
-    providedPublicKeyHex: string
+    providedTarget?: string
   ) {
-    const pkHex = providedPublicKeyHex.toLowerCase();
-    const transferArgs: argDict = {};
+    const transferArgs: ArgDict = {};
 
-    const targetArg = transferDeploy?.getArgByName('target')!;
+    // Target can either be a hex formatted public key or an account hash
+    const targetFromDeploy = transferDeploy?.getArgByName('target')!;
+    let targetFromDeployHex;
 
-    let targetToDisplay;
-
-    // If deploy is created using older version of SDK
-    // confirm hash of provided public key matches target account hash from deploy
-    if (targetArg.clType().tag === CLTypeTag.ByteArray) {
-      targetToDisplay = encodeBase16(targetArg.value());
-      this.verifyTargetAccountMatch(pkHex, targetToDisplay);
-    }
-
-    // If deploy is created using version of SDK gte then 2.7.0
-    // In fact this logic can be removed in future as well as pkHex param
-    if (targetArg.clType().tag === CLTypeTag.PublicKey) {
-      if ((targetArg as CLPublicKey).toHex() !== pkHex) {
+    switch (targetFromDeploy.clType().tag) {
+      // If deploy is created using older version of SDK
+      // confirm hash of provided public key matches target account hash from deploy
+      case CLTypeTag.ByteArray: {
+        targetFromDeployHex = encodeBase16(targetFromDeploy.value());
+        // Requester has provided a public key to compare against the target in the deploy
+        if (providedTarget) {
+          let providedTargetLower = providedTarget.toLowerCase();
+          this.verifyTargetAccountMatch(
+            providedTargetLower,
+            targetFromDeployHex
+          );
+        }
+        transferArgs[`Recipient (Hash)`] = targetFromDeployHex;
+        break;
+      }
+      // If deploy is created using version of SDK gte than 2.7.0
+      // In fact this logic can be removed in future as well as pkHex param
+      case CLTypeTag.PublicKey: {
+        targetFromDeployHex = (targetFromDeploy as CLPublicKey).toHex();
+        // Requester has provided a public key to compare against the target in the deploy
+        if (providedTarget) {
+          if (targetFromDeployHex !== providedTarget) {
+            throw new Error(
+              "Provided target public key doesn't match the one in the deploy"
+            );
+          }
+        }
+        transferArgs['Recipient (Key)'] = targetFromDeployHex;
+        break;
+      }
+      default: {
         throw new Error(
-          "Provided target public key doesn't match the one in deploy"
+          'Target from deploy was neither AccountHash or PublicKey'
         );
       }
     }
 
-    const recipient = pkHex;
     const amount = transferDeploy?.getArgByName('amount')!.value().toString();
     const id = transferDeploy
       ?.getArgByName('id')!
@@ -623,10 +772,6 @@ export default class SigningManager extends events.EventEmitter {
       .value()
       .toString();
 
-    if (targetToDisplay) {
-      transferArgs[`Recipient (Hash)`] = targetToDisplay;
-    }
-    transferArgs['Recipient (Key)'] = recipient;
     transferArgs['Amount'] = amount;
     transferArgs['Transfer ID'] = id;
 

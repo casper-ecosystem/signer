@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "1.4.9",
+  "version": "1.4.10",
   "name": "casper-signer",
   "author": "https://casper.network",
   "description": "Casper Signer is the official non-custodial wallet that allows you to manage private keys and sign transactions on Casper Network",
@@ -25,6 +25,8 @@
         "*://*.make.services/*",
         "*://cspr.live/*",
         "*://*.cspr.live/*",
+        "*://casper.live/*",
+        "*://*.casper.live/*",
         "*://casperholders.io/*",
         "*://*.casperholders.io/*",
         "*://casperholders.com/*",
@@ -50,7 +52,16 @@
         "*://*.cerby.fi/*",
         "*://wiseswap.net/*",
         "*://*.wiseswap.net/*",
-        "*://*.caspercommunity.io/*"
+        "*://*.caspercommunity.io/*",
+        "*://*.dhfi.online/*",
+        "*://dhfi.online/*",
+        "*://*.dhfi.io/*",
+        "*://*.dhfi.io/*",
+        "*://*.minorityprogrammers.com/*",
+        "*://minorityprogrammers.com/*",
+        "*://*.dotoracle.network/*",
+        "*://*.arcadia.agency/*",
+        "*://*.arcadiamgroup.com/*"
       ],
       "js": [
         "./scripts/content/content.js"

@@ -20,7 +20,7 @@ import Pages from './Pages';
 
 interface Props {
   connectionContainer: ConnectSignerContainer;
-  authContainer: AccountManager;
+  accountManager: AccountManager;
 }
 
 export const ConnectedSitesPage = observer((props: Props) => {
@@ -31,7 +31,7 @@ export const ConnectedSitesPage = observer((props: Props) => {
     ).then(() => props.connectionContainer.removeSite(name));
   };
 
-  return !props.authContainer.isUnLocked ? (
+  return !props.accountManager.isUnLocked ? (
     <Redirect to={Pages.Home} />
   ) : props.connectionContainer.connectedSites[0] ? (
     <List>

@@ -1,11 +1,10 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import { Redirect, RouteComponentProps, withRouter } from 'react-router';
-import SigningContainer from '../container/SigningContainer';
+import SigningContainer, { parseRow } from '../container/SigningContainer';
 import Pages from './Pages';
 import { browser } from 'webextension-polyfill-ts';
 import AccountManager from '../container/AccountManager';
-import { withStyles } from '@material-ui/core/styles';
 import {
   Box,
   Button,
@@ -17,57 +16,27 @@ import {
   TableCell,
   TableContainer,
   TableRow,
-  Tooltip,
   Typography
 } from '@material-ui/core';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { deployWithID } from '../../background/SigningManager';
-import {
-  truncateString,
-  numberWithSpaces,
-  motesToCSPR
-} from '../../background/utils';
 import PopupContainer from '../container/PopupContainer';
-
-const styles = () => ({
-  tooltip: {
-    fontSize: '.8rem',
-    width: '260px',
-    margin: '10px 0 0 0'
-  }
-});
-
-const CsprTooltip = withStyles({
-  tooltip: {
-    fontSize: '1rem',
-    width: 'fit-content',
-    margin: '10px 0 0 0',
-    textAlign: 'center'
-  }
-})(Tooltip);
+import { SigningDataRow } from '../../shared';
+import { BlankTooltipContent, TooltippedTableRow } from './Tooltipped';
 
 interface Props extends RouteComponentProps {
   signingContainer: SigningContainer;
-  authContainer: AccountManager;
+  accountManager: AccountManager;
   popupContainer: PopupContainer;
-  classes: Record<keyof ReturnType<typeof styles>, string>;
 }
 
 @observer
 class SignDeployPage extends React.Component<
   Props,
   {
-    genericRows: {
-      key: string;
-      value: any;
-      title: any;
-    }[];
-    deploySpecificRows: {
-      key: string;
-      value: any;
-      title: any;
-    }[];
+    genericRows: SigningDataRow[];
+    deploySpecificRows: SigningDataRow[];
     deployToSign: deployWithID | null;
     argsExpanded: boolean;
   }
@@ -94,76 +63,39 @@ class SignDeployPage extends React.Component<
     }
   }
 
-  createRow(key: string, value: any, title?: any) {
-    return { key, value, title };
-  }
-
   async generateDeployInfo(deployToSign: deployWithID) {
     const deployData = await this.props.signingContainer.parseDeployData(
       deployToSign.id
     );
-    const baseRows = [
-      this.createRow(
-        'Signing Key',
-        truncateString(deployData.signingKey, 6, 6),
-        deployData.signingKey
-      ),
-      this.createRow(
-        'Account',
-        truncateString(deployData.account, 6, 6),
-        deployData.account
-      ),
-      this.createRow(
-        'Deploy Hash',
-        truncateString(deployData.deployHash, 6, 6),
-        deployData.deployHash
-      ),
-      // this.createRow(
-      //   'Body Hash',
-      //   truncateString(deployData.bodyHash, 6, 6),
-      //   deployData.bodyHash
-      // ),
-      this.createRow('Timestamp', deployData.timestamp),
-      this.createRow('Chain Name', deployData.chainName),
-      /*
-        Gas Price refers to how much a caller is willing to pay per unit of gas.
-      
-        Currently there is no logic in place to prioritise those willing to pay more
-        meaning there is no reason to set it higher than 1.
-        
-        In cspr.live Gas Price is fixed at 1 and the user has no visibility of it.
-        
-        Until Gas Price impacts contract execution I will omit it from the deploy data
-        screen to reduce confusion for users.
-      
-      this.createRow('Gas Price', `${deployData.gasPrice} motes`),
-      */
-      this.createRow(
-        'Transaction Fee',
-        `${numberWithSpaces(deployData.payment)} motes`,
-        `${motesToCSPR(deployData.payment)} CSPR`
-      ),
-      this.createRow('Deploy Type', deployData.deployType)
-    ];
-    let argRows = [];
+    // Filters out non-generic and irrelevant data points, also re-orders.
+    const orderedGenericData = {
+      'Signing Key': deployData.signingKey,
+      Account: deployData.account,
+      'Deploy Hash': deployData.deployHash,
+      Timestamp: deployData.timestamp,
+      'Chain Name': deployData.chainName,
+      Payment: deployData.payment,
+      'Deploy Type': deployData.deployType
+    };
+    let baseRows: SigningDataRow[] = [];
+    for (let [key, value] of Object.entries(orderedGenericData)) {
+      const row = parseRow({ key, value, tooltipContent: BlankTooltipContent });
+      baseRows.push(row);
+    }
+    let argRows: SigningDataRow[] = [];
     for (let [key, value] of Object.entries(deployData.deployArgs)) {
-      argRows.push(
-        this.createRow(
-          key,
-          value.length > 15 ? truncateString(value, 6, 6) : value,
-          value.length > 12 ? value : undefined
-        )
-      );
+      const row = parseRow({ key, value, tooltipContent: BlankTooltipContent });
+      argRows.push(row);
     }
     this.setState({
       genericRows: baseRows,
       deploySpecificRows: argRows,
-      argsExpanded: argRows.length > 3 ? false : true
+      argsExpanded: argRows.length < 4
     });
   }
 
   render() {
-    if (this.state.deployToSign && this.props.authContainer.isUnLocked) {
+    if (this.state.deployToSign && this.props.accountManager.isUnLocked) {
       const deployId = this.props.signingContainer.deployToSign?.id;
       return (
         <div
@@ -179,44 +111,16 @@ class SignDeployPage extends React.Component<
           <TableContainer>
             <Table style={{ width: '90%' }}>
               <TableBody>
-                {this.state.genericRows.map((row: any) =>
-                  row.key === 'Amount' || row.key === 'Payment' ? (
-                    <CsprTooltip
-                      key={row.key}
-                      title={row.title ? row.title : ''}
-                      placement="top"
-                    >
-                      <TableRow key={row.key}>
-                        <TableCell
-                          component="th"
-                          scope="row"
-                          style={{ fontWeight: 'bold' }}
-                        >
-                          {row.key}
-                        </TableCell>
-                        <TableCell align="right">{row.value}</TableCell>
-                      </TableRow>
-                    </CsprTooltip>
-                  ) : (
-                    <Tooltip
-                      key={row.key}
-                      title={row.title ? row.title : ''}
-                      classes={{ tooltip: this.props.classes.tooltip }}
-                      placement="top"
-                    >
-                      <TableRow key={row.key}>
-                        <TableCell
-                          component="th"
-                          scope="row"
-                          style={{ fontWeight: 'bold' }}
-                        >
-                          {row.key}
-                        </TableCell>
-                        <TableCell align="right">{row.value}</TableCell>
-                      </TableRow>
-                    </Tooltip>
-                  )
-                )}
+                {/* 
+                  Displays the data generic to all deploys
+                */}
+                {this.state.genericRows.map(row => (
+                  <TooltippedTableRow data={row} />
+                ))}
+                {/* 
+                  Deploy Specific Arguments
+                  Special handling for native transfers
+                */}
                 {this.state.genericRows.some(
                   row => row.key === 'Deploy Type' && row.value === 'Transfer'
                 ) ? (
@@ -239,54 +143,18 @@ class SignDeployPage extends React.Component<
                       >
                         <Table size="small">
                           <TableBody>
-                            {this.state.deploySpecificRows.map((row, index) => {
-                              return row.key === 'Amount' ? (
-                                <CsprTooltip
-                                  key={index}
-                                  title={`${motesToCSPR(row.value)} CSPR`}
-                                  placement="top"
-                                >
-                                  <TableRow key={index}>
-                                    <TableCell
-                                      component="th"
-                                      scope="row"
-                                      style={{ fontWeight: 'bold' }}
-                                    >
-                                      {row.key}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      {`${numberWithSpaces(row.value)} motes`}
-                                    </TableCell>
-                                  </TableRow>
-                                </CsprTooltip>
-                              ) : (
-                                <Tooltip
-                                  key={index}
-                                  title={row.title ? row.title : ''}
-                                  classes={{
-                                    tooltip: this.props.classes.tooltip
-                                  }}
-                                  placement="top"
-                                >
-                                  <TableRow>
-                                    <TableCell style={{ fontWeight: 'bold' }}>
-                                      {row.key}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      {isNaN(+row.value)
-                                        ? row.value
-                                        : numberWithSpaces(row.value)}
-                                    </TableCell>
-                                  </TableRow>
-                                </Tooltip>
-                              );
-                            })}
+                            {this.state.deploySpecificRows.map(row => (
+                              <TooltippedTableRow data={row} />
+                            ))}
                           </TableBody>
                         </Table>
                       </TableCell>
                     </TableRow>
                   </>
                 ) : (
+                  /**
+                   *  Deploy specific arguments
+                   */
                   <>
                     <TableRow>
                       <TableCell
@@ -325,33 +193,9 @@ class SignDeployPage extends React.Component<
                         >
                           <Table size="small">
                             <TableBody>
-                              {this.state.deploySpecificRows.map(
-                                (row, index) => {
-                                  return (
-                                    <Tooltip
-                                      key={index}
-                                      title={row.title ? row.title : ''}
-                                      classes={{
-                                        tooltip: this.props.classes.tooltip
-                                      }}
-                                      placement="top"
-                                    >
-                                      <TableRow>
-                                        <TableCell
-                                          style={{ fontWeight: 'bold' }}
-                                        >
-                                          {row.key}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                          {isNaN(+row.value)
-                                            ? row.value
-                                            : numberWithSpaces(row.value)}
-                                        </TableCell>
-                                      </TableRow>
-                                    </Tooltip>
-                                  );
-                                }
-                              )}
+                              {this.state.deploySpecificRows.map(row => (
+                                <TooltippedTableRow data={row} />
+                              ))}
                             </TableBody>
                           </Table>
                         </Collapse>
@@ -374,10 +218,12 @@ class SignDeployPage extends React.Component<
                 <Button
                   variant="contained"
                   color="secondary"
-                  onClick={() => {
-                    this.props.signingContainer.cancel(deployId!).then(() => {
-                      this.props.popupContainer.callClosePopup();
-                    });
+                  onClick={async () => {
+                    await this.props.signingContainer.cancel(deployId!);
+                    await this.props.popupContainer.callClosePopup();
+                    // This is required in the case that the user avoids the popup and instead
+                    // interacts with the default extension window.
+                    window.close();
                   }}
                 >
                   Cancel
@@ -385,13 +231,13 @@ class SignDeployPage extends React.Component<
               </Grid>
               <Grid item>
                 <Button
-                  onClick={() =>
-                    this.props.signingContainer
-                      .signDeploy(deployId!)
-                      .then(() => {
-                        this.props.popupContainer.callClosePopup();
-                      })
-                  }
+                  onClick={async () => {
+                    await this.props.signingContainer.signDeploy(deployId!);
+                    await this.props.popupContainer.callClosePopup();
+                    // This is required in the case that the user avoids the popup and instead
+                    // interacts with the default extension window.
+                    window.close();
+                  }}
                   variant="contained"
                   color="primary"
                   style={{
@@ -411,4 +257,4 @@ class SignDeployPage extends React.Component<
   }
 }
 
-export default withStyles(styles)(withRouter(SignDeployPage));
+export default withRouter(SignDeployPage);

@@ -26,7 +26,7 @@ import {
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
 interface Props {
-  authContainer: AccountManager;
+  accountManager: AccountManager;
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -72,25 +72,25 @@ const MoreMenu = observer((props: Props) => {
           aria-labelledby="nested-list-subheader"
           subheader={
             <ListSubheader component="div" id="nested-list-subheader">
-              {props.authContainer.userAccounts.length > 0
+              {props.accountManager.userAccounts.length > 0
                 ? 'Accounts'
                 : 'No Account'}
             </ListSubheader>
           }
         >
-          {props.authContainer.userAccounts.map((account, i) => {
+          {props.accountManager.userAccounts.map((account, i) => {
             return (
               <ListItem
                 key={i}
                 button
                 dense={true}
                 onClick={() => {
-                  props.authContainer.switchToAccount(account.alias);
+                  props.accountManager.switchToAccount(account.alias);
                   handleClose();
                 }}
               >
                 {account.alias ===
-                props.authContainer.activeUserAccount?.alias ? (
+                props.accountManager.activeUserAccount?.alias ? (
                   <CheckIcon fontSize={'small'} />
                 ) : (
                   <Icon className={'fa fa-fw'} fontSize={'small'} />
@@ -100,7 +100,7 @@ const MoreMenu = observer((props: Props) => {
             );
           })}
           <Divider light />
-          {props.authContainer.userAccounts.length > 0 && (
+          {props.accountManager.userAccounts.length > 0 && (
             <ListItem
               dense={true}
               component={Link}
@@ -122,12 +122,12 @@ const MoreMenu = observer((props: Props) => {
             <WebIcon className={classes.menuIcon} />
             <ListItemText primary="Connected Sites" />
           </ListItem>
-          {props.authContainer.activeUserAccount && (
+          {props.accountManager.activeUserAccount && (
             <ListItem
               dense={true}
               button
               onClick={() => {
-                props.authContainer.downloadActiveKey();
+                props.accountManager.downloadActiveKey();
                 handleClose();
               }}
             >
@@ -145,15 +145,15 @@ const MoreMenu = observer((props: Props) => {
             <TimerIcon className={classes.menuIcon} />
             <ListItemText primary="Timeout" />
             <Typography variant="overline">
-              {props.authContainer.idleTimeoutMins} min
-              {props.authContainer.idleTimeoutMins === 1 ? '' : 's'}
+              {props.accountManager.idleTimeoutMins} min
+              {props.accountManager.idleTimeoutMins === 1 ? '' : 's'}
             </Typography>
           </ListItem>
           <ListItem
             dense={true}
             button
             onClick={() => {
-              props.authContainer.lock();
+              props.accountManager.lock();
               handleClose();
             }}
           >

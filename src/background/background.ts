@@ -39,6 +39,10 @@ async function setupPopupAPIServer() {
     updateBadge(appState);
   });
   rpc.register(
+    'account.resetSecurityCheckup',
+    accountController.resetIsTimeToSecurityCheckup.bind(accountController)
+  );
+  rpc.register(
     'account.unlock',
     accountController.unlock.bind(accountController)
   );
