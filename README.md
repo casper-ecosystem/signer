@@ -8,7 +8,7 @@ You can find the latest version on the [Chrome Web Store](https://chrome.google.
 
 ## Integrating with the Casper Signer
 
-To integrate your website with the Casper Signer on Mainnet, you need to go through an [approval process](https://github.com/casper-ecosystem/signer/issues/new?assignees=devendran-m&labels=Integration&template=whitelisting_request.yml&title=%5BIntegration%5D%3A+Name+of+Your+Project).
+To integrate your website with the Casper Signer on Mainnet, you need to go through an [approval process](https://github.com/casper-ecosystem/signer/wiki/Casper-Signer-Whitelisting-Request-Guide).
 
 ## Architecture 
 
