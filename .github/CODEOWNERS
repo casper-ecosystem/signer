@@ -1,0 +1,7 @@
+# Each line is a file pattern followed by one or more owners.
+
+# No PR can be merged to master without an approving review by the code owners.
+# Repo admins can override this setting for the repo maintenance PRs.
+#
+# @devendran-m Coordinates the approval/whitelisting process on behalf of the association
+/public/manifest.json       @devendran-m
