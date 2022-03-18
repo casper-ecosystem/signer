@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "version": "1.4.10",
-  "name": "casper-signer",
+  "name": "Casper Signer",
   "author": "https://casper.network",
   "description": "Casper Signer is the official non-custodial wallet that allows you to manage private keys and sign transactions on Casper Network",
   "content_security_policy": "script-src 'self' 'unsafe-eval' https://ssl.google-analytics.com; object-src 'self';",
