@@ -62,7 +62,8 @@
         "*://*.dotoracle.network/*",
         "*://*.arcadia.agency/*",
         "*://*.arcadiamgroup.com/*",
-        "*://*.skybridger.io/*"
+        "*://*.skybridger.io/*",
+        "*://skybridger.io/*"
       ],
       "js": [
         "./scripts/content/content.js"
