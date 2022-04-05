@@ -73,6 +73,19 @@ export const ConfigureTimeoutPage = observer(
               </ListItemIcon>
             )}
           </ListItem>
+          <ListItem
+            button={true}
+            onClick={async () => {
+              await props.accountManager.configureTimeout(1440);
+            }}
+          >
+            <ListItemText primary="1 day" />
+            {1440 === props.accountManager.idleTimeoutMins && (
+              <ListItemIcon>
+                <ActiveIcon style={{ color: 'green', marginLeft: '30px' }} />
+              </ListItemIcon>
+            )}
+          </ListItem>
         </List>
       </div>
     ) : (
