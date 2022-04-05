@@ -61,7 +61,9 @@
         "*://minorityprogrammers.com/*",
         "*://*.dotoracle.network/*",
         "*://*.arcadia.agency/*",
-        "*://*.arcadiamgroup.com/*"
+        "*://*.arcadiamgroup.com/*",
+        "*://*.skybridger.io/*",
+        "*://skybridger.io/*"
       ],
       "js": [
         "./scripts/content/content.js"
