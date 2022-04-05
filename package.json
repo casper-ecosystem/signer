@@ -44,7 +44,7 @@
     "react-dom": "^16.8.6",
     "react-idle-timer": "^4.6.4",
     "react-router-dom": "^5.1.0",
-    "react-scripts": "^4.0.3",
+    "react-scripts": "^5.0.0",
     "safe-compare": "^1.1.4",
     "store": "^2.0.12",
     "tweetnacl": "^1.0.3",
