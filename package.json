@@ -112,7 +112,7 @@
     "browserify": "^16.5.0",
     "browserify-transform-tools": "^1.7.0",
     "colors": "latest",
-    "del": "^5.1.0",
+    "del": "^6.0.0",
     "end-of-stream": "^1.4.4",
     "envify": "^4.1.0",
     "eslint": "^7.31.0",
