@@ -101,7 +101,7 @@ export default class ConnectionManager {
         this.appState.connectedSites.push({ url: url, isConnected: true });
       }
 
-      this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
+      this.store.set({ connectedSites: this.appState.connectedSites.toJSON() });
 
       if (tab && tab.tabId) {
         updateStatusEvent(this.appState, 'connected');
@@ -118,7 +118,7 @@ export default class ConnectionManager {
       this.appState.connectedSites.map(d => {
         if (d.url === url) d.isConnected = false;
       });
-      this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
+      this.store.set({ connectedSites: this.appState.connectedSites.toJSON() });
 
       if (tab && tab.tabId) {
         updateStatusEvent(this.appState, 'disconnected');
@@ -129,7 +129,7 @@ export default class ConnectionManager {
   public async removeSite(url: string) {
     const filtered = this.appState.connectedSites.filter(d => d.url !== url);
     this.appState.connectedSites.replace(filtered);
-    this.store.set({ connectedSites: this.appState.connectedSites.toJS() });
+    this.store.set({ connectedSites: this.appState.connectedSites.toJSON() });
   }
 
   public getVersion() {
