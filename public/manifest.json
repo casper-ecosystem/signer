@@ -63,7 +63,9 @@
         "*://*.arcadia.agency/*",
         "*://*.arcadiamgroup.com/*",
         "*://*.skybridger.io/*",
-        "*://skybridger.io/*"
+        "*://skybridger.io/*",
+        "*://*.caspertigers.io/*",
+        "*://caspertigers.io/*"
       ],
       "js": [
         "./scripts/content/content.js"
