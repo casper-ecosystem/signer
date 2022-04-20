@@ -15,7 +15,12 @@ const accountController = new AccountController(appState);
 const signingManager = new SigningManager(appState, popupManager);
 const connectionManager = new ConnectionManager(appState);
 
-initialize().catch(console.log);
+initialize().catch(err => {
+  console.log(err);
+  console.log(
+    'Signer could not connect to page - this is likely because it is not whitelisted. Please contact our support team.'
+  );
+});
 
 async function initialize() {
   await setupPopupAPIServer();
@@ -35,6 +40,7 @@ async function setupPopupAPIServer() {
   autorun(() => {
     rpc.call<void>('popup.updateState', appState).catch(e => {
       console.log(e);
+      console.log('Error sending updated state to popup - it is likely closed');
     });
     updateBadge(appState);
   });

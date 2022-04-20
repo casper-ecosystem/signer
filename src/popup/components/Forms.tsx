@@ -24,9 +24,9 @@ export const TextFieldWithFormState = observer(
     return (
       <TextField
         value={fieldState?.value}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          fieldState?.onChange(e.target.value);
-        }}
+        // onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+        //   fieldState?.onChange(e.target.value);
+        // }}
         error={fieldState?.hasError}
         helperText={fieldState?.error}
         {...otherProps}
@@ -41,9 +41,9 @@ export const SelectFieldWithFormState = observer(
     return (
       <Select
         value={fieldState?.value}
-        onChange={(e: React.ChangeEvent<{ value: unknown }>) => {
-          fieldState?.onChange((e.target.value as string) || '');
-        }}
+        // onChange={(e: React.ChangeEvent<{ value: unknown }>) => {
+        //   fieldState?.onChange((e.target.value as string) || '');
+        // }}
         error={fieldState?.hasError}
         {...otherProps}
       >
