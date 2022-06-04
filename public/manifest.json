@@ -65,7 +65,15 @@
         "*://*.skybridger.io/*",
         "*://skybridger.io/*",
         "*://*.caspertigers.io/*",
-        "*://caspertigers.io/*"
+        "*://caspertigers.io/*",
+        "*://casper-pad.io/*",
+        "*://*.casper-pad.io/*",
+        "*://the-swappery.io/*",
+        "://*.the-swappery.io/*",
+        "://the-swappery.com/*",
+        "://*.the-swappery.com/*",
+        "://caspernft.market/*",
+        "://*.caspernft.market/*",
       ],
       "js": [
         "./scripts/content/content.js"
