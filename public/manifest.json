@@ -69,11 +69,13 @@
         "*://casper-pad.io/*",
         "*://*.casper-pad.io/*",
         "*://the-swappery.io/*",
-        "://*.the-swappery.io/*",
-        "://the-swappery.com/*",
-        "://*.the-swappery.com/*",
-        "://caspernft.market/*",
-        "://*.caspernft.market/*"
+        "*://*.the-swappery.io/*",
+        "*://the-swappery.com/*",
+        "*://*.the-swappery.com/*",
+        "*://caspernft.market/*",
+        "*://*.caspernft.market/*",
+        "*://casper-test.com/*",
+        "*://*.casper-test.com/*"
       ],
       "js": [
         "./scripts/content/content.js"
