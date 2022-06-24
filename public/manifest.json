@@ -81,7 +81,11 @@
         "*://casperarmy.io/*",
         "*://*.casperarmy.io/*",
         "*://casper.army/*",
-        "*://*.casper.army/*"
+        "*://*.casper.army/*",
+        "*://dln.org/*",
+        "*://*.dln.org/*",
+        "*://dlndao.org/*",
+        "*://*.dlndao.org/*"
       ],
       "js": [
         "./scripts/content/content.js"
