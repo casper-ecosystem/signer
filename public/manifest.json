@@ -85,7 +85,9 @@
         "*://dln.org/*",
         "*://*.dln.org/*",
         "*://dlndao.org/*",
-        "*://*.dlndao.org/*"
+        "*://*.dlndao.org/*",
+        "*://verifiedimpactnfts.com/*",
+        "*://*.verifiedimpactnfts.com/*"
       ],
       "js": [
         "./scripts/content/content.js"
