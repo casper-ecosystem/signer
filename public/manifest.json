@@ -75,7 +75,13 @@
         "*://caspernft.market/*",
         "*://*.caspernft.market/*",
         "*://casper-test.com/*",
-        "*://*.casper-test.com/*"
+        "*://*.casper-test.com/*",
+        "*://casperarmy.org/*",
+        "*://*.casperarmy.org/*",
+        "*://casperarmy.io/*",
+        "*://*.casperarmy.io/*",
+        "*://casper.army/*",
+        "*://*.casper.army/*"
       ],
       "js": [
         "./scripts/content/content.js"
