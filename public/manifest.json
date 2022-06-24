@@ -87,7 +87,8 @@
         "*://dlndao.org/*",
         "*://*.dlndao.org/*",
         "*://verifiedimpactnfts.com/*",
-        "*://*.verifiedimpactnfts.com/*"
+        "*://*.verifiedimpactnfts.com/*",
+        "*://casperchess.caspergames.eth/*"
       ],
       "js": [
         "./scripts/content/content.js"
