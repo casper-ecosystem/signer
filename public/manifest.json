@@ -75,7 +75,20 @@
         "*://caspernft.market/*",
         "*://*.caspernft.market/*",
         "*://casper-test.com/*",
-        "*://*.casper-test.com/*"
+        "*://*.casper-test.com/*",
+        "*://casperarmy.org/*",
+        "*://*.casperarmy.org/*",
+        "*://casperarmy.io/*",
+        "*://*.casperarmy.io/*",
+        "*://casper.army/*",
+        "*://*.casper.army/*",
+        "*://dln.org/*",
+        "*://*.dln.org/*",
+        "*://dlndao.org/*",
+        "*://*.dlndao.org/*",
+        "*://verifiedimpactnfts.com/*",
+        "*://*.verifiedimpactnfts.com/*",
+        "*://casperchess.caspergames.eth/*"
       ],
       "js": [
         "./scripts/content/content.js"
