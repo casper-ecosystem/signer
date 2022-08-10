@@ -1,6 +1,6 @@
 {
   "name": "casper-signer",
-  "version": "1.4.14",
+  "version": "1.4.15",
   "private": true,
   "dependencies": {
     "@babel/core": "^7.17.2",

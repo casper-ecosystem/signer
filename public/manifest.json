@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "1.4.14",
+  "version": "1.4.15",
   "name": "Casper Signer",
   "author": "https://casper.network",
   "description": "Casper Signer is the official non-custodial wallet that allows you to manage private keys and sign transactions on Casper Network",
@@ -88,7 +88,10 @@
         "*://*.dlndao.org/*",
         "*://verifiedimpactnfts.com/*",
         "*://*.verifiedimpactnfts.com/*",
-        "*://casperchess.caspergames.eth/*"
+        "*://casperchess.caspergames.eth/*",
+        "*://*.kunftmarketplace.io/*",
+        "*://kunftmarketplace.io/*",
+        "*://crdao.ossa.dev/*"
       ],
       "js": [
         "./scripts/content/content.js"
