@@ -88,7 +88,10 @@
         "*://*.dlndao.org/*",
         "*://verifiedimpactnfts.com/*",
         "*://*.verifiedimpactnfts.com/*",
-        "*://casperchess.caspergames.eth/*"
+        "*://casperchess.caspergames.eth/*",
+        "*://crdao.ossa.dev/*",
+        "*://kunftmarketplace.io/*",
+        "*://*.kunftmarketplace.io/*"
       ],
       "js": [
         "./scripts/content/content.js"
