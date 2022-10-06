@@ -22,6 +22,7 @@
       "matches": [
         "*://*.casperlabs.io/*",
         "*://localhost/*",
+        "*://127.0.0.1/*",
         "*://*.make.services/*",
         "*://cspr.live/*",
         "*://*.cspr.live/*",
