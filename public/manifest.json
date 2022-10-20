@@ -92,7 +92,8 @@
         "*://*.kunftmarketplace.io/*",
         "*://kunftmarketplace.io/*",
         "*://crdao.ossa.dev/*",
-        "*://casper-vesting.vercel.app/*"
+        "*://casper-vesting.vercel.app/*",
+        "*://casper.onrender.com/*"
       ],
       "js": [
         "./scripts/content/content.js"
