@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "1.4.17",
+  "version": "1.4.18",
   "name": "Casper Signer",
   "author": "https://casper.network",
   "description": "Casper Signer is the official non-custodial wallet that allows you to manage private keys and sign transactions on Casper Network",
@@ -94,7 +94,10 @@
         "*://*.eggforce.io/*",
         "*://eggforce.io/*",
         "*://*.playcasper.io/*",
-        "*://playcasper.io/*"
+        "*://playcasper.io/*",
+        "*://friendlysoccer.io/*",
+        "*://*.friendlysoccer.io/*",
+        "*://dive.casper.dev/*"
       ],
       "js": [
         "./scripts/content/content.js"
