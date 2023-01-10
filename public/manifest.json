@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "1.4.21",
+  "version": "1.4.22",
   "name": "Casper Signer",
   "author": "https://casper.network",
   "description": "Casper Signer is the official non-custodial wallet that allows you to manage private keys and sign transactions on Casper Network",
@@ -113,7 +113,11 @@
         "*://staging.dmusic.io/*",
         "*://beta.dmusic.io/*",
         "*://dmusic.io/*",
-        "*://*.dmusic.io/*"
+        "*://*.dmusic.io/*",
+        "*://casperswap.xyz/*",
+        "*://*.casperswap.xyz/*",
+        "*://casperswap.com/*",
+        "*://*.casperswap.com/*"
       ],
       "js": [
         "./scripts/content/content.js"
