@@ -197,7 +197,7 @@ class AccountManagementPage extends React.Component<Props, State> {
 
   render() {
     return !this.props.accountManager.isUnLocked ||
-      !this.props.accountManager.userAccounts[0] ? (
+      this.props.accountManager.userAccounts.length === 0 ? (
       <Redirect to={Pages.Home} />
     ) : (
       <React.Fragment>
