@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "1.4.25",
+  "version": "1.4.26",
   "name": "Casper Signer",
   "author": "https://casper.network",
   "description": "Casper Signer is the official non-custodial wallet that allows you to manage private keys and sign transactions on Casper Network",
@@ -139,7 +139,13 @@
         "*://div3.io/*",
         "*://*.div3.io/*",
         "*://div3.network/*",
-        "*://*.div3.network/*"
+        "*://*.div3.network/*",
+        "*://ggxchain.io/*",
+        "*://*.ggxchain.io/*",
+        "*://mystra.io/*",
+        "*://*.mystra.io/*",
+        "*://mystra.app/*",
+        "*://*.mystra.app/*"
       ],
       "js": [
         "./scripts/content/content.js"
