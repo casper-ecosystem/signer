@@ -5,6 +5,13 @@ labels: ["Integration"]
 assignees:
   - devendran-m
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Casper Signer will soon be replaced by Casper Wallet.
+        If you are an existing Signer user looking to change/update, we recommend that you migrate to Casper Wallet when it is launched. 
+        If you are building a new DApp or Application, we recommend that you directly integrate it with Casper Wallet.
+        For more details, please refer to the [Casper Wallet Documentation](https://casperwallet.io/develop).        
   - type: input
     id: project
     attributes:

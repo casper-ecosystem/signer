@@ -8,6 +8,15 @@ You can find the latest version on the [Chrome Web Store](https://chrome.google.
 
 ## Integrating with the Casper Signer
 
+
+> **Important Note:**  
+> Casper Signer will soon be replaced by [Casper Wallet](https://www.casperwallet.io/)
+> - If you are an existing Signer user looking to change/update, we recommend that you migrate to Casper Wallet when it is launched. 
+> - If you are building a new DApp or Application, we recommend that you directly integrate it with Casper Wallet.
+> - For more details, please refer to the [Casper Wallet Documentation](https://casperwallet.io/develop). 
+
+
+
 To integrate your website with the Casper Signer on Mainnet, you need to go through an [approval process](https://github.com/casper-ecosystem/signer/wiki/Casper-Signer-Whitelisting-Request-Guide).
 
 ## Architecture 
