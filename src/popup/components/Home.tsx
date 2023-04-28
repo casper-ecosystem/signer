@@ -330,6 +330,10 @@ class Home extends React.Component<
                 variant="contained"
                 color="primary"
                 to={Pages.CreateAccount}
+                onClick={() => {
+                  // when creating a new account show deprecation message
+                  this.props.accountManager.showcasperWalletAnnouncement();
+                }}
                 style={{
                   backgroundColor: '#fff',
                   color: 'var(--cspr-dark-blue)'
