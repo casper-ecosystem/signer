@@ -1,3 +1,4 @@
+import React from 'react';
 import { action, computed, IObservableArray } from 'mobx';
 import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
@@ -5,6 +6,7 @@ import { AppState } from '../../lib/MemStore';
 import { KeyPairWithAlias } from '../../@types/models';
 import { FieldState, FormState } from 'formstate';
 import { valueRequired } from '../../lib/FormValidator';
+import { confirm } from '../components/Confirmation';
 
 class AccountManager {
   constructor(
@@ -115,6 +117,8 @@ class AccountManager {
   }
 
   async unlock(password: string) {
+    // when unlocking account show deprecation message
+    await this.showcasperWalletAnnouncement();
     return this.backgroundManager.unlock(password);
   }
 
@@ -208,6 +212,27 @@ class AccountManager {
   async configureTimeout(durationMins: number) {
     if (durationMins === this.idleTimeoutMins) return;
     await this.backgroundManager.configureTimeout(durationMins);
+  }
+
+  showcasperWalletAnnouncement() {
+    return confirm(
+      <div className="text-danger">Move to Casper Wallet</div>,
+      'Signer will be going away soon and it’s time to move. Make the switch to Casper Wallet in minutes.',
+      'Get Started',
+      'Cancel'
+    ).then(
+      // OK
+      async () => {
+        window.open(
+          'https://www.casperwallet.io/user-guide/signer-user-start-here',
+          '_newtab'
+        );
+      },
+      // CANCEL
+      async () => {
+        // close popup
+      }
+    );
   }
 }
 
