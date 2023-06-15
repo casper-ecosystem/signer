@@ -1,5 +1,18 @@
 # Casper Signer
 
+
+> **Important Note:**  
+> 
+> **Casper Signer is going to be deprecated soon, and new whitelisting requests are no longer accepted.**
+> 
+> The [Casper Wallet](https://www.casperwallet.io/) replaces the Casper Signer and offers the same functionalities with more advanced features and up-to-date support.
+> 
+> For new and existing users, and dApp developers looking to integrate signing functionality with their applications, please transition to [Casper Wallet](https://www.casperwallet.io/).
+>
+> 
+> You can find the necessary developer resources at https://www.casperwallet.io/develop
+>
+
 The Casper Signer is a browser plugin used to sign transactions for the Casper Network.
 
 You can find the latest version on the [Chrome Web Store](https://chrome.google.com/webstore/detail/casperlabs-signer/djhndpllfiibmcdbnmaaahkhchcoijce). For help and usage tips, check out the [Casper Signer User Guide](https://casper.network/docs/workflow/signer-guide).
@@ -10,12 +23,11 @@ You can find the latest version on the [Chrome Web Store](https://chrome.google.
 
 
 > **Important Note:**  
-> Casper Signer will soon be replaced by [Casper Wallet](https://www.casperwallet.io/)
-> - If you are an existing Signer user looking to change/update, we recommend that you migrate to Casper Wallet when it is launched. 
-> - If you are building a new DApp or Application, we recommend that you directly integrate it with Casper Wallet.
-> - For more details, please refer to the [Casper Wallet Documentation](https://casperwallet.io/develop). 
-
-
+> 
+> Please note that new Casper Signer Integration requests will not be processed.
+> 
+> For new and existing users, and dApp developers looking to integrate signing functionality with their applications, please transition to [Casper Wallet](https://www.casperwallet.io/).
+>
 
 To integrate your website with the Casper Signer on Mainnet, you need to go through an [approval process](https://github.com/casper-ecosystem/signer/wiki/Casper-Signer-Whitelisting-Request-Guide).
 
