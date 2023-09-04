@@ -33,7 +33,7 @@ export const ConnectedSitesPage = observer((props: Props) => {
 
   return !props.accountManager.isUnLocked ? (
     <Redirect to={Pages.Home} />
-  ) : props.connectionContainer.connectedSites[0] ? (
+  ) : props.connectionContainer.connectedSites.length > 0 ? (
     <List>
       {props.connectionContainer.connectedSites.map((item, index) => {
         return (
