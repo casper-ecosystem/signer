@@ -41,7 +41,7 @@ const MoreMenu = observer((props: Props) => {
   const classes = useStyles();
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+    // setAnchorEl(event.currentTarget);
   };
 
   const handleClose = () => {

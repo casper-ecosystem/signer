@@ -1,6 +1,6 @@
 {
   "name": "casper-signer",
-  "version": "1.4.28",
+  "version": "1.4.31",
   "private": true,
   "dependencies": {
     "@babel/core": "^7.17.2",
@@ -30,6 +30,7 @@
     "formik": "^2.2.9",
     "formstate": "^1.3.0",
     "jquery": "^3.4.1",
+    "jszip": "^3.10.1",
     "key-encoder": "^2.0.3",
     "lint-staged": "^10.1.3",
     "material-ui-popup-state": "^1.8.4",

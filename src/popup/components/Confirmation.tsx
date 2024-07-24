@@ -20,6 +20,7 @@ import AccountManager from '../container/AccountManager';
 import { ErrorContainer } from '../container/ErrorContainer';
 import { BackgroundManager } from '../BackgroundManager';
 import { AppState } from '../../lib/MemStore';
+import AccountController from '../../background/AuthController';
 
 interface Props extends ReactConfirmProps {
   proceedLabel: string;
@@ -37,10 +38,12 @@ class Confirmation extends React.Component<Props, { boxChecked: boolean }> {
   private errors = new ErrorContainer();
   private appState = new AppState();
   private background = new BackgroundManager(this.appState, this.errors);
+  private accountController = new AccountController(this.appState);
   private accountManager = new AccountManager(
     this.errors,
     this.background,
-    this.appState
+    this.appState,
+    this.accountController
   );
 
   constructor(props: Props) {

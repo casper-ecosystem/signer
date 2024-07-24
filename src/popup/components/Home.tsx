@@ -1,5 +1,6 @@
 import React from 'react';
 import logo from '../img/CasperLabs_Logo_Favicon_RGB_50px.png';
+import casperWalletBanner from '../img/Casper_Wallet_Banner.png';
 import {
   Button,
   createStyles,
@@ -9,26 +10,27 @@ import {
   Typography,
   withStyles,
   Grid,
-  Popover,
-  IconButton
+  // Popover,
+  // IconButton,
+  Link
 } from '@material-ui/core';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import NotInterestedIcon from '@material-ui/icons/NotInterested';
-import HelpIcon from '@material-ui/icons/Help';
-import { Link, Redirect } from 'react-router-dom';
+// import HelpIcon from '@material-ui/icons/Help';
+// import { Redirect, Link as L } from 'react-router-dom';
 import AccountManager from '../container/AccountManager';
 import PopupContainer from '../container/PopupContainer';
 import { HomeContainer } from '../container/HomeContainer';
 import ConnectSignerContainer from '../container/ConnectSignerContainer';
 import ErrorContainer from '../container/ErrorContainer';
 import { observer } from 'mobx-react';
-import Pages from './Pages';
-import { confirm } from './Confirmation';
+// import Pages from './Pages';
+// import { confirm } from './Confirmation';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { TextFieldWithFormState } from './Forms';
 import SigningContainer from '../container/SigningContainer';
-import { SignMessagePage } from './SignMessagePage';
-import { PurposeForOpening } from '../../shared';
+// import { SignMessagePage } from './SignMessagePage';
+// import { PurposeForOpening } from '../../shared';
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const styles = (theme: Theme) =>
@@ -128,14 +130,14 @@ class Home extends React.Component<
   }
 
   renderCreateNewVault() {
-    const showPasswordHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
-      this.setState({ helpAnchorEl: event.currentTarget });
-    };
-    const helpOpen = Boolean(showPasswordHelp);
-    const helpId = helpOpen ? 'password-help' : undefined;
-    const closePasswordHelp = () => {
-      this.setState({ helpAnchorEl: null });
-    };
+    // const showPasswordHelp = (event: React.MouseEvent<HTMLButtonElement>) => {
+    //   this.setState({ helpAnchorEl: event.currentTarget });
+    // };
+    // const helpOpen = Boolean(showPasswordHelp);
+    // const helpId = helpOpen ? 'password-help' : undefined;
+    // const closePasswordHelp = () => {
+    //   this.setState({ helpAnchorEl: null });
+    // };
     return (
       <div>
         <Grid
@@ -148,113 +150,132 @@ class Home extends React.Component<
           <Grid item className={this.props.classes.alignCenter}>
             <img src={logo} alt="logo" width={80} />
             <Typography variant={'h6'} align={'center'}>
-              New Vault
+              This extension is deprecated
             </Typography>
             <Typography>
-              Please set a password for your vault. You will need it later to
-              unlock it so keep it safe.
+              Please use{' '}
+              <Link
+                target={'_blank'}
+                href="https://chromewebstore.google.com/detail/casper-wallet/abkahkcbhngaebpcgfmhkoioedceoigp"
+              >
+                Casper Wallet
+              </Link>{' '}
+              instead.
             </Typography>
           </Grid>
 
-          <Grid item container>
-            <form
-              style={{ textAlign: 'center', width: '100%' }}
-              onSubmit={e => e.preventDefault()}
+          <Grid item className={this.props.classes.alignCenter}>
+            <Link
+              target={'_blank'}
+              href="https://chromewebstore.google.com/detail/casper-wallet/abkahkcbhngaebpcgfmhkoioedceoigp"
             >
-              <FormControl style={{ width: '80%', float: 'left' }}>
-                <TextFieldWithFormState
-                  autoFocus
-                  fieldState={
-                    this.props.homeContainer.homeForm.$.setPasswordField
-                  }
-                  required
-                  label={'Set Password'}
-                  type={'password'}
-                />
-              </FormControl>
-              <IconButton
-                onClick={showPasswordHelp}
-                style={{
-                  float: 'right',
-                  transform: 'translateY(.3em)'
-                }}
-              >
-                <HelpIcon />
-              </IconButton>
-              {this.state.helpAnchorEl && (
-                <Popover
-                  id={helpId}
-                  open={helpOpen}
-                  anchorEl={this.state.helpAnchorEl}
-                  onClose={closePasswordHelp}
-                  anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right'
-                  }}
-                  transformOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right'
-                  }}
-                >
-                  <Typography
-                    component={'summary'}
-                    style={{
-                      padding: '1.4em',
-                      backgroundColor: 'var(--cspr-dark-blue)',
-                      color: 'white'
-                    }}
-                  >
-                    For a password of min. length 10 please include at least one
-                    of each of the following:
-                    <ul>
-                      <li>lowercase letter</li>
-                      <li>UPPERCASE letter</li>
-                      <li>Number</li>
-                      <li>Special character</li>
-                    </ul>
-                    Or you can enter a &gt;20 char passphrase if you would
-                    prefer e.g. 'correct horse battery staple'
-                  </Typography>
-                </Popover>
-              )}
-              {this.props.homeContainer.homeForm.$.setPasswordField
-                .hasBeenValidated &&
-                !this.props.homeContainer.homeForm.$.setPasswordField
-                  .hasError && (
-                  <FormControl style={{ width: '80%', float: 'left' }}>
-                    <TextFieldWithFormState
-                      fieldState={
-                        this.props.homeContainer.homeForm.$.confirmPasswordField
-                      }
-                      required
-                      label={'Confirm Password'}
-                      type={'password'}
-                    />
-                  </FormControl>
-                )}
-              <Typography variant="subtitle2" className="text-danger">
-                {this.props.homeContainer.homeForm.showFormError &&
-                  this.props.homeContainer.homeForm.formError}
-              </Typography>
-              <FormControl fullWidth className={this.props.classes.margin}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  disabled={this.props.homeContainer.createVaultDisabled}
-                  onClick={async () => {
-                    const password =
-                      this.props.homeContainer.homeForm.$.setPasswordField.$;
-                    await this.props.accountManager.createNewVault(password);
-                    this.props.homeContainer.homeForm.$.setPasswordField.reset();
-                    this.props.homeContainer.homeForm.$.confirmPasswordField.reset();
-                  }}
-                >
-                  Create Vault
-                </Button>
-              </FormControl>
-            </form>
+              <img
+                src={casperWalletBanner}
+                alt="Casper Wallet Banner"
+                width={268}
+              />
+            </Link>
           </Grid>
+
+          {/*<Grid item container>*/}
+          {/*  <form*/}
+          {/*    style={{ textAlign: 'center', width: '100%' }}*/}
+          {/*    onSubmit={e => e.preventDefault()}*/}
+          {/*  >*/}
+          {/*    <FormControl style={{ width: '80%', float: 'left' }}>*/}
+          {/*      <TextFieldWithFormState*/}
+          {/*        autoFocus*/}
+          {/*        fieldState={*/}
+          {/*          this.props.homeContainer.homeForm.$.setPasswordField*/}
+          {/*        }*/}
+          {/*        required*/}
+          {/*        label={'Set Password'}*/}
+          {/*        type={'password'}*/}
+          {/*      />*/}
+          {/*    </FormControl>*/}
+          {/*<IconButton*/}
+          {/*  onClick={showPasswordHelp}*/}
+          {/*  style={{*/}
+          {/*    float: 'right',*/}
+          {/*    transform: 'translateY(.3em)'*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  <HelpIcon />*/}
+          {/*</IconButton>*/}
+          {/*{this.state.helpAnchorEl && (*/}
+          {/*  <Popover*/}
+          {/*    id={helpId}*/}
+          {/*    open={helpOpen}*/}
+          {/*    anchorEl={this.state.helpAnchorEl}*/}
+          {/*    onClose={closePasswordHelp}*/}
+          {/*    anchorOrigin={{*/}
+          {/*      vertical: 'top',*/}
+          {/*      horizontal: 'right'*/}
+          {/*    }}*/}
+          {/*    transformOrigin={{*/}
+          {/*      vertical: 'bottom',*/}
+          {/*      horizontal: 'right'*/}
+          {/*    }}*/}
+          {/*  >*/}
+          {/*    <Typography*/}
+          {/*      component={'summary'}*/}
+          {/*      style={{*/}
+          {/*        padding: '1.4em',*/}
+          {/*        backgroundColor: 'var(--cspr-dark-blue)',*/}
+          {/*        color: 'white'*/}
+          {/*      }}*/}
+          {/*    >*/}
+          {/*      For a password of min. length 10 please include at least one*/}
+          {/*      of each of the following:*/}
+          {/*      <ul>*/}
+          {/*        <li>lowercase letter</li>*/}
+          {/*        <li>UPPERCASE letter</li>*/}
+          {/*        <li>Number</li>*/}
+          {/*        <li>Special character</li>*/}
+          {/*      </ul>*/}
+          {/*      Or you can enter a &gt;20 char passphrase if you would*/}
+          {/*      prefer e.g. 'correct horse battery staple'*/}
+          {/*    </Typography>*/}
+          {/*  </Popover>*/}
+          {/*)}*/}
+          {/*    {this.props.homeContainer.homeForm.$.setPasswordField*/}
+          {/*      .hasBeenValidated &&*/}
+          {/*      !this.props.homeContainer.homeForm.$.setPasswordField*/}
+          {/*        .hasError && (*/}
+          {/*        <FormControl style={{ width: '80%', float: 'left' }}>*/}
+          {/*          <TextFieldWithFormState*/}
+          {/*            fieldState={*/}
+          {/*              this.props.homeContainer.homeForm.$.confirmPasswordField*/}
+          {/*            }*/}
+          {/*            required*/}
+          {/*            label={'Confirm Password'}*/}
+          {/*            type={'password'}*/}
+          {/*          />*/}
+          {/*        </FormControl>*/}
+          {/*      )}*/}
+          {/*    <Typography variant="subtitle2" className="text-danger">*/}
+          {/*      {this.props.homeContainer.homeForm.showFormError &&*/}
+          {/*        this.props.homeContainer.homeForm.formError}*/}
+          {/*    </Typography>*/}
+          {/*    <FormControl fullWidth className={this.props.classes.margin}>*/}
+          {/*      <Button*/}
+          {/*        type="submit"*/}
+          {/*        variant="contained"*/}
+          {/*        color="primary"*/}
+          {/*        disabled={this.props.homeContainer.createVaultDisabled}*/}
+          {/*        onClick={async () => {*/}
+          {/*          const password =*/}
+          {/*            this.props.homeContainer.homeForm.$.setPasswordField.$;*/}
+          {/*          await this.props.accountManager.createNewVault(password);*/}
+          {/*          this.props.homeContainer.homeForm.$.setPasswordField.reset();*/}
+          {/*          this.props.homeContainer.homeForm.$.confirmPasswordField.reset();*/}
+          {/*        }}*/}
+          {/*      >*/}
+          {/*        Create Vault*/}
+          {/*      </Button>*/}
+          {/*    </FormControl>*/}
+          {/*  </form>*/}
+          {/*</Grid>*/}
         </Grid>
       </div>
     );
@@ -270,9 +291,35 @@ class Home extends React.Component<
           justify={'flex-start'}
           alignItems={'center'}
         >
+          <Typography variant={'h6'} align={'center'}>
+            This extension is deprecated
+          </Typography>
+          <Typography>
+            Please use{' '}
+            <Link
+              target={'_blank'}
+              href="https://chromewebstore.google.com/detail/casper-wallet/abkahkcbhngaebpcgfmhkoioedceoigp"
+            >
+              Casper Wallet
+            </Link>{' '}
+            instead.
+          </Typography>
+
+          <Grid item className={this.props.classes.alignCenter}>
+            <Link
+              target={'_blank'}
+              href="https://chromewebstore.google.com/detail/casper-wallet/abkahkcbhngaebpcgfmhkoioedceoigp"
+            >
+              <img
+                src={casperWalletBanner}
+                alt="Casper Wallet Banner"
+                width={268}
+              />
+            </Link>
+          </Grid>
+
           {this.props.accountManager.userAccounts.length > 0 ? (
             <Grid item className={this.props.classes.alignCenter}>
-              <img src={logo} alt="logo" width={120} />
               {this.props.accountManager.userAccounts.length > 1 ? (
                 <Typography variant={'h6'} align={'center'}>
                   You have {this.props.accountManager.userAccounts.length}{' '}
@@ -305,41 +352,35 @@ class Home extends React.Component<
           <Grid item>
             <FormControl fullWidth className={this.props.classes.margin}>
               <Button
-                aria-label="This will open a new window to import a key to your vault"
-                component={Link}
                 variant="contained"
                 color="primary"
-                onClick={() =>
-                  this.props.popupContainer.callOpenPopup(
-                    PurposeForOpening.ImportAccount
-                  )
-                }
-                to={Pages.ImportAccount}
+                onClick={() => {
+                  this.props.accountManager.downloadAllAccountKeys();
+                }}
                 style={{
                   backgroundColor: '#fff',
                   color: 'var(--cspr-dark-blue)'
                 }}
               >
-                Import Account
+                Download All Account Keys
               </Button>
             </FormControl>
             <FormControl fullWidth className={this.props.classes.margin}>
               <Button
-                aria-label="This will open a form to create an account - focus will be given to the input field for key name"
-                component={Link}
+                // aria-label="This will open a form to create an account - focus will be given to the input field for key name"
+                // component={L}
                 variant="contained"
                 color="primary"
-                to={Pages.CreateAccount}
+                // to={Pages.CreateAccount}
                 onClick={() => {
-                  // when creating a new account show deprecation message
-                  this.props.accountManager.showcasperWalletAnnouncement();
+                  this.props.accountManager.lock();
                 }}
                 style={{
                   backgroundColor: '#fff',
                   color: 'var(--cspr-dark-blue)'
                 }}
               >
-                Create Account
+                Lock
               </Button>
             </FormControl>
           </Grid>
@@ -348,25 +389,25 @@ class Home extends React.Component<
     );
   }
 
-  resetVaultOnClick() {
-    confirm(
-      <div className="text-danger">Reset Vault</div>,
-      'Resetting vault will permanently delete all accounts. You must have key files backed up if you want to recover them in the future.',
-      'Reset',
-      'Cancel',
-      {
-        requireCheckbox: true,
-        checkboxText: 'I have read and understand the above.'
-      }
-    ).then(() => {
-      this.props.accountManager.resetVault();
-      this.props.errors.dismissLast();
-      this.props.homeContainer.homeForm.$.setPasswordField.reset();
-    });
-  }
+  // resetVaultOnClick() {
+  //   confirm(
+  //     <div className="text-danger">Reset Vault</div>,
+  //     'Resetting vault will permanently delete all accounts. You must have key files backed up if you want to recover them in the future.',
+  //     'Reset',
+  //     'Cancel',
+  //     {
+  //       requireCheckbox: true,
+  //       checkboxText: 'I have read and understand the above.'
+  //     }
+  //   ).then(() => {
+  //     this.props.accountManager.resetVault();
+  //     this.props.errors.dismissLast();
+  //     this.props.homeContainer.homeForm.$.setPasswordField.reset();
+  //   });
+  // }
 
   async tryUnlock() {
-    let password = this.props.homeContainer.homeForm.$.unlockPasswordField.$;
+    const password = this.props.homeContainer.homeForm.$.unlockPasswordField.$;
     try {
       await this.props.accountManager.unlock(password);
       this.props.homeContainer.homeForm.$.unlockPasswordField.reset();
@@ -437,17 +478,17 @@ class Home extends React.Component<
                   Unlock
                 </Button>
               </FormControl>
-              <div className="reset-vault">
-                <a
-                  aria-label="Reset vault - this will open a confirmation before erasing keys"
-                  href="#"
-                  className="text-danger"
-                  id="reset-link"
-                  onClick={() => this.resetVaultOnClick()}
-                >
-                  Reset Vault?
-                </a>
-              </div>
+              {/*<div className="reset-vault">*/}
+              {/*  <a*/}
+              {/*    aria-label="Reset vault - this will open a confirmation before erasing keys"*/}
+              {/*    href="#"*/}
+              {/*    className="text-danger"*/}
+              {/*    id="reset-link"*/}
+              {/*    onClick={() => this.resetVaultOnClick()}*/}
+              {/*  >*/}
+              {/*    Reset Vault?*/}
+              {/*  </a>*/}
+              {/*</div>*/}
             </div>
           </Grid>
         </Grid>
@@ -484,29 +525,30 @@ class Home extends React.Component<
   render() {
     if (this.props.accountManager.hasCreatedVault) {
       if (this.props.accountManager.isUnLocked) {
-        if (
-          !this.props.connectionContainer.connectionStatus &&
-          this.props.connectionContainer.connectionRequested
-        ) {
-          // Not connected and there is a request to connect
-          if (this.props.accountManager.userAccounts.length < 1) {
-            // Don't prompt for connection if there are no accounts
-            return this.renderAccountLists();
-          } else {
-            return <Redirect to={Pages.ConnectSigner} />;
-          }
-        } else {
-          if (this.props.signingContainer.deployToSign) {
-            return <Redirect to={Pages.SignDeploy} />;
-          } else if (this.props.signingContainer.messageToSign) {
-            return SignMessagePage(
-              this.props.signingContainer,
-              this.props.popupContainer
-            );
-          } else {
-            return this.renderAccountLists();
-          }
-        }
+        return this.renderAccountLists();
+        // if (
+        //   !this.props.connectionContainer.connectionStatus &&
+        //   this.props.connectionContainer.connectionRequested
+        // ) {
+        //   // Not connected and there is a request to connect
+        //   if (this.props.accountManager.userAccounts.length < 1) {
+        //     // Don't prompt for connection if there are no accounts
+        //     return this.renderAccountLists();
+        //   } else {
+        //     return <Redirect to={Pages.ConnectSigner} />;
+        //   }
+        // } else {
+        //   if (this.props.signingContainer.deployToSign) {
+        //     return <Redirect to={Pages.SignDeploy} />;
+        //   } else if (this.props.signingContainer.messageToSign) {
+        //     return SignMessagePage(
+        //       this.props.signingContainer,
+        //       this.props.popupContainer
+        //     );
+        //   } else {
+        //     return this.renderAccountLists();
+        //   }
+        // }
       } else {
         if (this.props.accountManager.isLockedOut) {
           return this.renderLockedOut();
@@ -518,32 +560,6 @@ class Home extends React.Component<
       return this.renderCreateNewVault();
     }
   }
-  // Nicer way to handle the rendering however this currently breaks some flows
-  // leaving here for me to implement in next release.
-  // render() {
-  //   return this.props.authContainer.hasCreatedVault ? (
-  //     this.props.authContainer.isUnLocked ? (
-  //       !this.props.connectionContainer.connectionStatus &&
-  //       this.props.connectionContainer.connectionRequested ? (
-  //         this.props.authContainer.userAccounts.length > 1 ? (
-  //           this.renderAccountLists()
-  //         ) : (
-  //           <Redirect to={Pages.ConnectSigner} />
-  //         )
-  //       ) : this.props.authContainer.unsignedDeploys.length > 0 ? (
-  //         <Redirect to={Pages.SignMessage} />
-  //       ) : (
-  //         this.renderAccountLists()
-  //       )
-  //     ) : this.props.authContainer.isLockedOut ? (
-  //       this.renderLockedOut()
-  //     ) : (
-  //       this.renderUnlock()
-  //     )
-  //   ) : (
-  //     this.renderCreateNewVault()
-  //   );
-  // }
 }
 
 export default withStyles(styles, { withTheme: true })(withRouter(Home));

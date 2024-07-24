@@ -17,14 +17,17 @@ import SigningContainer from './popup/container/SigningContainer';
 import ConnectSignerContainer from './popup/container/ConnectSignerContainer';
 import { signerTheme } from './popup/components/Theme';
 import { ThemeProvider } from '@material-ui/core';
+import AccountController from './background/AuthController';
 
 const appState = new AppState();
 const errorsContainer = new ErrorContainer();
 const backgroundManager = new BackgroundManager(appState, errorsContainer);
+const accountController = new AccountController(appState);
 const accountManager = new AccountManager(
   errorsContainer,
   backgroundManager,
-  appState
+  appState,
+  accountController
 );
 const signingContainer = new SigningContainer(backgroundManager, appState);
 const connectSignerContainer = new ConnectSignerContainer(

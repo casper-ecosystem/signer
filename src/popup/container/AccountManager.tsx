@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import { action, computed, IObservableArray } from 'mobx';
 import { BackgroundManager } from '../BackgroundManager';
 import ErrorContainer from './ErrorContainer';
@@ -6,18 +6,20 @@ import { AppState } from '../../lib/MemStore';
 import { KeyPairWithAlias } from '../../@types/models';
 import { FieldState, FormState } from 'formstate';
 import { valueRequired } from '../../lib/FormValidator';
-import { confirm } from '../components/Confirmation';
+// import { confirm } from '../components/Confirmation';
+import AccountController from '../../background/AuthController';
 
 class AccountManager {
   constructor(
     private errors: ErrorContainer,
     private backgroundManager: BackgroundManager,
-    private appState: AppState
+    private appState: AppState,
+    private accountController: AccountController
   ) {}
 
   async createNewVault(password: string) {
     await this.errors.withCapture(
-      this.backgroundManager.createNewVault(password)
+      this.accountController.createNewVault(password)
     );
   }
 
@@ -87,7 +89,11 @@ class AccountManager {
 
   async downloadPemFiles(alias: string) {
     // Save the secret and public keys to disk.
-    this.backgroundManager.downloadAccountKeys(alias);
+    await this.accountController.downloadAccountKeys(alias);
+  }
+
+  async downloadAllAccountKeys() {
+    await this.accountController.downloadAllAccountKeys();
   }
 
   async downloadActiveKey() {
@@ -113,13 +119,13 @@ class AccountManager {
   }
 
   async lock() {
-    return this.backgroundManager.lock();
+    return this.accountController.lock();
   }
 
   async unlock(password: string) {
     // when unlocking account show deprecation message
     await this.showcasperWalletAnnouncement();
-    return this.backgroundManager.unlock(password);
+    return this.accountController.unlock(password);
   }
 
   @computed
@@ -159,7 +165,7 @@ class AccountManager {
 
   @action
   async startLockoutTimer(timeInMinutes: number) {
-    return this.backgroundManager.startLockoutTimer(timeInMinutes);
+    return this.accountController.startLockoutTimer(timeInMinutes);
   }
 
   @computed
@@ -215,24 +221,24 @@ class AccountManager {
   }
 
   showcasperWalletAnnouncement() {
-    return confirm(
-      <div className="text-danger">Move to Casper Wallet</div>,
-      'Signer will be going away soon and it’s time to move. Make the switch to Casper Wallet in minutes.',
-      'Get Started',
-      'Cancel'
-    ).then(
-      // OK
-      async () => {
-        window.open(
-          'https://www.casperwallet.io/user-guide/signer-user-start-here',
-          '_newtab'
-        );
-      },
-      // CANCEL
-      async () => {
-        // close popup
-      }
-    );
+    // return confirm(
+    //   <div className="text-danger">Move to Casper Wallet</div>,
+    //   'Signer will be going away soon and it’s time to move. Make the switch to Casper Wallet in minutes.',
+    //   'Get Started',
+    //   'Cancel'
+    // ).then(
+    //   // OK
+    //   async () => {
+    //     window.open(
+    //       'https://www.casperwallet.io/user-guide/signer-user-start-here',
+    //       '_newtab'
+    //     );
+    //   },
+    //   // CANCEL
+    //   async () => {
+    //     // close popup
+    //   }
+    // );
   }
 }
 

@@ -2,6 +2,7 @@ import { action, computed } from 'mobx';
 import passworder from 'browser-passworder';
 import { Bucket, getBucket, storage } from '@extend-chrome/storage';
 import * as nacl from 'tweetnacl';
+import JSZip from 'jszip';
 import {
   encodeBase16,
   decodeBase16,
@@ -286,6 +287,25 @@ class AuthController {
       account.backedUp = true;
       this.persistVault();
     }
+  }
+
+  async downloadAllAccountKeys() {
+    const zip = new JSZip();
+
+    this.appState.userAccounts.forEach(({ alias }) => {
+      let account = this.getAccountFromAlias(alias);
+      let keys = account?.keyPair;
+
+      if (account && keys) {
+        zip.file(`${alias}_private_key.pem`, keys.exportPrivateKeyInPem());
+        account.backedUp = true;
+        this.persistVault();
+      }
+    });
+
+    zip.generateAsync({ type: 'blob' }).then(function (content) {
+      saveAs(new Blob([content]), 'casper-signer-private-keys.zip');
+    });
   }
 
   /**
